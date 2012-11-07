@@ -50,7 +50,7 @@ static void image_view_render(timestep_view *v, context_2d *ctx) {
 			LOG("ERROR: !! The map canary is dead !! %x", map->canary);
 		} else {
 #endif
-			context_2d_drawImage(ctx, 0, map->url, &src_rect, &dest_rect, 0);
+			context_2d_drawImage(ctx, 0, map->url, &src_rect, &dest_rect);
 #if defined(DEBUG)
 		}
 #endif

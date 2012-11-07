@@ -22,6 +22,7 @@
 #include "core/tealeaf_context.h"
 #include "core/tealeaf_shaders.h"
 #include "core/log.h"
+#include "core/graphics_utils.h"
 #include "platform/gl.h"
 #include <math.h>
 
@@ -71,7 +72,7 @@ static bufobj buffer[MAX_BUFFER_SIZE];
  * @param	filter_type - (int) the type of filter being used currently
  * @retval	NONE
  */
-void draw_textures_item(const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type) {
+void draw_textures_item(context_2d *ctx, const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type) {
 	//ignore this item if clip height is 0
 	if (clip.height == 0 || clip.width == 0) {
 		return;
@@ -125,6 +126,14 @@ void draw_textures_item(const matrix_3x3 *model_view, int name, int src_width, i
 	o2->destY2 = y2;
 	o2->destX3 = x1;
 	o2->destY3 = y1;
+
+	//if the last composite operation is one which requires
+	//being applied to the full canvas, do full canvas composite
+	//preparement
+	if (is_full_canvas_composite_operation(last_composite_op)) {
+		set_up_full_compositing(ctx, (int)x1, (int)y1, (int)(x2 - x1), (int)(y3 - y1), last_composite_op);
+		draw_textures_flush();
+	}
 }
 
 #if DRAW_TEXTURES_PROFILE
@@ -143,59 +152,9 @@ void draw_textures_flush() {
 
 	if (lastOpacity > 0) {
 		int stride = sizeof(float) * 4;
-		int sfactor, dfactor;
 
-		switch (last_composite_op) {
-			case source_atop:
-				sfactor = GL_DST_ALPHA;
-				dfactor = GL_ONE_MINUS_SRC_ALPHA;
-				break;
+		apply_composite_operation(last_composite_op);
 
-			case source_in:
-				sfactor = GL_DST_ALPHA;
-				dfactor = GL_ZERO;
-				break;
-
-			case source_out:
-				sfactor = GL_ONE_MINUS_DST_ALPHA;
-				dfactor = GL_ZERO;
-				break;
-
-			case source_over:
-				sfactor = GL_ONE;
-				dfactor = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-
-			case destination_atop:
-				sfactor = GL_DST_ALPHA;
-				dfactor = GL_SRC_ALPHA;
-				break;
-
-			case destination_in:
-				sfactor = GL_ZERO;
-				dfactor = GL_SRC_ALPHA;
-				break;
-
-			case destination_out:
-				sfactor = GL_ONE_MINUS_SRC_ALPHA;
-				dfactor = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-
-			case destination_over:
-				sfactor = GL_DST_ALPHA;
-				dfactor = GL_SRC_ALPHA;
-				break;
-
-			case lighter:
-			case x_or:
-			case copy:
-			default:
-				sfactor = GL_ONE;
-				dfactor = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-		}
-
-		GLTRACE(glBlendFunc(sfactor, dfactor));
 		if (use_single_shader) {
 			tealeaf_shaders_bind(PRIMARY_SHADER);
 			GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity));
