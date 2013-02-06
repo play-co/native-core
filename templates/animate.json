@@ -1,0 +1,46 @@
+
+{
+	"type": "objectTemplate",
+	"name": "animate",
+	"jsName": "Animator",
+	"hasConstructor": true,
+	"constructorArgc": 2,
+	"methods": [
+		{
+			"name": "now",
+			"argCount": 1
+		},
+		{
+			"name": "then",
+			"argCount": 1
+		},
+		{
+			"name": "commit",
+			"argCount": 0
+		},
+		{
+			"name": "clear",
+			"argCount": 0
+		},
+		{
+			"name": "wait",
+			"argCount": 1
+		},
+		{
+			"name": "pause",
+			"argCount": 0
+		},
+		{
+			"name": "resume",
+			"argCount": 0
+		},
+		{
+			"name": "isPaused",
+			"argCount": 0
+		},
+		{
+			"name": "hasFrames",
+			"argCount": 0
+		}
+	]
+}

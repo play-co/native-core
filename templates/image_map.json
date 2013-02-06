@@ -1,0 +1,48 @@
+{
+	"type": "objectTemplate",
+	"name": "timestep_image_map",
+	"jsName": "ImageMap",
+	"hasConstructor": true,
+	"constructorArgc": 12,
+	"headers": [
+		"core/timestep/timestep_image_map.h"
+	],
+	"autoProperties": [
+		{
+			"type": "int",
+			"name": "x"
+		},
+		{
+			"type": "int",
+			"name": "y"
+		},
+		{
+			"type": "int",
+			"name": "width"
+		},
+		{
+			"type": "int",
+			"name": "height"
+		},
+		{
+			"type": "int",
+			"name": "marginTop"
+		},
+		{
+			"type": "int",
+			"name": "marginRight"
+		},
+		{
+			"type": "int",
+			"name": "marginBottom"
+		},
+		{
+			"type": "int",
+			"name": "marginLeft"
+		},
+		{
+			"type": "char*",
+			"name": "url"
+		}
+	]
+}
