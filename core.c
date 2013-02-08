@@ -227,7 +227,7 @@ void core_tick(int dt) {
 	 * callback are the images that were preloaded actually drawn.
 	 */
 
-	if (show_preload || preload_hide_frame_count < 32) {
+	if (show_preload || preload_hide_frame_count < 2) {
 		//if we've gotten the core_hide_preloader cb, start counting frames
 		if (!show_preload) {
 			preload_hide_frame_count++;
