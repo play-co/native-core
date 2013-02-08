@@ -231,6 +231,9 @@ void core_tick(int dt) {
 		//if we've gotten the core_hide_preloader cb, start counting frames
 		if (!show_preload) {
 			preload_hide_frame_count++;
+
+			// May have never loaded the splash image, so hide splash here too
+			device_hide_splash();
 		}
 
 		const char *splash = config_get_splash();
@@ -256,14 +259,14 @@ void core_tick(int dt) {
 			context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
 			context_2d_loadIdentity(ctx);
 			context_2d_clear(ctx);
-			context_2d_save(ctx);
 			if (rotate) {
+				context_2d_save(ctx);
 				context_2d_translate(ctx, tex_size.height/2.f/tex->scale, tex_size.width/2.f/tex->scale);
 				context_2d_rotate(ctx, 3.14f/2.f);
 				context_2d_translate(ctx, -tex_size.width/2.f/tex->scale, -tex_size.height/2.f/tex->scale);
+				context_2d_restore(ctx);
 			}
 			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
-			context_2d_restore(ctx);
 			// we're the first, last, and only thing to draw, so flush the buffer
 			context_2d_flush(ctx);
 
