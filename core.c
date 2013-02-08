@@ -117,7 +117,7 @@ void core_init(const char *entry_point,
 	}
 
 	texture_manager_set_use_halfsized_textures();
-	texture_manager_load_texture(texture_manager_get(), "loading.png");
+	texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
 	LOG("{core} Initialization complete");
 }
@@ -227,7 +227,12 @@ void core_tick(int dt) {
 			preload_hide_frame_count++;
 		}
 
-		texture_2d *tex = texture_manager_get_texture(texture_manager_get(), "loading.png");
+		const char *splash = config_get_splash();
+		
+		texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
+		if (!tex) {
+			tex = texture_manager_load_texture(texture_manager_get(), splash);
+		}
 
 		if (tex && tex->loaded) {
 			if (do_sizing) {
@@ -238,7 +243,7 @@ void core_tick(int dt) {
 			context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
 			context_2d_loadIdentity(ctx);
 			context_2d_clear(ctx);
-			context_2d_drawImage(ctx, 0, "loading.png", &tex_size, &size, 0);
+			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
 			// we're the first, last, and only thing to draw, so flush the buffer
 			context_2d_flush(ctx);
 		}
