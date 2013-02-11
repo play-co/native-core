@@ -79,6 +79,7 @@ static inline bool run_file(const char *filename) {
  * @param	width - (int) representing the width of the screen
  * @param	height - (int) representing the height of the screen
  * @param	remote_loading - (bool) representing whether remote loading is on / orr
+ * @param	splash - (const char*) splash screen path
  * @param	simulate_id - (const char*) representing the id of the game to be simulated
  * @retval	NONE
  */
@@ -91,6 +92,7 @@ void core_init(const char *entry_point,
                int width,
                int height,
                bool remote_loading,
+               const char *splash,
 			   const char *simulate_id) {
 	config_set_remote_loading(remote_loading);
 	config_set_entry_point(entry_point);
@@ -100,6 +102,7 @@ void core_init(const char *entry_point,
 	config_set_code_port(code_port);
 	config_set_screen_width(width);
 	config_set_screen_height(height);
+	config_set_splash(splash);
 	config_set_simulate_id(simulate_id);
 	// http_init();
 	// register default HTML color names
