@@ -35,6 +35,7 @@
 #include "core/timer.h"
 #include "core/platform/native.h"
 #include "platform/http.h"
+#include "platform/device.h"
 #include <stdio.h>
 
 #define MIN_SIZE_TO_HALFSIZE 320
