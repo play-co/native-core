@@ -18,7 +18,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#include "util/detect.h"
+#include "core/util/detect.h"
 
 #ifdef __cplusplus
 extern "C" {
