@@ -204,8 +204,13 @@ void calculate_size(texture_2d *tex, bool rotate) {
 	tex_size.y = 0;
 	tex_size.width = tex->originalWidth * scale;
 	tex_size.height = tex->originalHeight * scale;
-	size.x = offsetX;
-	size.y = offsetY;
+	if (rotate) {
+		size.x = -offsetX;
+		size.y = -offsetY;
+	} else {
+		size.x = offsetX;
+		size.y = offsetY;
+	}
 	size.width = ratio * tex->originalWidth * scale;
 	size.height = ratio * tex->originalHeight * scale;
 }
