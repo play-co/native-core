@@ -5,12 +5,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- 
+
  * You should have received a copy of the GNU General Public License
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -188,7 +188,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		context_2d_fillRect(ctx, &r, &v->background_color, source_over);
 	}
 
-	JS_OBJECT_WRAPPER js_viewport = def_get_viewport(js_opts);
 
 	if (v->flip_x || v->flip_y) {
 			context_2d_translate(ctx,
@@ -204,7 +203,9 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 					v->flip_y ? -v->height / 2 : 0);
 	}
 
+	JS_OBJECT_WRAPPER js_viewport;
 	if (v->has_jsrender) {
+		js_viewport = def_get_viewport(js_opts);
 		def_timestep_view_render(v->js_view, js_ctx, js_opts);
 	} else {
 		v->timestep_view_render(v, ctx);
@@ -226,7 +227,10 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	} else {
 		context_2d_set_filter_type(ctx, FILTER_NONE);
 	}
-	def_restore_viewport(js_opts, js_viewport);
+
+	if (v->has_jsrender) {
+		def_restore_viewport(js_opts, js_viewport);
+	}
 
 	context_2d_restore(ctx);
 
