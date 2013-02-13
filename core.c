@@ -204,13 +204,8 @@ void calculate_size(texture_2d *tex, bool rotate) {
 	tex_size.y = 0;
 	tex_size.width = tex->originalWidth * scale;
 	tex_size.height = tex->originalHeight * scale;
-	if (rotate) {
-		size.x = -offsetX;
-		size.y = -offsetY;
-	} else {
-		size.x = offsetX;
-		size.y = offsetY;
-	}
+	size.x = offsetX;
+	size.y = offsetY;
 	size.width = ratio * tex->originalWidth * scale;
 	size.height = ratio * tex->originalHeight * scale;
 }
@@ -270,9 +265,9 @@ void core_tick(int dt) {
 			context_2d_clear(ctx);
 			if (rotate) {
 				context_2d_save(ctx);
-				context_2d_translate(ctx, size.height/2.f/tex->scale, size.width/2.f/tex->scale);
+				context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
 				context_2d_rotate(ctx, 3.14f/2.f);
-				context_2d_translate(ctx, -size.width/2.f/tex->scale, -size.height/2.f/tex->scale);
+				context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
 			}
 			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
 			if (rotate) {
