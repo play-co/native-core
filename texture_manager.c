@@ -759,6 +759,11 @@ void texture_manager_memory_warning(texture_manager *manager) {
 void texture_manager_set_max_memory(texture_manager *manager, int bytes) {
 	LOGFN("texture_manager_set_max_memory");
 
+	// Do not allow falling below the minimum
+	if (bytes < MIN_BYTES_FOR_TEXTURES) {
+		bytes = MIN_BYTES_FOR_TEXTURES;
+	}
+
 	if (manager->max_texture_bytes > bytes) {
 		manager->max_texture_bytes = bytes;
 	}
