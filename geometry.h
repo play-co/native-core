@@ -145,7 +145,7 @@ __attribute__((unused)) static inline bool rect_2d_equals(const rect_2d *a, cons
 
 //3x3 matrix functions
 
-#define MATRIX_3x3_ALLOW_SKEW
+//#define MATRIX_3x3_ALLOW_SKEW
 
 #define matrix_3x3_multiply(...) \
     matrix_3x3_multiply_(PP_NARG(__VA_ARGS__))(__VA_ARGS__)
@@ -189,20 +189,21 @@ __attribute__((unused)) static void inline matrix_3x3_identity(matrix_3x3 *a) {
 void matrix_3x3_multiply_m_f_f_f_f(const matrix_3x3 *a, float x, float y, float *x2, float *y2);
 
 __attribute__((unused))static inline void matrix_3x3_multiply_m_r_f_f_f_f_f_f_f_f(const matrix_3x3 *a, const rect_2d *rect, float *rx1, float *ry1,float *rx2, float *ry2,float *rx3, float *ry3,float *rx4, float *ry4) {
+	//compute the proper locations of x1 and y1
 	matrix_3x3_multiply(a, rect->x, rect->y, rx1, ry1);
-	matrix_3x3_multiply(a, rect->width, 0, rx2, ry2);
-	matrix_3x3_multiply(a, 0, rect->height, rx4, ry4);
-	*rx3 = *rx1 + *rx2 + *rx4;
-	*ry3 = *ry1 + *ry2 + *ry4;
-	*rx2 += *rx1;
-	*ry2 += *ry1;
+	//rotate the width and height vectors to be added back later
+	
+	*rx4 = a->m01 * rect->height;
+	*ry4 = a->m11 * rect->height;
+
+	*rx2 = *rx1 + a->m00 * rect->width;
+	*ry2 = *ry1 + a->m10 * rect->width;
+	
+	*rx3 = *rx2 + *rx4;
+	*ry3 = *ry2 + *ry4;
+	
 	*rx4 += *rx1;
 	*ry4 += *ry1;
-
-	/*matrix_3x3_multiply(a, rect->x, rect->y, rx1, ry1);
-	matrix_3x3_multiply(a, rect->x + rect->width, rect->y, rx2, ry2);
-	matrix_3x3_multiply(a, rect->x + rect->width, rect->y + rect->height, rx3, ry3);
-	matrix_3x3_multiply(a, rect->x, rect->y + rect->height, rx4, ry4);*/
 }
 
 __attribute__((unused)) static inline void matrix_3x3_multiply_m_r_r(const matrix_3x3 *matrix, const rect_2d_vertices *in, rect_2d_vertices *out) {
