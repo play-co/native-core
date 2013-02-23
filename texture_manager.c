@@ -570,6 +570,11 @@ void texture_manager_destroy(texture_manager *manager) {
 		m_instance = NULL;
 		m_instance_ready = false;
 	}
+
+	// Clear memory usage profile
+	m_memory_warning = false;
+	m_frame_epoch = 1;
+	m_frame_used_bytes = 0;
 }
 
 void texture_manager_touch_texture(texture_manager *manager, const char *url) {

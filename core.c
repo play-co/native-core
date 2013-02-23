@@ -35,6 +35,7 @@
 #include "core/timer.h"
 #include "core/platform/native.h"
 #include "platform/http.h"
+#include "platform/device.h"
 #include <stdio.h>
 
 #define MIN_SIZE_TO_HALFSIZE 320
@@ -79,6 +80,7 @@ static inline bool run_file(const char *filename) {
  * @param	width - (int) representing the width of the screen
  * @param	height - (int) representing the height of the screen
  * @param	remote_loading - (bool) representing whether remote loading is on / orr
+ * @param	splash - (const char*) splash screen path
  * @param	simulate_id - (const char*) representing the id of the game to be simulated
  * @retval	NONE
  */
@@ -91,6 +93,7 @@ void core_init(const char *entry_point,
                int width,
                int height,
                bool remote_loading,
+               const char *splash,
 			   const char *simulate_id) {
 	config_set_remote_loading(remote_loading);
 	config_set_entry_point(entry_point);
@@ -100,6 +103,7 @@ void core_init(const char *entry_point,
 	config_set_code_port(code_port);
 	config_set_screen_width(width);
 	config_set_screen_height(height);
+	config_set_splash(splash);
 	config_set_simulate_id(simulate_id);
 	// http_init();
 	// register default HTML color names
@@ -117,7 +121,7 @@ void core_init(const char *entry_point,
 	}
 
 	texture_manager_set_use_halfsized_textures();
-	texture_manager_load_texture(texture_manager_get(), "loading.png");
+	texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
 	LOG("{core} Initialization complete");
 }
@@ -170,7 +174,7 @@ void core_run() {
 bool show_preload = true;
 static int preload_hide_frame_count = 0;
 
-static bool do_sizing = true;
+static bool do_sizing = true, rotate = false;
 static rect_2d tex_size;
 static rect_2d size;
 
@@ -178,13 +182,19 @@ static rect_2d size;
  * @name	calculate_size
  * @brief	calclates source and destination size of the loading image
  * @param	tex - (texture_2d*) load screen texture
+ * @param	rotate - rotate 90 degrees
  * @retval	NONE
  */
-void calculate_size(texture_2d *tex) {
+void calculate_size(texture_2d *tex, bool rotate) {
 	tealeaf_canvas *canvas = tealeaf_canvas_get();
-	int scale = use_halfsized_textures ? 2 : 1;
+	int scale = tex->scale;
 	int width = canvas->framebuffer_width;
 	int height = canvas->framebuffer_height;
+	if (rotate) {
+		int t = width;
+		width = height;
+		height = t;
+	}
 	float vertical = height * 1.0f / tex->originalHeight;
 	float horizontal = width * 1.0f / tex->originalWidth;
 	float ratio = (vertical > horizontal ? vertical : horizontal);
@@ -225,22 +235,48 @@ void core_tick(int dt) {
 		//if we've gotten the core_hide_preloader cb, start counting frames
 		if (!show_preload) {
 			preload_hide_frame_count++;
+
+			// May have never loaded the splash image, so hide splash here too
+			device_hide_splash();
 		}
 
-		texture_2d *tex = texture_manager_get_texture(texture_manager_get(), "loading.png");
+		const char *splash = config_get_splash();
+		
+		texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
+		if (!tex) {
+			tex = texture_manager_load_texture(texture_manager_get(), splash);
+		}
 
 		if (tex && tex->loaded) {
 			if (do_sizing) {
-				calculate_size(tex);
+				// Calculate rotation
+				tealeaf_canvas *canvas = tealeaf_canvas_get();
+				int canvas_width = canvas->framebuffer_width;
+				int canvas_height = canvas->framebuffer_height;
+				rotate = canvas_width > canvas_height;
+				rotate ^= tex->originalWidth > tex->originalHeight;
+
+				calculate_size(tex, rotate);
 				do_sizing = false;
 			}
 
 			context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
 			context_2d_loadIdentity(ctx);
 			context_2d_clear(ctx);
-			context_2d_drawImage(ctx, 0, "loading.png", &tex_size, &size, 0);
+			if (rotate) {
+				context_2d_save(ctx);
+				context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
+				context_2d_rotate(ctx, 3.14f/2.f);
+				context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
+			}
+			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
+			if (rotate) {
+				context_2d_restore(ctx);
+			}
 			// we're the first, last, and only thing to draw, so flush the buffer
 			context_2d_flush(ctx);
+
+			device_hide_splash();
 		}
 	}
 

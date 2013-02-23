@@ -47,7 +47,6 @@ void launch_remote_texture_load(const char *url);
 char *resource_loader_string_from_url(const char *url);
 bool resource_loader_load_image_with_c(texture_2d *texture);
 void resource_loader_destroy_resource(resource_p res);
-unsigned char *load_texture(texture_2d *texture);
 
 #ifdef __cplusplus
 }
