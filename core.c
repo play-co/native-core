@@ -266,7 +266,7 @@ void core_tick(int dt) {
 			if (rotate) {
 				context_2d_save(ctx);
 				context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
-				context_2d_rotate(ctx, 3.14f/2.f);
+				context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
 				context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
 			}
 			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
