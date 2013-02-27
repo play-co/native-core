@@ -172,8 +172,8 @@ void texture_manager_get_sheet_size(char *url, int *width, int *height) {
 	}
 
 	//default
-	*width = 1024;
-	*height = 1024;
+	*width = DEFAULT_SHEET_DIMENSION;
+	*height = DEFAULT_SHEET_DIMENSION;
 }
 
 texture_2d *texture_manager_load_texture(texture_manager *manager, const char *url) {
