@@ -293,6 +293,20 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	*out_originalWidth = w_old;
 	*out_originalHeight = h_old;
 	
+	switch (ch) {
+	case 1:
+	case 3:
+	case 4:
+		// We accept 1, 3, and 4 -channel images
+		break;
+	default:
+		// Monochrome: 2 byte/pixel: first for color, second for alpha
+		// TODO: Needs to be converted up to RGBA to work with OpenGL
+		LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
+		free(bits);
+		return NULL;
+	}
+
 	// Catch invalid image dimensions
 	if (w_old <= 0 || h_old <= 0) {
 		LOG("{resources} WARNING: Invalid image dimensions w=%d, h=%d", w_old, h_old);
@@ -524,7 +538,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 				// Zero out the bottom gap
 				const int BOTTOM_GAP = (h - ((h_old+1)>>1)) * (w << 2);
 				memset(rowo, 0, BOTTOM_GAP);
-			} else { // RGB
+			} else if (ch == 3) { // RGB
 				const int OLD_STRIDE = w_old * 3;
 				const int RIGHT_GAP = (w - ((w_old+1)>>1)) * 3;
 				const int ROUND_W_OLD = w_old & ~1;
@@ -589,6 +603,65 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 				// Zero out the bottom gap
 				const int BOTTOM_GAP = (h - ((h_old+1)>>1)) * w * 3;
 				memset(rowo, 0, BOTTOM_GAP);
+			} else { // ch == 1
+				// Monochrome: 1 byte/pixel color
+				// Natively compatible with GL_LUMINANCE
+				const int OLD_STRIDE = w_old;
+				const int RIGHT_GAP = (w - ((w_old+1)>>1));
+				const int ROUND_W_OLD = w_old & ~1;
+				const int ROUND_H_OLD = h_old & ~1;
+#ifdef VERBOSE_LOAD_TEX
+				LOG("{resources} Processing: Scaling Monochrome oddWidth=%d, oddHeight=%d, oldStride=%d, rightGap=%d, roundWOld=%d, roundHOld=%d", (int)(w_old&1), (int)(h_old&1), OLD_STRIDE, RIGHT_GAP, ROUND_W_OLD, ROUND_H_OLD);
+#endif
+				
+				for (y = 0; y < ROUND_H_OLD; y += 2, rowi += OLD_STRIDE) {
+					// Average 2x2 blocks
+					for (x = 0; x < ROUND_W_OLD; x += 2) {
+						rowo[0] = COLOR_AVG4(rowi[0], rowi[1], rowi[OLD_STRIDE], rowi[OLD_STRIDE+1]);
+
+						rowi += 2;
+						rowo += 1;
+					}
+
+					// Average final odd column with row below it
+					if (w_old & 1) {
+						rowo[0] = COLOR_AVG2(rowi[0], rowi[OLD_STRIDE]);
+
+						rowi += 1;
+						rowo += 1;
+					}
+
+					// Zero out the right gap
+					memset(rowo, 0, RIGHT_GAP);
+					rowo += RIGHT_GAP;
+				}
+
+				// Average final odd row with itself
+				if (h_old & 1) {
+					// Average 1x2 blocks
+					for (x = 0; x < ROUND_W_OLD; x += 2) {
+						rowo[0] = COLOR_AVG2(rowi[0], rowi[1]);
+
+						rowi += 2;
+						rowo += 1;
+					}
+
+					// Direct copy final pixel
+					if (w_old & 1) {
+						rowo[0] = rowi[0];
+						
+						rowi += 1;
+						rowo += 1;
+					}
+
+					// Zero out the right gap
+					memset(rowo, 0, RIGHT_GAP);
+					rowo += RIGHT_GAP;
+				}
+
+				// Zero out the bottom gap
+				const int BOTTOM_GAP = (h - ((h_old+1)>>1)) * w;
+				memset(rowo, 0, BOTTOM_GAP);
 			}
 		} else { // Unscaled: Made a power of 2
 			// If RGBA,
@@ -606,36 +679,56 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 						rowo[1] = MULT_ALPHA(rowi[1], a);
 						rowo[2] = MULT_ALPHA(rowi[2], a);
 						rowo[3] = a;
-						
+
 						rowi += 4;
 						rowo += 4;
 					}
-					
+
 					// Zero out the right gap
 					memset(rowo, 0, RIGHT_GAP);
 					rowo += RIGHT_GAP;
 				}
-				
+
 				// Zero out the bottom gap
 				memset(rowo, 0, (h - h_old) * (w << 2));
-			} else { // RGB
+			} else if (ch == 3) { // RGB
 #ifdef VERBOSE_LOAD_TEX
 				LOG("{resources} Processing: Unscaled RGB");
 #endif
 				const int W_OLD_BYTES = w_old * 3;
 				const int W_BYTES = w * 3;
 				const int RIGHT_GAP = W_BYTES - W_OLD_BYTES;
-				
+
 				for (y = 0; y < h_old; ++y, rowi += W_OLD_BYTES) {
 					// Copy full row without changes
 					memcpy(rowo, rowi, W_OLD_BYTES);
 					rowo += W_OLD_BYTES;
-					
+
 					// Zero out the right gap
 					memset(rowo, 0, RIGHT_GAP);
 					rowo += RIGHT_GAP;
 				}
-				
+
+				// Zero out the bottom gap
+				memset(rowo, 0, (h - h_old) * W_BYTES);
+			} else { // ch == 1
+#ifdef VERBOSE_LOAD_TEX
+				LOG("{resources} Processing: Unscaled Monochrome");
+#endif
+				const int W_OLD_BYTES = w_old;
+				const int W_BYTES = w;
+				const int RIGHT_GAP = W_BYTES - W_OLD_BYTES;
+
+				for (y = 0; y < h_old; ++y, rowi += W_OLD_BYTES) {
+					// Copy full row without changes
+					memcpy(rowo, rowi, W_OLD_BYTES);
+					rowo += W_OLD_BYTES;
+
+					// Zero out the right gap
+					memset(rowo, 0, RIGHT_GAP);
+					rowo += RIGHT_GAP;
+				}
+
 				// Zero out the bottom gap
 				memset(rowo, 0, (h - h_old) * W_BYTES);
 			}
@@ -664,6 +757,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 				row += 4;
 			}
 		}
+		// 1 and 3 -channel images do not need any modification here
 		
 		pixel_data = bits;
 	}

@@ -706,7 +706,17 @@ void texture_manager_tick(texture_manager *manager) {
 		int channels = cur_tex->num_channels;
 		int width = cur_tex->width / cur_tex->scale;
 		int height = cur_tex->height / cur_tex->scale;
-		glTexImage2D(GL_TEXTURE_2D, 0, channels == 4 ? GL_RGBA : GL_RGB, width, height, 0, (channels == 4 ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, cur_tex->pixel_data);
+
+		// Select the right internal and input format based on the number of channels
+		GLint format;
+		switch (channels) {
+		case 1: format = GL_LUMINANCE; break;
+		case 3: format = GL_RGB; break;
+		default:
+		case 4: format = GL_RGBA; break;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data);
 		core_check_gl_error();
 		texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
