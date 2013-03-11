@@ -83,8 +83,16 @@ unsigned char *load_png_from_memory(unsigned char *bits, int *width, int *height
 	png_get_IHDR(png_ptr, info_ptr, &twidth, &theight, &bit_depth, &color_type,
 	             NULL, NULL, NULL);
 
-	if (color_type == 3 || color_type == 2) {
+	// If color type would be paletted,
+	if (color_type & PNG_COLOR_TYPE_PALETTE) {
+		// Convert to RGB to be OpenGL compatible
 		png_set_palette_to_rgb(png_ptr);
+	}
+
+	// If color type would be grayscale and bit depth is low,
+	if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
+		// Bump it up to be OpenGL compatible
+		png_set_expand_gray_1_2_4_to_8(png_ptr);
 	}
 
 	//update width and height based on png info
