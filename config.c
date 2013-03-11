@@ -33,6 +33,7 @@
 #define DEF_WIDTH 480
 #define DEF_HEIGHT 800
 #define DEF_REMOTE_LOADING false
+#define DEF_SPLASH "loading.png"
 
 typedef struct config_t {
 	const char *code_path;      // Code path
@@ -45,6 +46,7 @@ typedef struct config_t {
 	int height;                 // Screen height
 	bool remote_loading;        // Textures and other resources loaded from Java?
 	const char *simulate_id;    // Simulate id
+	const char *splash;			// Splash path
 } config;
 
 static config cfg = {
@@ -57,7 +59,8 @@ static config cfg = {
 	DEF_WIDTH,
 	DEF_HEIGHT,
 	DEF_REMOTE_LOADING,
-	DEF_SIMULATE_ID
+	DEF_SIMULATE_ID,
+	DEF_SPLASH
 };
 
 #define RESET_STR(X, DEF) { \
@@ -177,6 +180,17 @@ void config_set_screen_height(int height) {
 	cfg.height = height;
 }
 
+/**
+ * @name	config_set_splash
+ * @brief	sets the splash screen path on the config object
+ * @param	splash - path to splash screen
+ * @retval	NONE
+ */
+void config_set_splash(const char *splash) {
+	SET_STR(cfg.splash, splash, DEF_SPLASH);
+}
+
+
 // Getters
 /**
  * @name	config_get_simulate_id
@@ -269,6 +283,16 @@ int config_get_screen_height() {
 }
 
 /**
+ * @name	config_get_splash
+ * @brief	gets the splash screen path from the config
+ * @retval	const char * - splash path
+ */
+const char *config_get_splash() {
+	return cfg.splash;
+}
+
+
+/**
  * @name	config_clear
  * @brief	resets all config options to defaults
  * @retval	NONE
@@ -284,8 +308,8 @@ void config_clear() {
 	cfg.width = DEF_WIDTH;
 	cfg.height = DEF_HEIGHT;
 	cfg.remote_loading = DEF_REMOTE_LOADING;
+	RESET_STR(cfg.splash, DEF_SPLASH);
 }
 
 #undef SET_STR
 #undef RESET_STR
-

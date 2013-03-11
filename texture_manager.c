@@ -172,8 +172,8 @@ void texture_manager_get_sheet_size(char *url, int *width, int *height) {
 	}
 
 	//default
-	*width = 1024;
-	*height = 1024;
+	*width = DEFAULT_SHEET_DIMENSION;
+	*height = DEFAULT_SHEET_DIMENSION;
 }
 
 texture_2d *texture_manager_load_texture(texture_manager *manager, const char *url) {
@@ -570,6 +570,11 @@ void texture_manager_destroy(texture_manager *manager) {
 		m_instance = NULL;
 		m_instance_ready = false;
 	}
+
+	// Clear memory usage profile
+	m_memory_warning = false;
+	m_frame_epoch = 1;
+	m_frame_used_bytes = 0;
 }
 
 void texture_manager_touch_texture(texture_manager *manager, const char *url) {
@@ -758,6 +763,11 @@ void texture_manager_memory_warning(texture_manager *manager) {
  */
 void texture_manager_set_max_memory(texture_manager *manager, int bytes) {
 	LOGFN("texture_manager_set_max_memory");
+
+	// Do not allow falling below the minimum
+	if (bytes < MIN_BYTES_FOR_TEXTURES) {
+		bytes = MIN_BYTES_FOR_TEXTURES;
+	}
 
 	if (manager->max_texture_bytes > bytes) {
 		manager->max_texture_bytes = bytes;

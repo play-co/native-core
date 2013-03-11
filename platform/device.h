@@ -18,7 +18,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#include "util/detect.h"
+#include "core/util/detect.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +27,8 @@ extern "C" {
 const char *device_global_id();
 const char *device_info();
 int device_total_memory();
-
+void device_hide_splash();
+	
 #ifdef __cplusplus
 }
 #endif
