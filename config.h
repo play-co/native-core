@@ -56,6 +56,9 @@ extern "C" {
 
 	void config_set_screen_height(int height);
 	int config_get_screen_height();
+	
+	void config_set_splash(const char *splash);
+	const char *config_get_splash();
 
 	void config_clear();
 

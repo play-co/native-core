@@ -36,6 +36,7 @@ void core_init(const char *entry_point,
                int width,
                int height,
                bool remote_loading,
+			   const char *splash,
                const char *simulate_id);
 bool core_init_js(const char *uri, const char *version);
 void core_report_gl_error(int error_code);
