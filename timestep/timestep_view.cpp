@@ -150,7 +150,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		v->dirty_z_index = false;
 		timestep_view_sort_subviews(v);
 	}
-	if (v->width <= 0 || v->height <= 0) {
+	if (v->width < 0 || v->height < 0) {
 		return;
 	}
 
