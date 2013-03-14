@@ -710,10 +710,16 @@ void texture_manager_tick(texture_manager *manager) {
 		// Select the right internal and input format based on the number of channels
 		GLint format;
 		switch (channels) {
-		case 1: format = GL_LUMINANCE; break;
-		case 3: format = GL_RGB; break;
-		default:
-		case 4: format = GL_RGBA; break;
+			case 1:
+				format = GL_LUMINANCE;
+				break;
+			case 3:
+				format = GL_RGB;
+				break;
+			default:
+			case 4:
+				format = GL_RGBA;
+				break;
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data);
