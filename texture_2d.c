@@ -294,17 +294,17 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	*out_originalHeight = h_old;
 	
 	switch (ch) {
-	case 1:
-	case 3:
-	case 4:
-		// We accept 1, 3, and 4 -channel images
-		break;
-	default:
-		// Monochrome: 2 byte/pixel: first for color, second for alpha
-		// TODO: Needs to be converted up to RGBA to work with OpenGL
-		LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
-		free(bits);
-		return NULL;
+		case 1:
+		case 3:
+		case 4:
+			// We accept 1, 3, and 4 -channel images
+			break;
+		default:
+			// Monochrome: 2 byte/pixel: first for color, second for alpha
+			// TODO: Needs to be converted up to RGBA to work with OpenGL
+			LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
+			free(bits);
+			return NULL;
 	}
 
 	// Catch invalid image dimensions
