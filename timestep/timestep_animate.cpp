@@ -415,15 +415,12 @@ static void view_animation_tick(view_animation *anim, int dt) {
 		// if we got paused during a callback or the
 		// frame is not finished yet, don't continue
 		if (!frame_finished || anim->is_paused) {
-			if (!anim->is_scheduled) {
-				view_animation_unschedule(anim);
-				def_animate_finish(anim->js_anim);
-			}
 			return;
 		}
 	}
 
 	view_animation_unschedule(anim);
+	def_animate_finish(anim->js_anim);
 	LOGFN("end view_animation_tick");
 }
 
