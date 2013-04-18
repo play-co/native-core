@@ -345,6 +345,10 @@ static void apply_frame(anim_frame *frame, timestep_view *view, double tt) {
 static void view_animation_tick(view_animation *anim, int dt) {
 	LOGFN("view_animation_tick");
 
+	if (!anim->is_scheduled) {
+		return;
+	}
+
 	timestep_view *view = anim->view;
 	if (!view) {
 		LOG("WARNING: Animation tick terminated early because view died");
