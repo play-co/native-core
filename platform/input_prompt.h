@@ -18,6 +18,6 @@
 #ifndef INPUT_PROMPT_H
 #define INPUT_PROMPT_H
 
-int input_prompt_show(const char *title, const char *message, const char *value, bool auto_show_keyboard);
+int input_prompt_show(const char *title, const char *message, const char *value, bool auto_show_keyboard, bool is_password);
 
 #endif
