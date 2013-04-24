@@ -209,11 +209,12 @@ texture_2d *texture_2d_new_from_data(int width, int height, void *data) {
  * @retval	NONE
  */
 void texture_2d_save(texture_2d *tex) {
-	tex->saved_data = NULL;
+	if (tex->saved_data) {
+		free(tex->saved_data);
+	}
 	tex->saved_data = (char *)malloc(sizeof(char) * tex->width * tex->height * 4);
 	tealeaf_canvas_context_2d_bind(tex->ctx);
 	glReadPixels(0, 0, tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, tex->saved_data);
-	glDeleteTextures(1, (const GLuint *)&tex->name);
 	context_2d *ctx = context_2d_get_onscreen();
 	tealeaf_canvas_bind_render_buffer(ctx);
 }
