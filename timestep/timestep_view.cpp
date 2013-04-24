@@ -40,10 +40,10 @@ static void image_view_render(timestep_view *v, context_2d *ctx) {
 		float scale_y = (float)v->height / (map->margin_top + map->height + map->margin_bottom);
 		rect_2d src_rect = {map->x, map->y, map->width, map->height};
 		rect_2d dest_rect = {
-			(int)(scale_x * map->margin_left),
-			(int)(scale_y * map->margin_top),
-			(int)(scale_x * map->width),
-			(int)(scale_y * map->height)
+			scale_x * map->margin_left,
+			scale_y * map->margin_top,
+			scale_x * map->width,
+			scale_y * map->height
 		};
 #if defined(DEBUG)
 		if (map->canary != CANARY_GOOD) {
