@@ -525,7 +525,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 						rowo[2] = MULT_ALPHA(rowi[2], a);
 						rowo[3] = (unsigned char)a;
 						
-						rowi += 4;
+						//rowi += 4;
 						rowo += 4;
 					}
 					
@@ -590,7 +590,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 						rowo[1] = rowi[1];
 						rowo[2] = rowi[2];
 						
-						rowi += 3;
+						//rowi += 3;
 						rowo += 3;
 					}
 					
@@ -649,7 +649,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 					if (w_old & 1) {
 						rowo[0] = rowi[0];
 						
-						rowi += 1;
+						//rowi += 1;
 						rowo += 1;
 					}
 

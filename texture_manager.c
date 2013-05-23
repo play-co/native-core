@@ -266,9 +266,11 @@ void texture_manager_on_texture_failed_to_load(texture_manager *manager, const c
 
 	pthread_mutex_lock(&mutex);
 	texture_2d *tex = texture_manager_get_texture(manager, url);
-	tex->loaded = true;
-	//texture_manager_free_texture(manager, to_be_destroyed);
-	manager->approx_bytes_to_load -= tex->assumed_texture_bytes;
+	if (tex) {
+		tex->loaded = true;
+		//texture_manager_free_texture(manager, to_be_destroyed);
+		manager->approx_bytes_to_load -= tex->assumed_texture_bytes;
+	}
 
 	pthread_mutex_unlock(&mutex);
 }
