@@ -120,13 +120,13 @@ texture_2d *texture_2d_new_from_url(char *url) {
  */
 static inline int get_tex_from_data(int w, int h, void *data) {
 	GLuint name;
-	glGenTextures(1, &name);
-	glBindTexture(GL_TEXTURE_2D, name);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	GLTRACE(glGenTextures(1, &name));
+	GLTRACE(glBindTexture(GL_TEXTURE_2D, name));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
 	return name;
 }
 
@@ -210,7 +210,7 @@ void texture_2d_save(texture_2d *tex) {
 	free(tex->saved_data);
 	tex->saved_data = (char *)malloc(sizeof(char) * tex->width * tex->height * 4);
 	tealeaf_canvas_context_2d_bind(tex->ctx);
-	glReadPixels(0, 0, tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, tex->saved_data);
+	GLTRACE(glReadPixels(0, 0, tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, tex->saved_data));
 	context_2d *ctx = context_2d_get_onscreen();
 	tealeaf_canvas_bind_render_buffer(ctx);
 }
@@ -234,7 +234,7 @@ void texture_2d_reload(texture_2d *tex) {
  * @retval	NONE
  */
 void texture_2d_destroy(texture_2d *tex) {
-	glDeleteTextures(1, (const GLuint *)&tex->name);
+	GLTRACE(glDeleteTextures(1, (const GLuint *)&tex->name));
 	free(tex->url);
 	free(tex->pixel_data);
 	free(tex);

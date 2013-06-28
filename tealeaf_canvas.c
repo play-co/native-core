@@ -50,7 +50,7 @@ void tealeaf_canvas_init(int framebuffer_name) {
 	int width = config_get_screen_width();
 	int height = config_get_screen_height();
 	GLuint offscreen_buffer_name;
-	glGenFramebuffers(1, &offscreen_buffer_name);
+	GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
 	canvas.offscreen_framebuffer = offscreen_buffer_name;
 	canvas.view_framebuffer = framebuffer_name;
 	canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
@@ -71,10 +71,10 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
 		return;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, tex->name);
-	glFinish();
-	glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0);
+	GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+	GLTRACE(glFinish());
+	GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
+	GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0));
 	canvas.framebuffer_width = tex->originalWidth;
 	canvas.framebuffer_height = tex->originalHeight;
 	canvas.framebuffer_offset_bottom = tex->height - tex->originalHeight;
@@ -87,7 +87,7 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
  * @retval	NONE
  */
 void tealeaf_canvas_bind_render_buffer(context_2d *ctx) {
-	glBindFramebuffer(GL_FRAMEBUFFER, canvas.view_framebuffer);
+	GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.view_framebuffer));
 	canvas.framebuffer_width = ctx->width;
 	canvas.framebuffer_height = ctx->height;
 	canvas.framebuffer_offset_bottom = 0;
@@ -141,8 +141,8 @@ void tealeaf_canvas_resize(int w, int h) {
 		context_2d_clear(ctx);
 	}
 
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	GLTRACE(glEnable(GL_BLEND));
 	config_set_screen_width(w);
 	config_set_screen_height(h);
 	canvas.should_resize = true;
