@@ -83,7 +83,7 @@ void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
 	tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
 	tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
 	tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
-	glViewport(0, 0, ctx->backing_width, ctx->backing_height);
+	GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
 }
 
 
@@ -114,7 +114,7 @@ void disable_scissor(context_2d *ctx) {
 	draw_textures_flush();
 	last_scissor_rect.x = last_scissor_rect.y = 0;
 	last_scissor_rect.width = last_scissor_rect.height = -1;
-	glDisable(GL_SCISSOR_TEST);
+	GLTRACE(glDisable(GL_SCISSOR_TEST));
 }
 
 /**
@@ -135,8 +135,8 @@ void enable_scissor(context_2d *ctx) {
 	last_scissor_rect.y = bounds->y;
 	last_scissor_rect.width = bounds->width;
 	last_scissor_rect.height = bounds->height;
-	glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height);
-	glEnable(GL_SCISSOR_TEST);
+	GLTRACE(glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height));
+	GLTRACE(glEnable(GL_SCISSOR_TEST));
 }
 
 /**
@@ -423,7 +423,7 @@ void context_2d_restore(context_2d *ctx) {
 void context_2d_clear(context_2d *ctx) {
 	draw_textures_flush();
 	context_2d_bind(ctx);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLTRACE(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 /**
@@ -519,19 +519,19 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
 		vertex_count += 1;
 	}
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex->name);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GLTRACE(glActiveTexture(GL_TEXTURE0));
+	GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	// Render the vertex array
-	glUniform1f(global_shaders[DRAWING_SHADER].point_size, point_size);
-	glVertexAttribPointer(global_shaders[DRAWING_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, (float *) vertex_buffer);
+	GLTRACE(glUniform1f(global_shaders[DRAWING_SHADER].point_size, point_size));
+	GLTRACE(glVertexAttribPointer(global_shaders[DRAWING_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, (float *) vertex_buffer));
 	float alpha = color->a * ctx->globalAlpha[ctx->mvp];
-	glUniform4f(global_shaders[DRAWING_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha);
-	glDrawArrays(GL_POINTS, 0, vertex_count);
+	GLTRACE(glUniform4f(global_shaders[DRAWING_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
+	GLTRACE(glDrawArrays(GL_POINTS, 0, vertex_count));
 	tealeaf_shaders_bind(PRIMARY_SHADER);
 }
 
@@ -566,11 +566,11 @@ void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
 	//    0,1  -  2,3
 	GLfloat v[8];
 	matrix_3x3_multiply(GET_MODEL_VIEW_MATRIX(ctx), rect, (float *)&v[4], (float *)&v[5], (float *)&v[6], (float *)&v[7], (float *)&v[2], (float *)&v[3], (float *)&v[0], (float *)&v[1]);
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glUniform4f(global_shaders[PRIMARY_SHADER].draw_color, 0, 0, 0, 0); // set color to 0
-	glVertexAttribPointer(global_shaders[PRIMARY_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, v);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GLTRACE(glBlendFunc(GL_ONE, GL_ZERO));
+	GLTRACE(glUniform4f(global_shaders[PRIMARY_SHADER].draw_color, 0, 0, 0, 0)); // set color to 0
+	GLTRACE(glVertexAttribPointer(global_shaders[PRIMARY_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, v));
+	GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 }
 
 /**
@@ -597,11 +597,11 @@ void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bo
 		m.m10 = proj->m10;m.m11 = proj->m11;m.m12 = 0;m.m13 = proj->m12;
 		m.m20 = 0;        m.m21 = 0;        m.m22 = 1;m.m23 = 0;
 		m.m30 = proj->m20;m.m31 = proj->m21;m.m32 = 0;m.m33 = proj->m22;
-		glUseProgram(shader->program);
-		glUniformMatrix4fv(shader->proj_matrix, 1, false, (float *) &m);
+		GLTRACE(glUseProgram(shader->program));
+		GLTRACE(glUniformMatrix4fv(shader->proj_matrix, 1, false, (float *) &m));
 		shader->last_width = width;
 		shader->last_height = height;
-		glUseProgram(global_shaders[current_shader].program);
+		GLTRACE(glUseProgram(global_shaders[current_shader].program));
 	}
 }
 
@@ -623,15 +623,15 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
 	draw_textures_flush();
 	context_2d_bind(ctx);
 	tealeaf_shaders_bind(FILL_RECT_SHADER);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 	rect_2d_vertices in, out;
 	rect_2d_to_rect_2d_vertices(rect, &in);
 	matrix_3x3_multiply_m_r_r(GET_MODEL_VIEW_MATRIX(ctx), &in, &out);
 	float alpha = color->a * ctx->globalAlpha[ctx->mvp];
 	// TODO: will pre-multiplied alpha cause a loss-of-precision in color for filling rectangles?
-	glUniform4f(global_shaders[FILL_RECT_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha);
-	glVertexAttribPointer(global_shaders[FILL_RECT_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, &out);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	GLTRACE(glUniform4f(global_shaders[FILL_RECT_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
+	GLTRACE(glVertexAttribPointer(global_shaders[FILL_RECT_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, &out));
+	GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
 	tealeaf_shaders_bind(PRIMARY_SHADER);
 }
 

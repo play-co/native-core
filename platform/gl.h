@@ -52,4 +52,21 @@
 #define GL_ORTHO glOrtho
 #endif
 
+
+// Define ENABLE_GLTRACE to report errors in GL commands at the console (slow)
+#ifdef ENABLE_GLTRACE
+#define GLTRACE(cmd) cmd
+#else
+#define GLTRACE_STRINGIZE(x) GLTRACE_STRINGIZE1(x)
+#define GLTRACE_STRINGIZE1(x) #x
+#define GLTRACE_FILELINE __FILE__ " at line " GLTRACE_STRINGIZE(__LINE__)
+
+#define GLTRACE(cmd) cmd; \
+	{	int gltrace_err = glGetError(); \
+		if (gltrace_err != 0) { \
+			LOG("{gl} TRACE: Error %d at " #cmd " in " GLTRACE_FILELINE, gltrace_err); \
+		} \
+	}
+#endif
+
 #endif //GL_H
