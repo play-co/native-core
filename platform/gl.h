@@ -54,9 +54,10 @@
 
 
 // Define ENABLE_GLTRACE to report errors in GL commands at the console (slow)
-#ifdef ENABLE_GLTRACE
+#ifndef ENABLE_GLTRACE
 #define GLTRACE(cmd) cmd
 #else
+
 #define GLTRACE_STRINGIZE(x) GLTRACE_STRINGIZE1(x)
 #define GLTRACE_STRINGIZE1(x) #x
 #define GLTRACE_FILELINE __FILE__ " at line " GLTRACE_STRINGIZE(__LINE__)
