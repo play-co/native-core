@@ -696,12 +696,12 @@ void texture_manager_tick(texture_manager *manager) {
 		}
 
 		GLuint texture = 0;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		GLTRACE(glGenTextures(1, &texture));
+		GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 		//create the texture
 		int channels = cur_tex->num_channels;
 		int width = cur_tex->width / cur_tex->scale;
@@ -722,7 +722,7 @@ void texture_manager_tick(texture_manager *manager) {
 				break;
 		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data);
+		GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
 		core_check_gl_error();
 		texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
