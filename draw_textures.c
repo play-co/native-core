@@ -195,41 +195,41 @@ void draw_textures_flush() {
 				break;
 		}
 
-		glBlendFunc(sfactor, dfactor);
+		GLTRACE(glBlendFunc(sfactor, dfactor));
 		if (use_single_shader) {
 			tealeaf_shaders_bind(PRIMARY_SHADER);
-			glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity);
+			GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity));
 		} else {
 			//TODO: implement filters using filter_type on views properly
 			if (last_filter_type == FILTER_NONE) {
 				tealeaf_shaders_bind(PRIMARY_SHADER);
-				glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity);
+				GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity));
 			} else if (last_filter_type == FILTER_LINEAR_ADD) {
 				float r = last_filter_color.r * last_filter_color.a;
 				float g = last_filter_color.g * last_filter_color.a;
 				float b = last_filter_color.b * last_filter_color.a;
 				tealeaf_shaders_bind(LINEAR_ADD_SHADER);
-				glUniform4f(global_shaders[current_shader].add_color, r, g, b, 0);
-				glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity);
+				GLTRACE(glUniform4f(global_shaders[current_shader].add_color, r, g, b, 0));
+				GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity));
 			} else if (last_filter_type == FILTER_MULTIPLY) {
 				tealeaf_shaders_bind(PRIMARY_SHADER);
-				glUniform4f(global_shaders[current_shader].draw_color, last_filter_color.r * lastOpacity, last_filter_color.g * lastOpacity, last_filter_color.b * lastOpacity, lastOpacity);
+				GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, last_filter_color.r * lastOpacity, last_filter_color.g * lastOpacity, last_filter_color.b * lastOpacity, lastOpacity));
 			}
 		}
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, lastName);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glVertexAttribPointer(global_shaders[current_shader].vertex_coords, 2, GL_FLOAT, GL_FALSE, stride, ((float *) buffer) + 2);
+		GLTRACE(glActiveTexture(GL_TEXTURE0));
+		GLTRACE(glBindTexture(GL_TEXTURE_2D, lastName));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+		GLTRACE(glVertexAttribPointer(global_shaders[current_shader].vertex_coords, 2, GL_FLOAT, GL_FALSE, stride, ((float *) buffer) + 2));
 		//TexCoord0, XY (Also called ST. Also called UV), FLOAT.
-		glVertexAttribPointer(global_shaders[current_shader].tex_coords, 2, GL_FLOAT, GL_FALSE, stride, buffer);
+		GLTRACE(glVertexAttribPointer(global_shaders[current_shader].tex_coords, 2, GL_FLOAT, GL_FALSE, stride, buffer));
 #if DRAW_TEXTURES_PROFILE
 		gettimeofday(&prevTime, NULL);
 #endif
-		glDrawArrays(GL_TRIANGLES, 0, 3 * bufSize);
+		GLTRACE(glDrawArrays(GL_TRIANGLES, 0, 3 * bufSize));
 #if DRAW_TEXTURES_PROFILE
 		gettimeofday(&now, NULL);
 		LOG("{drawtex} Flush: %d %d %ld %ld\n", bufSize / 2, lastName,
