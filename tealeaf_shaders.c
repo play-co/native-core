@@ -392,8 +392,9 @@ void tealeaf_shaders_bind(unsigned int shader_type) {
 		tealeaf_shaders_linear_add_bind();
 	}
 
-	tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, false);
 	current_shader = shader_type;
+
+	tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, false);
 }
 
 /**
