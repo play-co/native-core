@@ -323,6 +323,7 @@ texture_2d *texture_manager_add_texture_from_image(texture_manager *manager, con
 }
 
 texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture_2d *tex) {
+    tex->loaded = true;
     HASH_ADD_KEYPTR(url_hash, manager->url_to_tex, tex->url, strlen(tex->url), tex);
     manager->tex_count++;
     //TODO handle the accounting stuff
