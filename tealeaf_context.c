@@ -557,6 +557,8 @@ void context_2d_scale(context_2d *ctx, float x, float y) {
 void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
 	draw_textures_flush();
 	context_2d_bind(ctx);
+	tealeaf_shaders_bind(PRIMARY_SHADER);
+
 	// Draw a rectangle using triangle strip:
 	//    (0,1)-(2,3)-(4,5) and (2,3)-(4,5)-(6,7)
 	//
