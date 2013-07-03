@@ -211,21 +211,18 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		v->timestep_view_render(v, ctx);
 	}
 
-	for (unsigned int i = 0; i < v->subview_count; i++) {
-		timestep_view *subview = v->subviews[i];
-		timestep_view_wrap_render(subview, ctx, js_ctx, js_opts);
-	}
-
-
 	//restore filters
+	if (v->filter_type != FILTER_NONE) {
+		context_2d_set_filter_type(ctx, FILTER_NONE);
+	}
 	ctx->filter_color.r = 0;
 	ctx->filter_color.g = 0;
 	ctx->filter_color.b = 0;
 	ctx->filter_color.a = 0;
-	if (v->superview) {
-		context_2d_set_filter_type(ctx, v->superview->filter_type);
-	} else {
-		context_2d_set_filter_type(ctx, FILTER_NONE);
+
+	for (unsigned int i = 0; i < v->subview_count; i++) {
+		timestep_view *subview = v->subviews[i];
+		timestep_view_wrap_render(subview, ctx, js_ctx, js_opts);
 	}
 
 	if (v->has_jsrender) {
