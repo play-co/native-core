@@ -141,7 +141,7 @@ static inline int get_tex_from_data(int w, int h, void *data) {
 
 #define MIN_TEX_SIZE 1 /* Set minimum texture size */
 
-texture_2d *texture_2d_new_from_data(int width, int height, void *data) {
+texture_2d *texture_2d_new_from_data(int width, int height, const void *data) {
 	GLuint name;
 	int w = width, h = height;
 

@@ -58,7 +58,7 @@ extern "C" {
 
 texture_2d *texture_2d_new_from_url(char *url);
 texture_2d *texture_2d_new_from_dimensions(int width, int height);
-texture_2d *texture_2d_new_from_data(int width, int height, void *data);
+texture_2d *texture_2d_new_from_data(int width, int height, const void *data);
 texture_2d *texture_2d_new_from_image(char *url, int name, int width, int height, int original_width, int original_height);
 void texture_2d_destroy(texture_2d *tex);
 

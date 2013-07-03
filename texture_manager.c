@@ -102,6 +102,12 @@ bool is_remote_resource(const char *url) {
 	return is_remote;
 }
 
+texture_2d *texture_manager_new_texture_from_data(texture_manager *manager, int width, int height, const void *data) {
+    texture_2d *tex = texture_2d_new_from_data(width, height, data);
+    texture_manager_add_texture(manager, tex, false);
+    return tex;
+}
+
 texture_2d *texture_manager_new_texture(texture_manager *manager, int width, int height) {
 	LOGFN("texture_manager_new_texture");
 	texture_2d *tex = texture_2d_new_from_dimensions(width, height);
@@ -314,6 +320,12 @@ texture_2d *texture_manager_add_texture_from_image(texture_manager *manager, con
 	texture_2d *tex = texture_2d_new_from_image(permanent_url, name, width, height, original_width, original_height);
 	texture_manager_add_texture(manager, tex, false);
 	return tex;
+}
+
+texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture_2d *tex) {
+    HASH_ADD_KEYPTR(url_hash, manager->url_to_tex, tex->url, strlen(tex->url), tex);
+    manager->tex_count++;
+    //TODO handle the accounting stuff
 }
 
 static int last_accessed_compare(texture_2d *a, texture_2d *b) {
