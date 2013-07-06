@@ -90,6 +90,7 @@ timestep_view *timestep_view_init() {
 	v->flip_x = false;
 	v->flip_y = false;
 	v->scale = 1;
+	v->abs_scale = 1;
 	v->clip = false;
 	v->visible = true;
 	v->z_index = 0;
@@ -138,6 +139,12 @@ void timestep_view_set_type(timestep_view *v, unsigned int type) {
 	LOGFN("end timestep_view_set_type");
 }
 
+static double abs_scale = 1;
+
+void timestep_view_start_render() {
+	abs_scale = 1;
+}
+
 void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAPPER js_ctx, JS_OBJECT_WRAPPER js_opts) {
 	LOGFN("timestep_view_wrap_render");
 	if (!v->visible || !v->opacity) { return; }
@@ -158,7 +165,13 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	context_2d_translate(ctx, v->x + v->anchor_x + v->offset_x, v->y + v->anchor_y + v->offset_y);
 
 	if (v->r) { context_2d_rotate(ctx, v->r); }
-	if (v->scale != 1) { context_2d_scale(ctx, v->scale, v->scale); }
+	if (v->scale != 1) {
+		context_2d_scale(ctx, v->scale, v->scale);
+		abs_scale *= v->scale;
+	}
+
+	v->abs_scale = abs_scale;
+
 	if (v->opacity != 1) {
 		double alpha = context_2d_getGlobalAlpha(ctx);
 		context_2d_setGlobalAlpha(ctx, alpha * v->opacity);

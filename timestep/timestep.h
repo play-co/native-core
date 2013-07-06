@@ -65,6 +65,7 @@ typedef struct timestep_view_t {
 	double offset_x;
 	double offset_y;
 	double scale;
+	double abs_scale;
 	double opacity;
 	bool needs_reflow;
 	bool clip;

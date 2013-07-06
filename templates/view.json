@@ -67,6 +67,10 @@
 			"name": "scale"
 		},
 		{
+			"type": "double",
+			"name": "absScale"
+		},
+		{
 			"type": "bool",
 			"name": "clip"
 		},
