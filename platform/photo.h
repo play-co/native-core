@@ -21,8 +21,8 @@ extern "C" {
 #endif
     
     
-int camera_get_photo(NSString *url);
-int gallery_get_photo(NSString *url);
+int camera_get_photo(const char *url);
+int gallery_get_photo(const char *url);
 int camera_get_next_id();
 int gallery_get_next_id();
 
