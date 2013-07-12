@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include "core/log.h"
  
 #include "curl/curl.h"
 #include "crypto/sha1.h"
@@ -86,7 +87,7 @@ void read_etags_from_cache() {
 			} else {
 				size_t bytes_read = fread(file_buffer, 1, file_size, f);
 				if (bytes_read != file_size) {
-					printf("error reading file: size %li read %li\n", file_size, bytes_read);
+					//printf("error reading file: size %li read %li\n", file_size, bytes_read);
 				}
 			}
 			fclose(f);
@@ -167,7 +168,8 @@ char *get_filename_from_url(const char *url) {
 	SHA1Result(&ctx, result);
 	char *filename = malloc(sizeof(char)*digest_size * 2);
 	char *buf_ptr = filename;
-	for (int i = 0; i < digest_size; i++) {
+    int i;
+	for (i = 0; i < digest_size; i++) {
 		buf_ptr += sprintf(buf_ptr, "%x", result[i]);
 	};
 	return filename;
@@ -192,7 +194,7 @@ void get_cached_image_for_url(struct image_data *image_data) {
 		} else {
 			size_t bytes_read = fread(file_buffer, 1, file_size, f);
 			if (bytes_read != file_size) {
-				printf("error reading file - size: %li read: %li\n", file_size, bytes_read);
+				//printf("error reading file - size: %li read: %li\n", file_size, bytes_read);
 				file_buffer = NULL;
 			}
 		}
@@ -208,8 +210,9 @@ bool save_image_and_etag_for_url(const char *url, struct image_data *image) {
 	free(filename);
 	//TODO ERROR CHECKING!!!!!!!!!!
 	FILE *f = fopen(path, "wb");
-	size_t bytes_written = fwrite(image->bytes, sizeof(char), image->size, f);
-	printf("wrote %li bytes\n", bytes_written);
+//	size_t bytes_written = 
+    fwrite(image->bytes, sizeof(char), image->size, f);
+//	LOG("wrote %d bytes\n", bytes_written);
 	fclose(f);
 	free(path);
     write_etags_to_cache();

@@ -118,7 +118,7 @@ texture_2d *texture_2d_new_from_url(char *url) {
  * @param	data - (void *) bytes of the image to create a texture from
  * @retval	int - the gl id representing the created texture
  */
-static inline int get_tex_from_data(int w, int h, void *data) {
+static inline int get_tex_from_data(int w, int h, const void *data) {
 	GLuint name;
 	GLTRACE(glGenTextures(1, &name));
 	GLTRACE(glBindTexture(GL_TEXTURE_2D, name));

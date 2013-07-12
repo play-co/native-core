@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include "core/image-cache/include/image_cache.h"
 #include "core/config.h"
 #include "platform/resource_loader.h"
 #include "core/list.h"
@@ -61,10 +62,17 @@ static bool m_running = false; // Flag indicating that the background texture lo
 static texture_manager *m_instance = NULL;
 static bool m_instance_ready = false; // Flag indicating that the instance is ready
 static bool m_memory_warning = false; // Flag indicating that a memory warning occurred
+
 static ThreadsThread m_load_thread = THREADS_INVALID_THREAD;
 static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond_var   = PTHREAD_COND_INITIALIZER;
+
+static ThreadsThread m_image_cache_load_thread = THREADS_INVALID_THREAD;
+static pthread_mutex_t image_cache_mutex     = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t image_cache_cond_var   = PTHREAD_COND_INITIALIZER;
+
 static texture_2d *tex_load_list = NULL;
+static texture_2d *image_cache_load_list = NULL;
 static json_t *spritesheet_map_root = NULL;
 static json_t *fontsheet_map_root = NULL;
 static int m_frame_epoch = 1;
@@ -213,7 +221,15 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 
 	// If URL represents a remote resource, or is a special resource
 	if (remote_resource) {
-		launch_remote_texture_load(permanent_url);
+        if (!strncmp("http", url, 4)) {  
+            //run thread image_cache_get_image
+            pthread_mutex_lock(&image_cache_mutex);
+            LIST_ADD(&image_cache_load_list, tex);
+            pthread_cond_signal(&image_cache_cond_var); //signal there is a texture to load
+            pthread_mutex_unlock(&image_cache_mutex);
+        } else {
+            launch_remote_texture_load(permanent_url);
+        }
 	} else {
 		//lock, add to the pool and signal something has been added
 		pthread_mutex_lock(&mutex);
@@ -327,6 +343,7 @@ texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture
     HASH_ADD_KEYPTR(url_hash, manager->url_to_tex, tex->url, strlen(tex->url), tex);
     manager->tex_count++;
     //TODO handle the accounting stuff
+    return tex;
 }
 
 static int last_accessed_compare(texture_2d *a, texture_2d *b) {
@@ -507,6 +524,40 @@ void texture_manager_background_texture_loader(void *dummy) {
 	pthread_mutex_unlock(&mutex);
 }
 
+void image_cache_background_loader(void *dummy) {
+
+	while (m_running) {
+
+        pthread_mutex_lock(&image_cache_mutex);
+		texture_2d *cur_tex = image_cache_load_list;
+        texture_2d *old_cur = cur_tex;
+
+        if (old_cur == NULL) {
+            pthread_cond_wait(&image_cache_cond_var, &image_cache_mutex);
+            pthread_mutex_unlock(&image_cache_mutex);
+            continue;
+        } 
+
+        LIST_ITERATE(&image_cache_load_list, cur_tex);
+        LIST_REMOVE(&image_cache_load_list, old_cur);
+        pthread_mutex_unlock(&image_cache_mutex);
+
+
+        if (old_cur->pixel_data == NULL && old_cur->url != NULL) {
+            struct image_data *data = image_cache_get_image(old_cur->url);
+            old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
+            free(data->bytes);
+        }
+
+        pthread_mutex_lock(&mutex);
+        LIST_ADD(&tex_load_list, old_cur);
+        pthread_mutex_unlock(&mutex);
+
+	}
+
+}
+
+
 void texture_manager_set_use_halfsized_textures() {
     texture_manager *texman = texture_manager_get();
 
@@ -545,6 +596,7 @@ texture_manager *texture_manager_get() {
 
 			// Launch the loader thread
 			m_load_thread = threads_create_thread(texture_manager_background_texture_loader, m_instance);
+			m_image_cache_load_thread = threads_create_thread(image_cache_background_loader, m_instance);
 			// Mark the instance as being ready
 			m_instance_ready = true;
 		}
@@ -577,6 +629,7 @@ void texture_manager_destroy(texture_manager *manager) {
 	free(manager);
 	// Clear the texture load list
 	tex_load_list = NULL;
+	image_cache_load_list = NULL;
 
 	// If manager is the singleton instance, clear it also
 	if (manager == m_instance) {
