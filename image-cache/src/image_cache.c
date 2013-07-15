@@ -205,18 +205,33 @@ void get_cached_image_for_url(struct image_data *image_data) {
 }
 
 bool save_image_and_etag_for_url(const char *url, struct image_data *image) {
+    bool success = true;
 	char *filename = get_filename_from_url(url);
-	char *path = get_full_path(filename); 
+	char *path = get_full_path(filename);
 	free(filename);
-	//TODO ERROR CHECKING!!!!!!!!!!
+    
 	FILE *f = fopen(path, "wb");
-//	size_t bytes_written = 
-    fwrite(image->bytes, sizeof(char), image->size, f);
-//	LOG("wrote %d bytes\n", bytes_written);
-	fclose(f);
+    if (!f) {
+        LOG("error opening file %s", path);
+        success = false;
+    } else {
+        size_t bytes_written = fwrite(image->bytes, sizeof(char), image->size, f);
+        if (bytes_written != image->size) {
+            success = false;
+            LOG("error writing file - wrote %zu but expected %zu bytes", bytes_written, image->size);
+            bool removed = remove((const char*)path);
+            if (!removed) {
+                LOG("Failed to remove file - this is probably not good!");
+            }
+        } else {
+            LOG("Wrote cache file for image %s", url);
+        }
+        fclose(f);
+    }
+
 	free(path);
     write_etags_to_cache();
-	return true;	
+	return success;
 }
 
 bool image_exists_in_cache(const char *url) {
@@ -229,6 +244,9 @@ bool image_exists_in_cache(const char *url) {
 }
 
 struct image_data *image_cache_get_image(const char *url) {
+    if (!strcmp("http://s.wee.cat/users/f30dedad59394b5f9c21f605b49d28b4/image.png", url)) {
+        LOG("THE BAD ONE");
+    }
 	const char *etag = NULL;
 	if (image_exists_in_cache(url)) {
 		//if we don't have a local copy cached, don't bother with
@@ -312,16 +330,18 @@ struct image_data *image_cache_fetch_remote_image(const char *url, const char *e
 			image_data->etag = NULL;
 		}
 		HASH_ADD_KEYPTR(hh, image_cache, image_data->url, strlen(image_data->url), image_data);
-	}
+	} else {
+        LOG("loaded existing image data");
+    }
 	
 	if (image.size > 0) {
+        
 		printf("got an updated image!\n");
 		//we got an image back
 		image_data->bytes = image.bytes;
 		image_data->size = image.size;
 		free(image_data->etag);
 		image_data->etag = strdup(parse_etag_from_headers(header.bytes));
-        save_image_and_etag_for_url(url, image_data);
 
 	} else {
 		printf("didn't get an image from the server - probably already up to date\n");
