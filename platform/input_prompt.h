@@ -19,4 +19,6 @@
 int input_prompt_show(const char *title, const char *message, const char *value, bool auto_show_keyboard, bool is_password);
 void input_prompt_show_soft_keyboard(const char *curr_val, const char *hint, bool has_backward, bool has_foward, const char *input_type, int max_length);
 void input_prompt_hide_soft_keyboard();
+void input_prompt_show_status_bar();
+void input_prompt_hide_status_bar();
 #endif
