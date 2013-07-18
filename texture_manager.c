@@ -738,8 +738,8 @@ void texture_manager_tick(texture_manager *manager) {
 		{
 			int url_len = (int)strlen(cur_tex->url);
 			
-			if (url_len > 400) {
-				event_len = url_len + 112;
+			if (url_len > 300) {
+				event_len = url_len + 212;
 				dynamic_str = (char*)malloc(event_len);
 				event_str = dynamic_str;
 			} else {
