@@ -13,11 +13,10 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-#ifndef INPUT_PROMPT_H
-#define INPUT_PROMPT_H
+#ifndef STATUS_BAR_H
+#define STATUS_BAR_H
 
-int input_prompt_show(const char *title, const char *message, const char *value, bool auto_show_keyboard, bool is_password);
-void input_prompt_show_soft_keyboard(const char *curr_val, const char *hint, bool has_backward, bool has_foward, const char *input_type, int max_length);
-void input_prompt_hide_soft_keyboard();
+void status_bar_show();
+void status_bar_hide();
 
 #endif
