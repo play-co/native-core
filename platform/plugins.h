@@ -16,6 +16,6 @@
 #ifndef PLUGINS_H
 #define PLUGINS_H
 
-void plugins_send_event(const char *pluginClass, const char *pluginClassMethod, const char *data);
+char *plugins_send_event(const char *pluginClass, const char *pluginClassMethod, const char *data);
 
 #endif
