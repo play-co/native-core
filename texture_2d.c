@@ -286,6 +286,9 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	// Process file data (PNG/JPEG) into rasterized image data in file format
 	int w_old = 0, h_old = 0, ch = 0;
 	unsigned char *bits = load_image_from_memory((unsigned char*)data, (long)sz, &w_old, &h_old, &ch);
+	if (bits == NULL) {
+		return NULL;
+	}
 	*out_channels = ch;
 	*out_originalWidth = w_old;
 	*out_originalHeight = h_old;
