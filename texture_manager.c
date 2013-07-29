@@ -502,7 +502,7 @@ void texture_manager_background_texture_loader(void *dummy) {
 		while (cur_tex) {
 			texture_2d *old_cur = NULL;
 
-			if (cur_tex->pixel_data == NULL && cur_tex->url != NULL) {
+			if (cur_tex->pixel_data == NULL && cur_tex->url != NULL && !cur_tex->failed) {
 				TEXLOG("Passing to load_image_with_c: %s", cur_tex->url);
 
 				if (!resource_loader_load_image_with_c(cur_tex)) { //if not loading from C remove from list
@@ -546,6 +546,9 @@ void image_cache_background_loader(void *dummy) {
         if (old_cur->pixel_data == NULL && old_cur->url != NULL) {
             struct image_data *data = image_cache_get_image(old_cur->url);
             old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
+			if (old_cur->pixel_data == NULL) {
+				old_cur->failed = true;
+			}
             free(data->bytes);
 			data->bytes = NULL;
         }
@@ -762,46 +765,56 @@ void texture_manager_tick(texture_manager *manager) {
 			continue;
 		}
 
-		GLuint texture = 0;
-		GLTRACE(glGenTextures(1, &texture));
-		GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-		//create the texture
-		int channels = cur_tex->num_channels;
-		int width = cur_tex->width / cur_tex->scale;
-		int height = cur_tex->height / cur_tex->scale;
+		char buf[512];
+		if (!cur_tex->failed) {
 
-		// Select the right internal and input format based on the number of channels
-		GLint format;
-		switch (channels) {
-			case 1:
-				format = GL_LUMINANCE;
-				break;
-			case 3:
-				format = GL_RGB;
-				break;
-			default:
-			case 4:
-				format = GL_RGBA;
-				break;
+			GLuint texture = 0;
+			GLTRACE(glGenTextures(1, &texture));
+			GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+			//create the texture
+			int channels = cur_tex->num_channels;
+			int width = cur_tex->width / cur_tex->scale;
+			int height = cur_tex->height / cur_tex->scale;
+
+			// Select the right internal and input format based on the number of channels
+			GLint format;
+			switch (channels) {
+				case 1:
+					format = GL_LUMINANCE;
+					break;
+				case 3:
+					format = GL_RGB;
+					break;
+				default:
+				case 4:
+					format = GL_RGBA;
+					break;
+			}
+
+			GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
+			core_check_gl_error();
+			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
+					cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
+					cur_tex->num_channels, cur_tex->scale, false);
+			//create json event string
+			snprintf(buf, sizeof(buf),
+					"{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
+					",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
+					cur_tex->url, (int)cur_tex->height,
+					(int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
+					(int)texture, (int)cur_tex->width);
+
+		} else {
+			//create json event string
+			snprintf(buf, sizeof(buf),
+					"{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}",
+					cur_tex->url);
 		}
 
-		GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
-		core_check_gl_error();
-		texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
-							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
-							cur_tex->num_channels, cur_tex->scale, false);
-		//create json event string
-		char buf[512];
-		snprintf(buf, sizeof(buf),
-				"{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
-				",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
-				cur_tex->url, (int)cur_tex->height,
-				(int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
-				(int)texture, (int)cur_tex->width);
 		//dispatch the event
 		pthread_mutex_unlock(&mutex);
 		// TODO: Is this a thread safety problem?  Does the tex_load_list get modified from another thread?
