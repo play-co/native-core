@@ -690,7 +690,7 @@ void texture_manager_tick(texture_manager *manager) {
 	texture_2d *cur_tex = tex_load_list;
 	while (cur_tex) {
 		//skip this if texture is not ready to load
-		if (cur_tex->pixel_data == NULL || cur_tex->url == NULL) {
+		if (!cur_tex->failed && (cur_tex->pixel_data == NULL || cur_tex->url == NULL)) {
 			LIST_ITERATE(&tex_load_list, cur_tex);
 			continue;
 		}
