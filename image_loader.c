@@ -40,10 +40,23 @@ void png_image_bytes_read(png_structp png_ptr, png_bytep data, png_size_t length
 	png_ptr->io_ptr += length;
 }
 
+static void readpng2_error_handler(png_structp png_ptr, 
+                                   png_const_charp msg)
+{
+	jmp_buf *jbuf;
+  
+    LOG("{resources} PNG image is corrupted.  Error=%s\n", msg);
+  
+    jbuf = png_get_error_ptr(png_ptr);
+  
+    longjmp(*jbuf, 1);
+}
+
 unsigned char *load_png_from_memory(unsigned char *bits, int *width, int *height, int *channels) {
+	jmp_buf jbuf;
+
 	//create png struct
-	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
-	                      NULL, NULL);
+	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, &jbuf, readpng2_error_handler, NULL);
 
 	if (!png_ptr) {
 		return NULL;
@@ -65,7 +78,7 @@ unsigned char *load_png_from_memory(unsigned char *bits, int *width, int *height
 		return NULL;
 	}
 
-	if (setjmp(png_jmpbuf(png_ptr))) {
+	if (setjmp(jbuf)) {
 		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 		return NULL;
 	}
