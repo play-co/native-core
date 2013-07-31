@@ -204,7 +204,9 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	}
 
 	JS_OBJECT_WRAPPER js_viewport;
+	bool should_restore_viewport = false;
 	if (v->has_jsrender) {
+		should_restore_viewport = true;
 		js_viewport = def_get_viewport(js_opts);
 		def_timestep_view_render(v->js_view, js_ctx, js_opts);
 	} else {
@@ -225,7 +227,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		timestep_view_wrap_render(subview, ctx, js_ctx, js_opts);
 	}
 
-	if (v->has_jsrender) {
+	if (should_restore_viewport) {
 		def_restore_viewport(js_opts, js_viewport);
 	}
 
