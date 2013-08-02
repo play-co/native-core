@@ -16,7 +16,7 @@
 #ifndef INPUT_PROMPT_H
 #define INPUT_PROMPT_H
 
-int input_prompt_show(const char *title, const char *message, const char *value, bool auto_show_keyboard, bool is_password);
+int input_prompt_show(const char *title, const char *message, const char *ok_text, const char *cancel_text, const char *value, bool auto_show_keyboard, bool is_password);
 void input_prompt_show_soft_keyboard(const char *curr_val, const char *hint, bool has_backward, bool has_foward, const char *input_type, int max_length, int cursorPos);
 void input_prompt_hide_soft_keyboard();
 
