@@ -152,7 +152,7 @@ const char *get_etag_for_url(const char *url) {
 	struct image_data *data = NULL;
 	HASH_FIND_STR(image_cache, url, data);
 	if (data) {
-		etag = data->etag;	
+		etag = data->etag;
 	} else {
 		printf("didn't find image in cache\n");
 	}
@@ -341,8 +341,12 @@ struct image_data *image_cache_fetch_remote_image(const char *url, const char *e
 		image_data->bytes = image.bytes;
 		image_data->size = image.size;
 		free(image_data->etag);
-		image_data->etag = strdup(parse_etag_from_headers(header.bytes));
-
+		char *etag = parse_etag_from_headers(header.bytes);
+		if (etag) {
+			image_data->etag = strdup(etag);
+		} else {
+			LOG("no etag for %s", url);
+		}
 	} else {
 		printf("didn't get an image from the server - probably already up to date\n");
 	}
