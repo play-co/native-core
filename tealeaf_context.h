@@ -43,7 +43,7 @@ typedef struct context_2d_t {
 	matrix_3x3 proj_matrix;
 	float globalAlpha[MODEL_VIEW_STACK_SIZE];
 	matrix_3x3 modelView[MODEL_VIEW_STACK_SIZE];
-	unsigned int mvp; // model view pointer
+	int mvp; // model view pointer
 	rect_2d clipStack[MODEL_VIEW_STACK_SIZE];
 	rgba filter_color;
 	int filter_type;
