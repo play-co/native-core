@@ -323,51 +323,191 @@ void context_2d_set_filter_type(context_2d *ctx, int filter_type) {
  */
 void context_2d_setClip(context_2d *ctx, rect_2d clip) {
 	matrix_3x3 *modelView = GET_MODEL_VIEW_MATRIX(ctx);
-	//  LOG("setClip: %f %f %f %f", clip.x, clip.y, clip.width, clip.height);
-	// TODO: clipping with rectangles doesn't work so great with rotated or scaled coordinates...
-	float x1, y1, x2, y2;
+
+#ifdef MATRIX_3x3_ALLOW_SKEW
+	// TODO: Can this be done more efficiently?
+	float clip_x, clip_y, clip_w, clip_h;
+	float x1, y1, x2, y2, x3, y3, x4, y4;
+
 	matrix_3x3_multiply(modelView, clip.x, clip.y, &x1, &y1);
 	matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y + clip.height, &x2, &y2);
-	clip.x = x1;
-	clip.y = y1;
-	clip.width = x2 - x1;
-	clip.height = y2 - y1;
-	int i = ctx->mvp - 1;
-	rect_2d ctx_clip;
-	ctx_clip.x = ctx->clipStack[i].x;
-	ctx_clip.y = ctx->clipStack[i].y;
-	ctx_clip.width = ctx->clipStack[i].width;
-	ctx_clip.height = ctx->clipStack[i].height;
+	matrix_3x3_multiply(modelView, clip.x, clip.y + clip.height, &x3, &y3);
+	matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y, &x4, &y4);
 
-	//flip the y to be back at top left for easier readability of intersection testing
-	if (ctx->on_screen && clip.height > 0) {
-		ctx_clip.y = -ctx_clip.y +  ctx->canvas->framebuffer_height + ctx->canvas->framebuffer_offset_bottom - ctx_clip.height;
+	clip_x = x1;
+	if (x2 < clip_x) {
+		clip_x = x2;
 	}
+	if (x3 < clip_x) {
+		clip_x = x3;
+	}
+	if (x4 < clip_x) {
+		clip_x = x4;
+	}
+	
+	clip_y = y1;
+	if (y2 < clip_y) {
+		clip_y = y2;
+	}
+	if (y3 < clip_y) {
+		clip_y = y3;
+	}
+	if (y4 < clip_y) {
+		clip_y = y4;
+	}
+	
+	clip_w = x1;
+	if (x2 > clip_w) {
+		clip_w = x2;
+	}
+	if (x3 > clip_w) {
+		clip_w = x3;
+	}
+	if (x4 > clip_w) {
+		clip_w = x4;
+	}
+	
+	clip_h = y1;
+	if (y2 > clip_h) {
+		clip_h = y2;
+	}
+	if (y3 > clip_h) {
+		clip_h = y3;
+	}
+	if (y4 > clip_h) {
+		clip_h = y4;
+	}
+	
+	clip.x = clip_x;
+	clip.y = clip_y;
+	clip.width = clip_w - clip_x;
+	clip.height = clip_h - clip_y;
+#else
+	float clip0x = clip.x, clip0y = clip.y;
+	float clip1x = clip0x + clip.width, clip1y = clip0y + clip.height;
 
-	//width = -1 if view is not clipping so ignore it
-	if (ctx_clip.width > -1) {
-		//set clip rect to empty if the clip coming in is outside of the clip stack's top clipping rect
-		if (clip.x >= ctx_clip.x + ctx_clip.width || clip.x + clip.width <= ctx_clip.x ||
-		        clip.y >= ctx_clip.y + ctx_clip.height || clip.y + clip.height <= ctx_clip.y) {
-			clip.x = clip.y = clip.height = clip.width = 0;
+	// float x1, y1, x2, y2, x3, y3, x4, y4;
+	// x1 = clip0x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
+	// y1 = clip0x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
+	// x2 = clip1x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
+	// y2 = clip1x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
+	// x3 = clip1x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
+	// y3 = clip1x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
+	// x4 = clip0x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
+	// y4 = clip0x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
+
+	float m00 = modelView->m00, m01 = modelView->m01, m10 = modelView->m10, m11 = modelView->m11;
+	float a = clip0x * m00;
+	float b = clip1x * m10;
+	float c = clip0y * m11;
+	float d = clip0y * m01;
+	float e = clip1x * m00;
+	float f = clip1y * m01;
+	float g = clip0x * m10;
+	float h = clip1y * m11;
+
+	// If x1 < x2,
+	if ((clip0x < clip1x) ^ (m00 < 0)) {
+		// If x2 < x3,
+		if ((clip0y < clip1y) ^ (m01 < 0)) {
+			// (x1, y2) -> (x3, y4)
+			clip.x = a + d;
+			clip.y = b + c;
+			clip.width = e + f;
+			clip.height = g + h;
 		} else {
-			clip.x = ctx_clip.x > x1 ?   ctx_clip.x :  x1;
-			clip.y = ctx_clip.y > y1 ?   ctx_clip.y :  y1;
-			clip.width = (ctx_clip.x + ctx_clip.width < x2 ? ctx_clip.x + ctx_clip.width :  x2) - clip.x;
-			clip.height = (ctx_clip.y + ctx_clip.height < y2 ? ctx_clip.y + ctx_clip.height :   y2) - clip.y;
+			// (x4, y1) -> (x2, y3)
+			clip.x = a + f;
+			clip.y = g + c;
+			clip.width = e + d;
+			clip.height = b + h;
+		}
+	} else {
+		// If x2 < x3,
+		if ((clip0y < clip1y) ^ (m01 < 0)) {
+			// (x2, y3) -> (x4, y1)
+			clip.x = e + d;
+			clip.y = b + h;
+			clip.width = a + f;
+			clip.height = g + c;
+		} else {
+			// (x3, y4) -> (x1, y2)
+			clip.x = e + f;
+			clip.y = g + h;
+			clip.width = a + d;
+			clip.height = b + c;
 		}
 	}
 
-	// scissor is with respect to lower-left corner
-	// activeFrameBufferHeight is the height of the off-screen buffer
-	// activeFrameBufferOffsetBottom -- the viewport actually goes past the bottom of the texture
-	//   to the nearest power of two, so when we convert to y-coordinates from the lower-left viewport
-	//   corner, we need to add the offsetBottom to get to the bottom of the viewable texture
-	if (ctx->on_screen && clip.height > 0) {
-		clip.y = ctx->canvas->framebuffer_height - (clip.height + clip.y) + ctx->canvas->framebuffer_offset_bottom;
+	clip.width -= clip.x;
+	clip.height -= clip.y;
+	clip.x += modelView->m02;
+	clip.y += modelView->m12;
+#endif
+
+	LOG("setClip: %f %f %f %f", clip.x, clip.y, clip.width, clip.height);
+	
+	// If entirely clipped,
+	if (clip.width <= 0 || clip.height <= 0) {
+		clip.x = clip.y = clip.width = clip.height = 0;
+	} else {
+		// Lookup parent bounds
+		int i = ctx->mvp - 1;
+		rect_2d ctx_clip;
+		ctx_clip.x = ctx->clipStack[i].x;
+		ctx_clip.y = ctx->clipStack[i].y;
+		ctx_clip.width = ctx->clipStack[i].width;
+		ctx_clip.height = ctx->clipStack[i].height;
+
+		// Clip with screen bounds
+		if (clip.x < 0) {
+			clip.x = 0;
+		}
+		if (clip.y < 0) {
+			clip.y = 0;
+		}
+
+		// If context is on screen,
+		if (ctx->on_screen) {
+			// Flip to frame buffer sense
+			ctx_clip.y = -ctx_clip.y +  ctx->canvas->framebuffer_height + ctx->canvas->framebuffer_offset_bottom - ctx_clip.height;
+		}
+
+		// If parent is clipping,
+		if (ctx_clip.width > -1) {
+			// Calculate (x1, y1) for new and old clip regions
+			float clip1x = clip.x + clip.width, clip1y = clip.y + clip.height;
+			float ctx1x = ctx_clip.x + ctx_clip.width, ctx1y = ctx_clip.y + ctx_clip.height;
+
+			// If new clip is entirely outside parent,
+			if (clip.x >= ctx1x || clip1x <= ctx_clip.x ||
+				clip.y >= ctx1y || clip1y <= ctx_clip.y) {
+				// Empty clip region
+				clip.x = clip.y = clip.width = clip.height = 0;
+			} else {
+				// Trim new clip with parent
+				clip.x = ctx_clip.x > clip.x ? ctx_clip.x : clip.x;
+				clip.y = ctx_clip.y > clip.y ? ctx_clip.y : clip.y;
+				clip.width = (ctx1x < clip1x ? ctx1x : clip1x) - clip.x;
+				clip.height = (ctx1y < clip1y ? ctx1y : clip1y) - clip.y;
+			}
+		}
+
+		// scissor is with respect to lower-left corner
+		// activeFrameBufferHeight is the height of the off-screen buffer
+		// activeFrameBufferOffsetBottom -- the viewport actually goes past the bottom of the texture
+		//   to the nearest power of two, so when we convert to y-coordinates from the lower-left viewport
+		//   corner, we need to add the offsetBottom to get to the bottom of the viewable texture
+		if (ctx->on_screen && clip.height > 0) {
+			// Flip from frame buffer sense
+			clip.y = ctx->canvas->framebuffer_height - (clip.height + clip.y) + ctx->canvas->framebuffer_offset_bottom;
+		}
 	}
 
-	rect_2d bounds = {clip.x, clip.y, clip.width, clip.height};
+	rect_2d bounds = {
+		clip.x, clip.y,
+		clip.width, clip.height
+	};
 
 	if (rect_2d_equals(GET_CLIPPING_BOUNDS(ctx), &bounds)) {
 		return;
@@ -384,15 +524,17 @@ void context_2d_setClip(context_2d *ctx, rect_2d clip) {
  * @retval	NONE
  */
 void context_2d_save(context_2d *ctx) {
-	if (ctx->mvp + 1 > MODEL_VIEW_STACK_SIZE) {
-		LOG("{context} WARNING: Stack size exceeded");
-		return;
+	int mvp = ctx->mvp + 1;
+	
+	// If stack size is not exceeded,
+	if (mvp >= MODEL_VIEW_STACK_SIZE) {
+		LOG("{context} WARNING: Stack size exceeded. View hierarchy may not exceed %d levels", MODEL_VIEW_STACK_SIZE);
+	} else {
+		ctx->mvp = mvp;
+		ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
+		ctx->modelView[mvp] = ctx->modelView[mvp - 1];
+		ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
 	}
-
-	unsigned int mvp = ++ctx->mvp;
-	ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
-	ctx->modelView[mvp] = ctx->modelView[mvp - 1];
-	ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
 }
 
 /**
@@ -402,13 +544,18 @@ void context_2d_save(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_restore(context_2d *ctx) {
-	ctx->mvp--;
-
-	if (!rect_2d_equals(&ctx->clipStack[ctx->mvp], &ctx->clipStack[ctx->mvp + 1])) {
-		if (ctx->clipStack[ctx->mvp].width == -1) {
-			disable_scissor(ctx);
-		} else {
-			enable_scissor(ctx);
+	int mvp = ctx->mvp - 1;
+	
+	// If stack still has items on it,
+	if (mvp >= 0) {
+		ctx->mvp = mvp;
+		
+		if (!rect_2d_equals(&ctx->clipStack[mvp], &ctx->clipStack[mvp + 1])) {
+			if (ctx->clipStack[mvp].width == -1) {
+				disable_scissor(ctx);
+			} else {
+				enable_scissor(ctx);
+			}
 		}
 	}
 }
