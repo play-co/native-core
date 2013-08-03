@@ -16,6 +16,7 @@
 #ifndef STATUS_BAR_H
 #define STATUS_BAR_H
 
+int status_bar_get_height();
 void status_bar_show();
 void status_bar_hide();
 
