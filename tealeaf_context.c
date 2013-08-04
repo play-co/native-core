@@ -445,8 +445,6 @@ void context_2d_setClip(context_2d *ctx, rect_2d clip) {
 	clip.y += modelView->m12;
 #endif
 
-	LOG("setClip: %f %f %f %f", clip.x, clip.y, clip.width, clip.height);
-	
 	// If entirely clipped,
 	if (clip.width <= 0 || clip.height <= 0) {
 		clip.x = clip.y = clip.width = clip.height = 0;
