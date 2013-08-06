@@ -765,10 +765,10 @@ void texture_manager_tick(texture_manager *manager) {
 			continue;
 		}
 
+        GLuint texture = 0;
 		char buf[512];
 		if (!cur_tex->failed) {
 
-			GLuint texture = 0;
 			GLTRACE(glGenTextures(1, &texture));
 			GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
 			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -800,26 +800,54 @@ void texture_manager_tick(texture_manager *manager) {
 			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 					cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
 					cur_tex->num_channels, cur_tex->scale, false);
-			//create json event string
-			snprintf(buf, sizeof(buf),
-					"{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
-					",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
-					cur_tex->url, (int)cur_tex->height,
-					(int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
-					(int)texture, (int)cur_tex->width);
+		}
 
-		} else {
+		char *event_str;
+		int event_len;
+
+		char *dynamic_str = 0;
+		char stack_str[512];
+
+		// Generate event string
+		{
+			int url_len = (int)strlen(cur_tex->url);
 			
-			//create json event string
-			snprintf(buf, sizeof(buf),
+			if (url_len > 300) {
+				event_len = url_len + 212;
+				dynamic_str = (char*)malloc(event_len);
+				event_str = dynamic_str;
+			} else {
+				event_len = 512;
+				event_str = stack_str;
+			}
+		}
+
+		if (cur_tex->failed) {
+			event_len = snprintf(event_str, event_len,
 					"{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}",
 					cur_tex->url);
+		} else {
+			//create json event string
+			event_len = snprintf(event_str, event_len,
+					 "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
+					 ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
+					 cur_tex->url, (int)cur_tex->height,
+					 (int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
+					 (int)texture, (int)cur_tex->width);
 		}
+
+		event_str[event_len] = '\0';
 
 		//dispatch the event
 		pthread_mutex_unlock(&mutex);
 		// TODO: Is this a thread safety problem?  Does the tex_load_list get modified from another thread?
-		core_dispatch_event(buf);
+		core_dispatch_event(event_str);
+
+		// If dynamically allocated the string,
+		if (dynamic_str) {
+			free(dynamic_str);
+		}
+
 		pthread_mutex_lock(&mutex);
 		free(cur_tex->pixel_data);
 		cur_tex->pixel_data = NULL;
