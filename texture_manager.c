@@ -765,8 +765,7 @@ void texture_manager_tick(texture_manager *manager) {
 			continue;
 		}
 
-        GLuint texture = 0;
-		char buf[512];
+		GLuint texture = 0;
 		if (!cur_tex->failed) {
 
 			GLTRACE(glGenTextures(1, &texture));
