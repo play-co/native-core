@@ -60,7 +60,7 @@ texture_2d *texture_manager_update_texture(texture_manager *manager, const char 
 
 void texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
 										int width, int height, int original_width, int original_height,
-										int num_channels, int scale, bool is_text);
+										int num_channels, int scale, bool is_text, unsigned char *pixel_data);
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);
 void texture_manager_memory_warning(texture_manager *manager);
 void texture_manager_set_max_memory(texture_manager *manager, int bytes); // Will only ratchet down

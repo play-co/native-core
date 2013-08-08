@@ -243,7 +243,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 
 void texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
 					int width, int height, int original_width, int original_height,
-					int num_channels, int scale, bool is_text) {
+					int num_channels, int scale, bool is_text, unsigned char *pixel_data) {
 	//add the amount of bytes being used by this texture to the amount of texture bytes being used
 	//scale = 1, texture stays at its regular size
 	//scale = 2, texture is being halfsized as is needed for lower memory footprint
@@ -278,6 +278,7 @@ void texture_manager_on_texture_loaded(texture_manager *manager, const char *url
 	tex->width = width;
 	tex->height = height;
 	tex->scale = scale;
+	tex->pixel_data = pixel_data;
 	tex->originalWidth = original_width;
 	tex->originalHeight = original_height;
 }
@@ -797,8 +798,8 @@ void texture_manager_tick(texture_manager *manager) {
 			GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
 			core_check_gl_error();
 			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
-					cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
-					cur_tex->num_channels, cur_tex->scale, false);
+							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
+							cur_tex->num_channels, cur_tex->scale, false, cur_tex->pixel_data);
 		}
 
 		char *event_str;
@@ -848,7 +849,6 @@ void texture_manager_tick(texture_manager *manager) {
 		}
 
 		pthread_mutex_lock(&mutex);
-		free(cur_tex->pixel_data);
 		cur_tex->pixel_data = NULL;
 		texture_2d *old_cur = cur_tex;
 		LIST_ITERATE(&tex_load_list, cur_tex);

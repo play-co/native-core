@@ -237,6 +237,7 @@ void texture_2d_destroy(texture_2d *tex) {
 	GLTRACE(glDeleteTextures(1, (const GLuint *)&tex->name));
 	free(tex->url);
 	free(tex->pixel_data);
+	free(tex->saved_data);
 	free(tex);
 }
 
