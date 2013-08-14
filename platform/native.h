@@ -36,6 +36,7 @@ void upload_device_info();
 const char *get_install_referrer();
 CEXPORT void report_gl_error(int error_code, gl_error **errors_hash, bool unrecoverable);
 CEXPORT void set_halfsized_textures(bool on);
+CEXPORT void native_stay_awake(bool on);
 void native_reload();
 const char *get_version_code();
 
