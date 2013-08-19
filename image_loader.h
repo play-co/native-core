@@ -17,7 +17,7 @@
 #define IMAGE_LOADER_H
 
 #ifdef UNITY
-#include "Weeby/png.h"
+#include "Unity/png.h"
 #else
 #include "core/deps/png/png.h"
 #endif
