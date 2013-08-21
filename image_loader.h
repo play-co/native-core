@@ -20,6 +20,7 @@
 #include "Unity/png.h"
 #else
 #include "core/deps/png/png.h"
+#include "core/deps/png/pngstruct.h"
 #endif
 
 #include "core/deps/jpg/jpeglib.h"
