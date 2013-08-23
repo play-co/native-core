@@ -73,6 +73,7 @@ static bufobj buffer[MAX_BUFFER_SIZE];
  * @retval	NONE
  */
 void draw_textures_item(context_2d *ctx, const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type) {
+
 	//ignore this item if clip height is 0
 	if (clip.height == 0 || clip.width == 0) {
 		return;

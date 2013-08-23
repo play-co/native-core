@@ -24,6 +24,7 @@
 #include "core/texture_2d.h"
 #include "core/texture_manager.h"
 #include "core/geometry.h"
+#include "core/graphics_utils.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -275,7 +276,6 @@ void context_2d_bind(context_2d *ctx) {
 }
 
 void context_2d_setGlobalCompositeOperation(context_2d *ctx, int composite_mode) {
-	LOG("SETTINGCOMPOSITEMODE %i", composite_mode);
 	ctx->globalCompositeOperation[ctx->mvp] = composite_mode;
 }
 
@@ -776,7 +776,7 @@ void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bo
  * @param	composite_op - deprecated
  * @retval	NONE
  */
-void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color, int composite_op) {
+void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color) {
 	if (use_single_shader) {
 		return;
 	}
@@ -784,7 +784,7 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
 	draw_textures_flush();
 	context_2d_bind(ctx);
 	tealeaf_shaders_bind(FILL_RECT_SHADER);
-	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	apply_composite_operation(ctx->globalCompositeOperation[ctx->mvp]);
 	rect_2d_vertices in, out;
 	rect_2d_to_rect_2d_vertices(rect, &in);
 	matrix_3x3_multiply_m_r_r(GET_MODEL_VIEW_MATRIX(ctx), &in, &out);
@@ -807,11 +807,11 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
  * @param	composite_op - (int) composite operation to draw with
  * @retval	NONE
  */
-void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha, int composite_op) {
+void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha) {
 	context_2d_bind(ctx);
 
 	if (img && img->loaded) {
-		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, composite_op, &ctx->filter_color, ctx->filter_type);
+		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
 	}
 }
 
