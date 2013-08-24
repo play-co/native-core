@@ -581,8 +581,6 @@ void context_2d_clear(context_2d *ctx) {
 	context_2d_bind(ctx);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	rect_2d rect = {0, 0, ctx->width, ctx->height};
-	context_2d_clearRect(ctx, &rect);
 }
 
 /**
