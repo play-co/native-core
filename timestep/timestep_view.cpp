@@ -50,7 +50,7 @@ static void image_view_render(timestep_view *v, context_2d *ctx) {
 			LOG("ERROR: !! The map canary is dead !! %x", map->canary);
 		} else {
 #endif
-			context_2d_drawImage(ctx, 0, map->url, &src_rect, &dest_rect, 0);
+			context_2d_drawImage(ctx, 0, map->url, &src_rect, &dest_rect);
 #if defined(DEBUG)
 		}
 #endif
@@ -198,7 +198,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		//LOG("render %i with background %f %f %f %f", v->uid, v->background_color.r, v->background_color.g, v->background_color.b, v->background_color.a);
 
 		rect_2d r = {0, 0, v->width, v->height};
-		context_2d_fillRect(ctx, &r, &v->background_color, source_over);
+		context_2d_fillRect(ctx, &r, &v->background_color);
 	}
 
 

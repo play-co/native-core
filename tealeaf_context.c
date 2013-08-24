@@ -24,6 +24,7 @@
 #include "core/texture_2d.h"
 #include "core/texture_manager.h"
 #include "core/geometry.h"
+#include "core/graphics_utils.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -152,6 +153,7 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
 	context_2d *ctx = (context_2d *) malloc(sizeof(context_2d));
 	ctx->mvp = 0;
 	ctx->globalAlpha[0] = 1;
+	ctx->globalCompositeOperation[0] = 0;
 	ctx->destTex = dest_tex;
 	ctx->on_screen = on_screen;
 	ctx->filter_color.r = 0.0;
@@ -271,6 +273,14 @@ void context_2d_bind(context_2d *ctx) {
 			disable_scissor(ctx);
 		}
 	}
+}
+
+void context_2d_setGlobalCompositeOperation(context_2d *ctx, int composite_mode) {
+	ctx->globalCompositeOperation[ctx->mvp] = composite_mode;
+}
+
+int context_2d_getGlobalCompositeOperation(context_2d *ctx) {
+	return ctx->globalCompositeOperation[ctx->mvp];
 }
 
 
@@ -532,6 +542,7 @@ void context_2d_save(context_2d *ctx) {
 		ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
 		ctx->modelView[mvp] = ctx->modelView[mvp - 1];
 		ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
+		ctx->globalCompositeOperation[mvp] = ctx->globalCompositeOperation[mvp - 1];
 	}
 }
 
@@ -568,7 +579,10 @@ void context_2d_restore(context_2d *ctx) {
 void context_2d_clear(context_2d *ctx) {
 	draw_textures_flush();
 	context_2d_bind(ctx);
-	GLTRACE(glClear(GL_COLOR_BUFFER_BIT));
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	rect_2d rect = {0, 0, ctx->width, ctx->height};
+	context_2d_clearRect(ctx, &rect);
 }
 
 /**
@@ -728,6 +742,7 @@ void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
  * @param	force - (bool) force update of the shader
  * @retval	NONE
  */
+
 void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bool force) {
 	int width = ctx->backing_width;
 	int height = ctx->backing_height;
@@ -762,7 +777,7 @@ void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bo
  * @param	composite_op - deprecated
  * @retval	NONE
  */
-void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color, int composite_op) {
+void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color) {
 	if (use_single_shader) {
 		return;
 	}
@@ -770,7 +785,7 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
 	draw_textures_flush();
 	context_2d_bind(ctx);
 	tealeaf_shaders_bind(FILL_RECT_SHADER);
-	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	apply_composite_operation(ctx->globalCompositeOperation[ctx->mvp]);
 	rect_2d_vertices in, out;
 	rect_2d_to_rect_2d_vertices(rect, &in);
 	matrix_3x3_multiply_m_r_r(GET_MODEL_VIEW_MATRIX(ctx), &in, &out);
@@ -793,11 +808,11 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
  * @param	composite_op - (int) composite operation to draw with
  * @retval	NONE
  */
-void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha, int composite_op) {
+void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha) {
 	context_2d_bind(ctx);
 
 	if (img && img->loaded) {
-		draw_textures_item(GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, composite_op, &ctx->filter_color, ctx->filter_type);
+		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
 	}
 }
 
@@ -822,11 +837,11 @@ void context_2d_flush(context_2d *ctx) {
  * @param	composite_op - (int) composite operation to draw with
  * @retval	NONE
  */
-void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const rect_2d *srcRect, const rect_2d *destRect, int composite_op) {
+void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const rect_2d *srcRect, const rect_2d *destRect) {
 	context_2d_bind(ctx);
 	texture_2d *tex = texture_manager_load_texture(texture_manager_get(), url);
 
 	if (tex && tex->loaded) {
-		draw_textures_item(GET_MODEL_VIEW_MATRIX(ctx), tex->name, tex->width, tex->height, tex->originalWidth, tex->originalHeight, *srcRect, *destRect, * GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp], composite_op, &ctx->filter_color, ctx->filter_type);
+		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), tex->name, tex->width, tex->height, tex->originalWidth, tex->originalHeight, *srcRect, *destRect, * GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp], ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
 	}
 }
