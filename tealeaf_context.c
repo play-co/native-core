@@ -542,6 +542,7 @@ void context_2d_save(context_2d *ctx) {
 		ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
 		ctx->modelView[mvp] = ctx->modelView[mvp - 1];
 		ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
+		ctx->globalCompositeOperation[mvp] = ctx->globalCompositeOperation[mvp - 1];
 	}
 }
 
