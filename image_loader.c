@@ -16,7 +16,6 @@
 #include "core/image_loader.h"
 #include "log.h"
 #include <stdlib.h>
-#include "core/deps/png/pngstruct.h"
 
 #define TEXTURE_LOAD_ERROR 0
 
