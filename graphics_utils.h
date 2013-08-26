@@ -1,5 +1,5 @@
-#ifndef GRAPHIS_UTILS_H
-#define GRAPHIS_UTILS_H
+#ifndef GRAPHICS_UTILS_H
+#define GRAPHICS_UTILS_H
 
 #include "core/types.h"
 #include "core/tealeaf_context.h"
