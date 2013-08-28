@@ -79,6 +79,9 @@ context_2d *context_2d_get_onscreen();
 context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int destTex);
 context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_tex, bool on_screen);
 
+unsigned char *context_2d_read_pixels(context_2d *ctx);
+char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type);
+
 void context_2d_delete(context_2d *ctx);
 void context_2d_setGlobalAlpha(context_2d *ctx, float alpha);
 float context_2d_getGlobalAlpha(context_2d *ctx);
