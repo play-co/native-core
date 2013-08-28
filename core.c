@@ -313,6 +313,7 @@ void core_on_screen_resize(int width, int height) {
 void core_destroy() {
 	destroy_js();
 	texture_manager_destroy(texture_manager_get());
+	sound_manager_halt();
 }
 
 /**
