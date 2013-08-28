@@ -158,6 +158,7 @@ png_create_write_struct_failed:
 }
 
 //TODO: needs to be implemented
+//useful -> http://stackoverflow.com/questions/4559648/write-to-memory-buffer-instead-of-file-with-libjpeg
 char *write_jpeg_to_base64(unsigned char * data, int width, int height, int channels) {
 
 //	// if incoming image has an alpha channel, copy over only rgb to another buffer
@@ -184,11 +185,7 @@ char *write_jpeg_to_base64(unsigned char * data, int width, int height, int chan
 //
 //	cinfo.err = jpeg_std_error(&jerr);
 //	jpeg_create_compress(&cinfo);
-//	//jpeg_stdio_dest(&cinfo, outfile);
-//	//useful code for saving to memory as opposed saving to the filesys
-//	unsigned char *raw_buffer = NULL;
-//	unsigned long raw_buffer_size = 0;
-//	jpeg_mem_dest(&cinfo, &raw_buffer, &raw_buffer_size);
+//  //add function pointers for libjpeg
 //
 //	cinfo.image_width = width;
 //	cinfo.image_height = height;
@@ -219,7 +216,6 @@ char *write_jpeg_to_base64(unsigned char * data, int width, int height, int chan
 //	return raw_buffer;
 //
 //
-//	THIS NEEDS TO BE IMPLEMENTED...
 	return NULL;
 }
 
