@@ -24,6 +24,7 @@
 #include "core/texture_2d.h"
 #include "core/texture_manager.h"
 #include "core/geometry.h"
+#include "core/image_writer.h"
 #include "core/graphics_utils.h"
 #include <math.h>
 #include <stdlib.h>
@@ -222,6 +223,49 @@ context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int dest_tex
 	return ctx;
 }
 
+/**
+   Uses glReadPixels to read the bytes of the given context's drawing buffer into
+   an unsigned char array
+
+   @param	ctx the given context2d
+   @return 	an unsigned char array containing the bytes of ctx's draw buffer
+**/
+unsigned char *context_2d_read_pixels(context_2d *ctx) {
+	//must flush before reading as canvas may not be ready
+	//to be read from
+	draw_textures_flush();
+	unsigned char *buffer = NULL;
+	buffer = (unsigned char *)malloc(sizeof(unsigned char) * 4 * ctx->width * ctx->height);
+	glReadPixels(0, 0, ctx->width, ctx->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	return buffer;
+}
+
+/**
+   Saves the given context_2d's buffer to a file of the given filetype
+
+   @param	ctx the given context2d
+   @param	file_name  filename to save the buffer to
+   @return 	void
+**/
+char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type) {
+
+	//bind offscreen buffer to gl frame buffer
+	tealeaf_canvas_context_2d_bind(ctx);
+	unsigned char *buffer = (unsigned char*)context_2d_read_pixels(ctx);
+	//opengGL gives this as RGBA, Need to switch to
+	//BGRA which will be interpreted as ARGB in Java
+	//becuase of the endianess difference between Java/C
+	int i;
+	for(i = 0; i < ctx->width * ctx->height * 4; i+=4) {
+		char r = buffer[i];
+		buffer[i] = buffer[i + 2];
+		buffer[i + 2] = r;
+	}
+	char *buf = (char*)write_image_to_base64(image_type, buffer, ctx->width, ctx->height, 4);
+	tealeaf_canvas_context_2d_bind(context_2d_get_onscreen());
+	free(buffer);
+	return buf;
+}
 /**
  * @name	context_2d_delete
  * @brief	frees the given context
