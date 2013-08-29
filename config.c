@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #define DEF_SIMULATE_ID "tealeaf"
-#define DEF_CODE_PATH "native.js.mp3"
+#define DEF_CODE_PATH "native.js"
 #define DEF_CODE_HOST "localhost"
 #define DEF_TCP_HOST "localhost"
 #define DEF_TCP_PORT 4747
