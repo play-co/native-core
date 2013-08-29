@@ -155,7 +155,7 @@ void core_init_gl(int framebuffer_name) {
  */
 bool core_init_js(const char *uri, const char *version) {
 	init_js(uri, version);
-	return run_file("native.js.mp3");
+	return run_file("native.js");
 }
 
 /**
