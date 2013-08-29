@@ -30,6 +30,7 @@
 #include "core/events.h"
 #include "core/core_js.h"
 #include "core/platform/resource_loader.h"
+#include "core/platform/sound_manager.h"
 #include "core/timer.h"
 #include "core/platform/native.h"
 #include "platform/http.h"
