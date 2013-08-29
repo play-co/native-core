@@ -30,6 +30,7 @@
 #include "core/events.h"
 #include "core/core_js.h"
 #include "core/platform/resource_loader.h"
+#include "core/platform/sound_manager.h"
 #include "core/timer.h"
 #include "core/platform/native.h"
 #include "platform/http.h"
@@ -313,6 +314,7 @@ void core_on_screen_resize(int width, int height) {
 void core_destroy() {
 	destroy_js();
 	texture_manager_destroy(texture_manager_get());
+	sound_manager_halt();
 }
 
 /**
