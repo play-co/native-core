@@ -1,6 +1,6 @@
 #include "core/image_writer.h"
 
-#include <openssl/pem.h>
+#include "core/deps/openssl/pem.h"
 #include "platform/log.h"
 
 /* A BASE-64 ENCODER USING OPENSSL (by Len Schulwitz)
