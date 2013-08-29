@@ -255,12 +255,12 @@ char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type) 
 	//opengGL gives this as RGBA, Need to switch to
 	//BGRA which will be interpreted as ARGB in Java
 	//becuase of the endianess difference between Java/C
-	int i;
-	for(i = 0; i < ctx->width * ctx->height * 4; i+=4) {
-		char r = buffer[i];
-		buffer[i] = buffer[i + 2];
-		buffer[i + 2] = r;
-	}
+//	int i;
+//	for(i = 0; i < ctx->width * ctx->height * 4; i+=4) {
+//		char r = buffer[i];
+//		buffer[i] = buffer[i + 2];
+//		buffer[i + 2] = r;
+//	}
 	char *buf = (char*)write_image_to_base64(image_type, buffer, ctx->width, ctx->height, 4);
 	tealeaf_canvas_context_2d_bind(context_2d_get_onscreen());
 	free(buffer);
