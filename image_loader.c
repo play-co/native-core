@@ -14,7 +14,6 @@
  */
 
 #include "core/image_loader.h"
-#include "core/deps/png/pngstruct.h"
 #include "log.h"
 #include <stdlib.h>
 
