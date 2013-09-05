@@ -546,11 +546,11 @@ void image_cache_background_loader(void *dummy) {
 
         if (old_cur->pixel_data == NULL && old_cur->url != NULL) {
             struct image_data *data = image_cache_get_image(old_cur->url);
-            old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
+			old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
 			if (old_cur->pixel_data == NULL) {
 				old_cur->failed = true;
 			}
-            free(data->bytes);
+			free(data->bytes);
 			data->bytes = NULL;
         }
 
