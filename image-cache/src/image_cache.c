@@ -244,9 +244,6 @@ bool image_exists_in_cache(const char *url) {
 }
 
 struct image_data *image_cache_get_image(const char *url) {
-    if (!strcmp("http://s.wee.cat/users/f30dedad59394b5f9c21f605b49d28b4/image.png", url)) {
-        LOG("THE BAD ONE");
-    }
 	const char *etag = NULL;
 	if (image_exists_in_cache(url)) {
 		//if we don't have a local copy cached, don't bother with
