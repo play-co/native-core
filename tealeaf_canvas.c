@@ -56,6 +56,11 @@ void tealeaf_canvas_init(int framebuffer_name) {
 	canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
 	canvas.onscreen_ctx->width = width;
 	canvas.onscreen_ctx->height = height;
+	canvas.active_ctx = 0;
+
+	// TODO: should_resize is not respected on iOS
+	
+	tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
 }
 
 /**
