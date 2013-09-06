@@ -90,6 +90,8 @@ timestep_view *timestep_view_init() {
 	v->flip_x = false;
 	v->flip_y = false;
 	v->scale = 1;
+	v->scale_x = 1;
+	v->scale_y = 1;
 	v->abs_scale = 1;
 	v->clip = false;
 	v->visible = true;
@@ -165,8 +167,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	context_2d_translate(ctx, v->x + v->anchor_x + v->offset_x, v->y + v->anchor_y + v->offset_y);
 
 	if (v->r) { context_2d_rotate(ctx, v->r); }
-	if (v->scale != 1) {
-		context_2d_scale(ctx, v->scale, v->scale);
+	if (v->scale != 1 || v->scale_x != 1 || v->scale_y != 1) {
+		context_2d_scale(ctx, v->scale * v->scale_x, v->scale * v->scale_y);
 		abs_scale *= v->scale;
 	}
 

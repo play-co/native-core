@@ -68,6 +68,14 @@
 		},
 		{
 			"type": "double",
+			"name": "scaleX"
+		},
+		{
+			"type": "double",
+			"name": "scaleY"
+		},
+		{
+			"type": "double",
 			"name": "absScale"
 		},
 		{
