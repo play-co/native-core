@@ -300,6 +300,8 @@ static void init_frame(anim_frame *frame, timestep_view *v) {
 			SET_INITIAL_PROP(ANCHOR_Y, anchor_y)
 			SET_INITIAL_PROP(OPACITY, opacity)
 			SET_INITIAL_PROP(SCALE, scale)
+			SET_INITIAL_PROP(SCALE_X, scale_x)
+			SET_INITIAL_PROP(SCALE_Y, scale_y)
 		}
 
 		// if the prop is not a delta, we must compute the delta
@@ -334,6 +336,8 @@ static void apply_frame(anim_frame *frame, timestep_view *view, double tt) {
 			UPDATE_PROP(ANCHOR_Y, anchor_y)
 			UPDATE_PROP(OPACITY, opacity)
 			UPDATE_PROP(SCALE, scale)
+			UPDATE_PROP(SCALE_X, scale_x)
+			UPDATE_PROP(SCALE_Y, scale_y)
 		}
 
 		LIST_ITERATE(head, curr);
