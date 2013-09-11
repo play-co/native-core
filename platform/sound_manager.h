@@ -29,7 +29,8 @@ void sound_manager_seek_to(const char *url, float position);
 void sound_manager_load_background_music(const char *url);
 void sound_manager_play_background_music(const char *url, float volume, bool loop);
 void sound_manager_stop_loading_sound();
-	
+void sound_manager_halt();
+
 #ifdef __cplusplus
 }
 #endif

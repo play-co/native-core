@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include "core/image-cache/include/image_cache.h"
 #include "core/config.h"
 #include "platform/resource_loader.h"
 #include "core/list.h"
@@ -61,10 +62,17 @@ static bool m_running = false; // Flag indicating that the background texture lo
 static texture_manager *m_instance = NULL;
 static bool m_instance_ready = false; // Flag indicating that the instance is ready
 static bool m_memory_warning = false; // Flag indicating that a memory warning occurred
+
 static ThreadsThread m_load_thread = THREADS_INVALID_THREAD;
 static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond_var   = PTHREAD_COND_INITIALIZER;
+
+static ThreadsThread m_image_cache_load_thread = THREADS_INVALID_THREAD;
+static pthread_mutex_t image_cache_mutex     = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t image_cache_cond_var   = PTHREAD_COND_INITIALIZER;
+
 static texture_2d *tex_load_list = NULL;
+static texture_2d *image_cache_load_list = NULL;
 static json_t *spritesheet_map_root = NULL;
 static json_t *fontsheet_map_root = NULL;
 static int m_frame_epoch = 1;
@@ -100,6 +108,12 @@ bool is_remote_resource(const char *url) {
 	}
 
 	return is_remote;
+}
+
+texture_2d *texture_manager_new_texture_from_data(texture_manager *manager, int width, int height, const void *data) {
+    texture_2d *tex = texture_2d_new_from_data(width, height, data);
+    texture_manager_add_texture(manager, tex, false);
+    return tex;
 }
 
 texture_2d *texture_manager_new_texture(texture_manager *manager, int width, int height) {
@@ -207,7 +221,15 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 
 	// If URL represents a remote resource, or is a special resource
 	if (remote_resource) {
-		launch_remote_texture_load(permanent_url);
+        if (!strncmp("http", url, 4)) {  
+            //run thread image_cache_get_image
+            pthread_mutex_lock(&image_cache_mutex);
+            LIST_ADD(&image_cache_load_list, tex);
+            pthread_cond_signal(&image_cache_cond_var); //signal there is a texture to load
+            pthread_mutex_unlock(&image_cache_mutex);
+        } else {
+            launch_remote_texture_load(permanent_url);
+        }
 	} else {
 		//lock, add to the pool and signal something has been added
 		pthread_mutex_lock(&mutex);
@@ -315,6 +337,14 @@ texture_2d *texture_manager_add_texture_from_image(texture_manager *manager, con
 	texture_2d *tex = texture_2d_new_from_image(permanent_url, name, width, height, original_width, original_height);
 	texture_manager_add_texture(manager, tex, false);
 	return tex;
+}
+
+texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture_2d *tex) {
+    tex->loaded = true;
+    HASH_ADD_KEYPTR(url_hash, manager->url_to_tex, tex->url, strlen(tex->url), tex);
+    manager->tex_count++;
+    //TODO handle the accounting stuff
+    return tex;
 }
 
 static int last_accessed_compare(texture_2d *a, texture_2d *b) {
@@ -473,7 +503,7 @@ void texture_manager_background_texture_loader(void *dummy) {
 		while (cur_tex) {
 			texture_2d *old_cur = NULL;
 
-			if (cur_tex->pixel_data == NULL && cur_tex->url != NULL) {
+			if (cur_tex->pixel_data == NULL && cur_tex->url != NULL && !cur_tex->failed) {
 				TEXLOG("Passing to load_image_with_c: %s", cur_tex->url);
 
 				if (!resource_loader_load_image_with_c(cur_tex)) { //if not loading from C remove from list
@@ -494,6 +524,44 @@ void texture_manager_background_texture_loader(void *dummy) {
 
 	pthread_mutex_unlock(&mutex);
 }
+
+void image_cache_background_loader(void *dummy) {
+
+	while (m_running) {
+
+        pthread_mutex_lock(&image_cache_mutex);
+		texture_2d *cur_tex = image_cache_load_list;
+        texture_2d *old_cur = cur_tex;
+
+        if (old_cur == NULL) {
+            pthread_cond_wait(&image_cache_cond_var, &image_cache_mutex);
+            pthread_mutex_unlock(&image_cache_mutex);
+            continue;
+        } 
+
+        LIST_ITERATE(&image_cache_load_list, cur_tex);
+        LIST_REMOVE(&image_cache_load_list, old_cur);
+        pthread_mutex_unlock(&image_cache_mutex);
+
+
+        if (old_cur->pixel_data == NULL && old_cur->url != NULL) {
+            struct image_data *data = image_cache_get_image(old_cur->url);
+			old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
+			if (old_cur->pixel_data == NULL) {
+				old_cur->failed = true;
+			}
+			free(data->bytes);
+			data->bytes = NULL;
+        }
+
+        pthread_mutex_lock(&mutex);
+        LIST_ADD(&tex_load_list, old_cur);
+        pthread_mutex_unlock(&mutex);
+
+	}
+
+}
+
 
 void texture_manager_set_use_halfsized_textures() {
     texture_manager *texman = texture_manager_get();
@@ -533,6 +601,7 @@ texture_manager *texture_manager_get() {
 
 			// Launch the loader thread
 			m_load_thread = threads_create_thread(texture_manager_background_texture_loader, m_instance);
+			m_image_cache_load_thread = threads_create_thread(image_cache_background_loader, m_instance);
 			// Mark the instance as being ready
 			m_instance_ready = true;
 		}
@@ -565,6 +634,7 @@ void texture_manager_destroy(texture_manager *manager) {
 	free(manager);
 	// Clear the texture load list
 	tex_load_list = NULL;
+	image_cache_load_list = NULL;
 
 	// If manager is the singleton instance, clear it also
 	if (manager == m_instance) {
@@ -697,37 +767,40 @@ void texture_manager_tick(texture_manager *manager) {
 		}
 
 		GLuint texture = 0;
-		GLTRACE(glGenTextures(1, &texture));
-		GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-		GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-		//create the texture
-		int channels = cur_tex->num_channels;
-		int width = cur_tex->width / cur_tex->scale;
-		int height = cur_tex->height / cur_tex->scale;
+		if (!cur_tex->failed) {
 
-		// Select the right internal and input format based on the number of channels
-		GLint format;
-		switch (channels) {
-			case 1:
-				format = GL_LUMINANCE;
-				break;
-			case 3:
-				format = GL_RGB;
-				break;
-			default:
-			case 4:
-				format = GL_RGBA;
-				break;
-		}
+			GLTRACE(glGenTextures(1, &texture));
+			GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+			//create the texture
+			int channels = cur_tex->num_channels;
+			int width = cur_tex->width / cur_tex->scale;
+			int height = cur_tex->height / cur_tex->scale;
 
-		GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
-		core_check_gl_error();
-		texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
+			// Select the right internal and input format based on the number of channels
+			GLint format;
+			switch (channels) {
+				case 1:
+					format = GL_LUMINANCE;
+					break;
+				case 3:
+					format = GL_RGB;
+					break;
+				default:
+				case 4:
+					format = GL_RGBA;
+					break;
+			}
+
+			GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
+			core_check_gl_error();
+			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
 							cur_tex->num_channels, cur_tex->scale, false, cur_tex->pixel_data);
+		}
 
 		char *event_str;
 		int event_len;
@@ -749,13 +822,20 @@ void texture_manager_tick(texture_manager *manager) {
 			}
 		}
 
-		//create json event string
-		event_len = snprintf(event_str, event_len,
-				 "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
-				 ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
-				 cur_tex->url, (int)cur_tex->height,
-				 (int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
-				 (int)texture, (int)cur_tex->width);
+		if (cur_tex->failed) {
+			event_len = snprintf(event_str, event_len,
+					"{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}",
+					cur_tex->url);
+		} else {
+			//create json event string
+			event_len = snprintf(event_str, event_len,
+					 "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
+					 ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
+					 cur_tex->url, (int)cur_tex->height,
+					 (int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
+					 (int)texture, (int)cur_tex->width);
+		}
+
 		event_str[event_len] = '\0';
 
 		//dispatch the event

@@ -30,6 +30,7 @@
 #include "core/events.h"
 #include "core/core_js.h"
 #include "core/platform/resource_loader.h"
+#include "core/platform/sound_manager.h"
 #include "core/timer.h"
 #include "core/platform/native.h"
 #include "platform/http.h"
@@ -154,7 +155,7 @@ void core_init_gl(int framebuffer_name) {
  */
 bool core_init_js(const char *uri, const char *version) {
 	init_js(uri, version);
-	return run_file("native.js.mp3");
+	return run_file("native.js");
 }
 
 /**
@@ -267,7 +268,8 @@ void core_tick(int dt) {
 				context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
 				context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
 			}
-			context_2d_drawImage(ctx, 0, splash, &tex_size, &size, 0);
+			context_2d_setGlobalCompositeOperation(ctx, source_over);
+			context_2d_drawImage(ctx, 0, splash, &tex_size, &size);
 			if (rotate) {
 				context_2d_restore(ctx);
 			}
@@ -312,6 +314,7 @@ void core_on_screen_resize(int width, int height) {
 void core_destroy() {
 	destroy_js();
 	texture_manager_destroy(texture_manager_get());
+	sound_manager_halt();
 }
 
 /**

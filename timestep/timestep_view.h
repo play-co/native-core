@@ -20,7 +20,12 @@
 
 timestep_view *timestep_view_init();
 void timestep_view_delete(timestep_view *v);
+
+// this resets the static local absScale to 1 so we can easily set
+// the absScale on each view's style as we render
+void timestep_view_start_render();
 void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAPPER js_ctx, JS_OBJECT_WRAPPER js_opts);
+
 void timestep_view_set_type(timestep_view *v, unsigned int type);
 
 void timestep_view_wrap_tick(timestep_view *v, double dt);

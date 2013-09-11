@@ -37,10 +37,12 @@ extern "C" {
 #endif
 
 void texture_manager_tick(texture_manager *manager);
+texture_2d *texture_manager_new_texture_from_data(texture_manager *manager, int width, int height, const void *data);
 texture_2d *texture_manager_new_texture(texture_manager *manager, int width, int height);
 texture_2d *texture_manager_get_texture(texture_manager *manager, const char *url);
 texture_2d *texture_manager_add_texture(texture_manager *manager, texture_2d *tex, bool is_canvas);
 texture_2d *texture_manager_add_texture_from_image(texture_manager *manager, const char *url, int name, int width, int height, int original_width, int original_height);
+texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture_2d *tex);
 texture_2d *texture_manager_load_texture(texture_manager *manager, const char *url);
 texture_2d *texture_manager_load_texture_with_size(texture_manager *manager, const char *url, int width, int height);
 void texture_manager_reload_canvases(texture_manager *manager);

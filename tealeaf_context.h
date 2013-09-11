@@ -42,6 +42,7 @@ typedef struct context_2d_t {
 	bool on_screen;
 	matrix_3x3 proj_matrix;
 	float globalAlpha[MODEL_VIEW_STACK_SIZE];
+	int globalCompositeOperation[MODEL_VIEW_STACK_SIZE];
 	matrix_3x3 modelView[MODEL_VIEW_STACK_SIZE];
 	int mvp; // model view pointer
 	rect_2d clipStack[MODEL_VIEW_STACK_SIZE];
@@ -78,9 +79,14 @@ context_2d *context_2d_get_onscreen();
 context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int destTex);
 context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_tex, bool on_screen);
 
+unsigned char *context_2d_read_pixels(context_2d *ctx);
+char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type);
+
 void context_2d_delete(context_2d *ctx);
 void context_2d_setGlobalAlpha(context_2d *ctx, float alpha);
 float context_2d_getGlobalAlpha(context_2d *ctx);
+void context_2d_setGlobalCompositeOperation(context_2d *ctx, int composite_mode);
+int context_2d_getGlobalCompositeOperation(context_2d *ctx);
 void context_2d_bind(context_2d *ctx);
 void context_2d_setClip(context_2d *ctx, rect_2d clip);
 void context_2d_save(context_2d *ctx);
@@ -91,10 +97,10 @@ void context_2d_rotate(context_2d *ctx, float angle);
 void context_2d_translate(context_2d *ctx, float x, float y);
 void context_2d_scale(context_2d *ctx, float x, float y);
 void context_2d_clearRect(context_2d *ctx, const rect_2d *rect);
-void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color, int composite_op);
-void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha, int composite_op);
+void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color);
+void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha);
 void context_2d_flush(context_2d *ctx);
-void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const rect_2d *srcRect, const rect_2d *destRect, int composite_op);
+void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const rect_2d *srcRect, const rect_2d *destRect);
 void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point_size, float step_size, rgba *color, float x1, float y1, float x2, float y2);
 
 

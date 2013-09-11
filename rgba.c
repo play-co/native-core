@@ -226,7 +226,7 @@ bool rgba_equals(rgba *a, rgba *b) {
  * @retval	NONE
  */
 void rgba_parse(rgba *color, const char *src) {
-	unsigned int r = 0, g = 0, b = 0;
+	int r = 0, g = 0, b = 0;
 	float a = 1;
 	unsigned int n = strlen(src);
 

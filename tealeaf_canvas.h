@@ -22,14 +22,11 @@
 typedef struct context_2d_t *context_2d_p;
 
 typedef struct tealeaf_canvas_t {
-	const char *dest_tex_url;
 	int framebuffer_width;
 	int framebuffer_height;
 	int framebuffer_offset_bottom;
 	GLuint view_framebuffer;
 	GLuint offscreen_framebuffer;
-	GLuint depth_buffer;
-	GLuint fill_rect_tex;
 	bool should_resize;
 	bool on_screen;
 	context_2d_p onscreen_ctx;

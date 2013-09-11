@@ -65,6 +65,9 @@ typedef struct timestep_view_t {
 	double offset_x;
 	double offset_y;
 	double scale;
+	double scale_x;
+	double scale_y;
+	double abs_scale;
 	double opacity;
 	bool needs_reflow;
 	bool clip;
@@ -96,7 +99,7 @@ typedef struct timestep_view_t {
 //// Animation
 
 enum frame_type { WAIT_FRAME, STYLE_FRAME, FUNC_FRAME };
-enum style_props { X, Y, WIDTH, HEIGHT, R, ANCHOR_X, ANCHOR_Y, OPACITY, SCALE };
+enum style_props { X, Y, WIDTH, HEIGHT, R, ANCHOR_X, ANCHOR_Y, OPACITY, SCALE, SCALE_X, SCALE_Y };
 enum transitions { NO_TRANSITION, LINEAR, EASE_IN, EASE_OUT, EASE_IN_OUT, BOUNCE };
 
 /*

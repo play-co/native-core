@@ -17,6 +17,7 @@
 #define DRAW_TEXTURES_H
 
 #include "geometry.h"
+#include "core/tealeaf_context.h"
 #include "rgba.h"
 
 #ifdef __cplusplus
@@ -24,7 +25,7 @@ extern "C" {
 #endif
 
 void draw_textures_flush();
-void draw_textures_item(const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type);
+void draw_textures_item(context_2d *ctx, const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type);
 void draw_textures_init();
 
 #ifdef __cplusplus

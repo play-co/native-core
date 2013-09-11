@@ -16,7 +16,13 @@
 #ifndef IMAGE_LOADER_H
 #define IMAGE_LOADER_H
 
+#ifdef UNITY
+#include "Unity/png.h"
+#else
 #include "core/deps/png/png.h"
+#include "core/deps/png/pngstruct.h"
+#endif
+
 #include "core/deps/jpg/jpeglib.h"
 
 #ifdef __cplusplus
