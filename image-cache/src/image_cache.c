@@ -307,11 +307,25 @@ struct image_data *image_cache_fetch_remote_image(const char *url, const char *e
 		curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, headers);
 		free(etag_header_str);
 	}
+
+	// Follow redirects; often used for services like Facebook graph API
+	curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 4);
+
 	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, false);
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, true);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(curl_handle,   CURLOPT_WRITEHEADER, &header);
-	curl_easy_setopt(curl_handle,   CURLOPT_WRITEDATA, &image);
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEHEADER, &header);
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &image);
+
+	// Disable SSL verification steps
+	curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYPEER, false);
+	curl_easy_setopt(curl_handle, CURLOPT_SSL_VERIFYHOST, 0);
+
+	// If HTTPS,
+	if (strncasecmp(url, "https://", 8) == 0) {
+		curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_TRY);
+	}
 	
 	curl_easy_perform(curl_handle);
 	struct image_data *image_data = NULL;
