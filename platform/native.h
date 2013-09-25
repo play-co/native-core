@@ -38,6 +38,7 @@ CEXPORT void report_gl_error(int error_code, gl_error **errors_hash, bool unreco
 CEXPORT void set_halfsized_textures(bool on);
 CEXPORT void native_stay_awake(bool on);
 void native_reload();
+char *native_call(const char *method, const char *args);
 const char *get_version_code();
 
 // Call these from a native thread when entering and leaving, to perform the
