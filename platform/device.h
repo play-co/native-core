@@ -26,6 +26,8 @@ const char *device_global_id();
 const char *device_info();
 int device_total_memory();
 void device_hide_splash();
+float device_get_text_scale();
+void device_set_text_scale(float scale);
 	
 #ifdef __cplusplus
 }
