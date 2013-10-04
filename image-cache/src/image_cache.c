@@ -312,6 +312,9 @@ struct image_data *image_cache_fetch_remote_image(const char *url, const char *e
 	curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_setopt(curl_handle, CURLOPT_MAXREDIRS, 4);
 
+	//timouet if currently 15 seconds
+	curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, 15);
+
 	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, false);
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, true);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
