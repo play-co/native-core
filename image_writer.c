@@ -1,73 +1,91 @@
 #include "core/image_writer.h"
 
-#include "core/deps/openssl/pem.h"
 #include "platform/log.h"
 
-/* A BASE-64 ENCODER USING OPENSSL (by Len Schulwitz)
- * Parameter 1: A pointer to the data you want to base-64 encode.
- * Parameter 2: The number of bytes you want encoded.
- * Return: A character pointer to the base-64 encoded data (null-terminated for string output).
- * On linux, compile with "gcc base64_encode.c -o b64enc -lcrypto" and run with "./b64enc".
- * This software has no warranty and is provided "AS IS".  Use at your own risk.
+/*
+	A base64 encoder NOT using OpenSSL (by a very snarky Chris Taylor)
+
+	int GetBase64LengthFromBinaryLength(int bytes)
+
+		Get size of string buffer (neglecting terminating nul character) required to represent
+	the given length of data (in bytes).
+ 
+	void WriteBase64(const void *buffer, int bytes, char *encoded_buffer)
+
+		Write base64 string.  Does not write terminating nul character.
+ 
+	buffer: Input data bytes
+	bytes: Number of bytes of input data
+	encoded_buffer: Output data string
+	encoded_bytes: Size of output data string (from GetBase64LengthFromBinaryLength)
  */
 
-/*This function will Base-64 encode your data.*/
-char * base64encode (const void *b64_encode_me, int encode_this_many_bytes){
-    BIO *b64_bio, *mem_bio;   //Declare two BIOs.  One base64 encodes, the other stores memory.
-    BUF_MEM *mem_bio_mem_ptr; //Pointer to the "memory BIO" structure holding the base64 data.
+int GetBase64LengthFromBinaryLength(int bytes)
+{
+	if (bytes <= 0) return 0;
 
-    b64_bio = BIO_new(BIO_f_base64());  //Initialize our base64 filter BIO.
-    mem_bio = BIO_new(BIO_s_mem());  //Initialize our memory sink BIO.
-    BIO_push(b64_bio, mem_bio);  //Link the BIOs (i.e. create a filter-sink BIO chain.)
-    BIO_set_flags(b64_bio, BIO_FLAGS_BASE64_NO_NL);  //Don't add a newline every 64 characters.
-
-    BIO_write(b64_bio, b64_encode_me, encode_this_many_bytes); //Encode and write our b64 data.
-    BIO_flush(b64_bio);  //Flush data.  Necessary for b64 encoding, because of pad characters.
-
-    BIO_get_mem_ptr(mem_bio, &mem_bio_mem_ptr);  //Store address of mem_bio's memory structure.
-    BIO_set_close(mem_bio,BIO_NOCLOSE); //Permit access to mem_ptr after BIOs are destroyed.
-    BIO_free_all(b64_bio);  //Destroys all BIOs in chain, starting with b64 (i.e. the 1st one).
-
-    (*mem_bio_mem_ptr).data[(*mem_bio_mem_ptr).length] = '\0';  //Adds a null-terminator.
-
-    return (*mem_bio_mem_ptr).data; //Returns base-64 encoded data. (See: "buf_mem_st" struct).
+	return ((bytes + 2) / 3) * 4;
 }
 
+static const char *TO_BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
+void WriteBase64(const void *buffer, int bytes, char *encoded_buffer)
+{
+	const unsigned char *data = (const unsigned char *)buffer;
 
+	int ii, jj, end;
+	for (ii = 0, jj = 0, end = bytes - 2; ii < end; ii += 3, jj += 4)
+	{
+		encoded_buffer[jj] = TO_BASE64[data[ii] >> 2];
+		encoded_buffer[jj+1] = TO_BASE64[((data[ii] << 4) | (data[ii+1] >> 4)) & 0x3f];
+		encoded_buffer[jj+2] = TO_BASE64[((data[ii+1] << 2) | (data[ii+2] >> 6)) & 0x3f];
+		encoded_buffer[jj+3] = TO_BASE64[data[ii+2] & 0x3f];
+	}
+	
+	switch (ii - end)
+	{
+		default:
+		case 2: // Nothing to write
+			break;
+			
+		case 1: // Need to write final 1 byte
+			encoded_buffer[jj] = TO_BASE64[data[bytes-1] >> 2];
+			encoded_buffer[jj+1] = TO_BASE64[(data[bytes-1] << 4) & 0x3f];
+			encoded_buffer[jj+2] = '=';
+			encoded_buffer[jj+3] = '=';
+			break;
+			
+		case 0: // Need to write final 2 bytes
+			encoded_buffer[jj] = TO_BASE64[data[bytes-2] >> 2];
+			encoded_buffer[jj+1] = TO_BASE64[((data[bytes-2] << 4) | (data[bytes-1] >> 4)) & 0x3f];
+			encoded_buffer[jj+2] = TO_BASE64[(data[bytes-1] << 2) & 0x3f];
+			encoded_buffer[jj+3] = '=';
+			break;
+	}
+}
 
 char *write_image_to_base64(const char *image_type, unsigned char * data, int width, int height, int channels) {
 
 	int file_type = -1;
 	char *base64 = NULL;
-	LOG("JARED image type %s", image_type);
 
 	// infer from fileimage_type what the filetype is, it can either by png => (.png) or jpeg => (.jpg, .jpeg)
 	// try png first
 
 	if(!strncmp(image_type, "PNG", 3)) {
-		LOG("JARED image type is!!!! %s", image_type);
 		file_type = IMAGE_TYPE_PNG;
-
 	} else if(!strncmp(image_type, "JPG", 3) || !strncmp(image_type, "JPEG", 4)) {
-
 		file_type = IMAGE_TYPE_JPEG;
-
 	}
 
 	if (file_type == IMAGE_TYPE_PNG) {
-		LOG("JARED WRITING A BASE 64 STR");
-
 		base64 = write_png_to_base64(data, width, height, channels);
-
 	} else if (file_type == IMAGE_TYPE_JPEG) {
-
+		LOG("WARNING: Writing JPEG to base64 currently not supported.");
 		base64 = write_jpeg_to_base64(data, width, height, channels);
-
 	}
 
 	return base64;
-
 }
 
 //png helper funcs for writing to memory
@@ -151,7 +169,12 @@ png_create_write_struct_failed:
 	if (state.buffer == NULL) {
 		return NULL;
 	} else {
-		char *base64 = base64encode(state.buffer, state.size);
+		const int b64size = GetBase64LengthFromBinaryLength(state.size);
+		char *base64 = malloc(b64size + 1);
+
+		WriteBase64(state.buffer, state.size, base64);
+		base64[b64size] = '\0';
+
 		free(state.buffer);
 		return base64;
 	}
