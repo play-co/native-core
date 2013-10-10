@@ -499,6 +499,22 @@ void context_2d_setClip(context_2d *ctx, rect_2d clip) {
 	clip.y += modelView->m12;
 #endif
 
+	// Clip with screen bounds
+	if (clip.x < 0) {
+		clip.width += clip.x;
+		if (clip.width < 0) {
+			clip.width = 0;
+		}
+		clip.x = 0;
+	}
+	if (clip.y < 0) {
+		clip.height += clip.y;
+		if (clip.height < 0) {
+			clip.height = 0;
+		}
+		clip.y = 0;
+	}
+
 	// If entirely clipped,
 	if (clip.width <= 0 || clip.height <= 0) {
 		clip.x = clip.y = clip.width = clip.height = 0;
@@ -510,14 +526,6 @@ void context_2d_setClip(context_2d *ctx, rect_2d clip) {
 		ctx_clip.y = ctx->clipStack[i].y;
 		ctx_clip.width = ctx->clipStack[i].width;
 		ctx_clip.height = ctx->clipStack[i].height;
-
-		// Clip with screen bounds
-		if (clip.x < 0) {
-			clip.x = 0;
-		}
-		if (clip.y < 0) {
-			clip.y = 0;
-		}
 
 		// If context is on screen,
 		if (ctx->on_screen) {
