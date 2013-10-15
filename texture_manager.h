@@ -17,6 +17,7 @@
 #define TEXTURE_MANAGER_H
 
 #include "core/texture_2d.h"
+#include "core/image-cache/include/image_cache.h"
 
 #include <pthread.h>
 #define MAX_TEXTURE_COUNT 256
@@ -64,6 +65,7 @@ void texture_manager_on_texture_loaded(texture_manager *manager, const char *url
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);
 void texture_manager_memory_warning(texture_manager *manager);
 void texture_manager_set_max_memory(texture_manager *manager, int bytes); // Will only ratchet down
+void image_cache_load_callback(struct image_data *data);
 
 #ifdef __cplusplus
 }

@@ -67,12 +67,7 @@ static ThreadsThread m_load_thread = THREADS_INVALID_THREAD;
 static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond_var   = PTHREAD_COND_INITIALIZER;
 
-static ThreadsThread m_image_cache_load_thread = THREADS_INVALID_THREAD;
-static pthread_mutex_t image_cache_mutex     = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t image_cache_cond_var   = PTHREAD_COND_INITIALIZER;
-
 static texture_2d *tex_load_list = NULL;
-static texture_2d *image_cache_load_list = NULL;
 static json_t *spritesheet_map_root = NULL;
 static json_t *fontsheet_map_root = NULL;
 static int m_frame_epoch = 1;
@@ -84,7 +79,7 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-//#define TEXMAN_VERBOSE
+#define TEXMAN_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
 #else
@@ -222,11 +217,18 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 	// If URL represents a remote resource, or is a special resource
 	if (remote_resource) {
         if (!strncmp("http", url, 4)) {  
-            //run thread image_cache_get_image
-            pthread_mutex_lock(&image_cache_mutex);
-            LIST_ADD(&image_cache_load_list, tex);
-            pthread_cond_signal(&image_cache_cond_var); //signal there is a texture to load
-            pthread_mutex_unlock(&image_cache_mutex);
+			char* fileURL = (char*) image_cache_get(url);
+			free(fileURL);
+			/*
+			LOG("GOT CACHED FILE PATH: %s\n", fileURL);
+			free(tex->url);
+			tex->url = fileURL;
+			//lock, add to the pool and signal something has been added
+			pthread_mutex_lock(&mutex);
+			LIST_ADD(&tex_load_list, tex);
+			pthread_cond_signal(&cond_var); //signal there is a texture to load
+			pthread_mutex_unlock(&mutex);
+			*/
         } else {
             launch_remote_texture_load(permanent_url);
         }
@@ -524,45 +526,34 @@ void texture_manager_background_texture_loader(void *dummy) {
 	pthread_mutex_unlock(&mutex);
 }
 
-void image_cache_background_loader(void *dummy) {
+CEXPORT void image_cache_load_callback(struct image_data *data) {
 
-	while (m_running) {
+		int num_channels, width, height, originalWidth, originalHeight, scale;
+		unsigned char *bytes  = texture_2d_load_texture_raw(data->url, data->bytes, data->size, &num_channels, &width, &height, &originalWidth, &originalHeight, &scale);
+		bool failed = (bytes == NULL);
 
-        pthread_mutex_lock(&image_cache_mutex);
-		texture_2d *cur_tex = image_cache_load_list;
-        texture_2d *old_cur = cur_tex;
+		TEXLOG("image_cache_background_loader loaded %s, status: %i", data->url, failed);
 
-        if (old_cur == NULL) {
-            pthread_cond_wait(&image_cache_cond_var, &image_cache_mutex);
-            pthread_mutex_unlock(&image_cache_mutex);
-            continue;
-        } 
-
-        LIST_ITERATE(&image_cache_load_list, cur_tex);
-        LIST_REMOVE(&image_cache_load_list, old_cur);
-        pthread_mutex_unlock(&image_cache_mutex);
-
-        TEXLOG("image_cache_background_loader loading %s", old_cur->url);
-
-        if (old_cur->pixel_data == NULL && old_cur->url != NULL) {
-
-            struct image_data *data = image_cache_get_image(old_cur->url);
-			old_cur->pixel_data = texture_2d_load_texture_raw(old_cur->url, data->bytes, data->size, &old_cur->num_channels, &old_cur->width, &old_cur->height, &old_cur->originalWidth, &old_cur->originalHeight, &old_cur->scale);
-			if (old_cur->pixel_data == NULL) {
-				old_cur->failed = true;
-			}
-
-			TEXLOG("image_cache_background_loader loaded %s, status: %i", old_cur->url, old_cur->failed);
-
-			free(data->bytes);
-			data->bytes = NULL;
-        }
+		texture_manager *manager = texture_manager_get();
 
         pthread_mutex_lock(&mutex);
-        LIST_ADD(&tex_load_list, old_cur);
+		texture_2d *tex = texture_manager_get_texture(manager, data->url);
+		if (tex != NULL) {
+			free(tex->url);
+			tex->url = strdup(data->url);
+			tex->num_channels = num_channels;
+			tex->width = width;
+			tex->height = height;
+			tex->originalWidth = originalWidth;
+			tex->originalHeight = originalHeight;
+			tex->scale = scale;
+			tex->failed = failed;
+			tex->pixel_data = bytes;
+			LIST_ADD(&tex_load_list, tex);
+		}
+
         pthread_mutex_unlock(&mutex);
 
-	}
 
 }
 
@@ -605,7 +596,7 @@ texture_manager *texture_manager_get() {
 
 			// Launch the loader thread
 			m_load_thread = threads_create_thread(texture_manager_background_texture_loader, m_instance);
-			m_image_cache_load_thread = threads_create_thread(image_cache_background_loader, m_instance);
+
 			// Mark the instance as being ready
 			m_instance_ready = true;
 		}
@@ -638,7 +629,6 @@ void texture_manager_destroy(texture_manager *manager) {
 	free(manager);
 	// Clear the texture load list
 	tex_load_list = NULL;
-	image_cache_load_list = NULL;
 
 	// If manager is the singleton instance, clear it also
 	if (manager == m_instance) {
