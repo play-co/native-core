@@ -41,26 +41,64 @@ struct work_item {
 	struct work_item *next;
 };
 
-static struct load_item *load_items;
-static struct work_item *work_items;
-
-static struct request *request_pool[MAX_REQUESTS];
-static int request_count;
 static void (*image_load_callback)(struct image_data*);
 
+// Request thread variables
 static pthread_t request_thread;
-static bool request_thread_running = true;
 static pthread_mutex_t request_mutex = PTHREAD_MUTEX_INITIALIZER; 
 static pthread_cond_t request_cond = PTHREAD_COND_INITIALIZER; 
+// To modify these variables you must hold the request_mutex lock
+static bool request_thread_running = true;
+static struct load_item *load_items = NULL;
+static struct load_item *load_items_tail = NULL;
 
+// Worker thread variables
 static pthread_t worker_thread;
-static bool worker_thread_running = true;
 static pthread_mutex_t worker_mutex = PTHREAD_MUTEX_INITIALIZER; 
 static pthread_cond_t worker_cond = PTHREAD_COND_INITIALIZER; 
+// To modify these variables you must hold the worker_mutex lock
+static bool worker_thread_running = true;
+static struct work_item *work_items = NULL;
+static struct work_item *work_items_tail = NULL;
 
+// Local function declarations
 struct image_data *image_cache_fetch_remote_image(const char *url, const char *etag);
 void *image_cache_run(void* args);
 void *worker_run(void *args);
+
+// Simple macros for manipulating the work/request lists
+// ex. load_items is the head of the load items list and load_items_tail is the end of the list
+
+// Add an item to the end of the list
+#define PUSH_BACK(list_name, item) {  \
+		if (!list_name) {\
+			list_name = item;\
+		}\
+		if (list_name##_tail) {\
+			list_name##_tail->next = item;\
+		}\
+		list_name##_tail = item;\
+        item->next = NULL;\
+} 
+
+// Remove the item at the head of the list
+#define POP_FRONT(list_name) {\
+	list_name = list_name->next;\
+	if (!list_name) {\
+		list_name##_tail = NULL;\
+	}\
+}
+
+// Clear list
+#define CLEAR_LIST(list_name) {\
+	list_name = NULL;\
+	list_name##_tail = NULL;\
+}\
+
+static char *file_cache_path;
+
+static struct etag_data *etag_cache = NULL;
+static const char *etag_file_name = ".etags";
 
 static size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
 	size_t real_size = size * nmemb;
@@ -81,10 +119,6 @@ static size_t write_data(void *contents, size_t size, size_t nmemb, void *userp)
 	return real_size;
 }
 
-static char *file_cache_path;
-
-struct etag_data *etag_cache = NULL;
-static const char *etag_file_name = ".etags";
 
 void add_etags_to_memory_cache(char *f) {
 	char *saveptr = NULL;
@@ -333,22 +367,22 @@ void image_cache_load(const char *url) {
 		image_data->size = 0;
 
 		// add work to the work list
-		pthread_mutex_lock(&worker_mutex);
 		struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
 		work_item->image_data = image_data;
-		work_item->next = work_items;
-		work_items = work_item;
+
+		pthread_mutex_lock(&worker_mutex);
+		PUSH_BACK(work_items, work_item);
 		pthread_cond_signal(&worker_cond);
 		pthread_mutex_unlock(&worker_mutex);
 	}
 
-	pthread_mutex_lock(&request_mutex);
 	struct load_item *load_item = (struct load_item*) malloc(sizeof(struct load_item));
 	load_item->url = strdup(url);
 	load_item->meta_data = NULL;
 	load_item->next = load_items;
 
-	load_items = load_item;
+	pthread_mutex_lock(&request_mutex);
+	PUSH_BACK(load_items, load_item);
 	pthread_cond_signal(&request_cond);
 	pthread_mutex_unlock(&request_mutex);
 
@@ -356,17 +390,26 @@ void image_cache_load(const char *url) {
 }
 
 void *image_cache_run(void* args) {
+	struct request *request_pool[MAX_REQUESTS];
 	struct timeval timeout;
-	int rc; /* select() return code */ 
 	int i;
 
+	// number of requests currently being processed
+	int request_count = 0;
+
+	CURLM *multi_handle = curl_multi_init();
+
+	// store the timeout requested by curl
+	long curl_timeo = -1;
+
+	// number of multi requests still running
+	int still_running;
+
+	// file descriptor variables for selecting over multi requests
 	fd_set fdread;
 	fd_set fdwrite;
 	fd_set fdexcep;
 	int maxfd = -1;
-
-	long curl_timeo = -1;
-
 
 	// init the handle pool and free handles
 	for (i = 0; i < MAX_REQUESTS; i++) {
@@ -374,46 +417,46 @@ void *image_cache_run(void* args) {
 		request_pool[i]->handle = curl_easy_init();
 	}
 
-	request_count = 0;
-	CURLM *multi_handle = curl_multi_init();
-	int still_running;
 
 	pthread_mutex_lock(&request_mutex);
 	while (request_thread_running) {
 		// while there are free handles start up new requests
 		while (request_count < MAX_REQUESTS) {
 			struct load_item *load_item;
-			
+	
+			// if there are any load requests take the first one otherwise break and continue
 			if (load_items) {
 				load_item = load_items;	
-				load_items = load_items->next;
+				POP_FRONT(load_items);
 			} else {
 				break;
 			}
 
-
+			// got a new load_item so create a new request and set up the curl handle
 			struct request *request = request_pool[request_count];
 			curl_easy_reset(request->handle);
-			LOG("ADDING REQUEST: %p | %p\n", request, request->handle);
+			LOG("ADDING REQUEST: %p\n", request);
 			request->image.bytes = (char*)malloc(1);
 			request->image.size = 0;
 			request->image.is_image = false;
 			request->header.bytes = (char*)malloc(1);
 			request->header.size = 0;
 			request->header.is_image = false;
-			
+		
+			// the load item for this request is stored for use after the request finishes
 			request->load_item = load_item;
 			curl_easy_setopt(request->handle, CURLOPT_URL, load_item->url);
 
-			struct curl_slist *headers = NULL;
-
+			// if we have a cached version of the file on disk then try to get its etag
 			if (image_exists_in_cache(load_item->url)) {
 				request->etag = get_etag_for_url(load_item->url);
 			} else {
 				request->etag = NULL;
 			}
-			
+	
+			// if we have an etag add it to the request header
 			if (request->etag) {
+				struct curl_slist *headers = NULL;
 				LOG("we have an etag, sending it to the server\n");
 				static const char *etag_header_format = "If-None-Match: \"%s\"";
 				size_t header_str_len = strlen(etag_header_format) + strlen(request->etag) + 1;
@@ -439,22 +482,23 @@ void *image_cache_run(void* args) {
 			if (strncasecmp(load_item->url, "https://", 8) == 0) {
 				curl_easy_setopt(request->handle, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 			}
-	
 
-
-			//timouet if currently 15 seconds
+			// timouet if currently 15 seconds
 			curl_easy_setopt(request->handle, CURLOPT_TIMEOUT, 15);
 
+			// add this handle to the group of multi requests
 			curl_multi_add_handle(multi_handle, request->handle);
 				
 			request_count++;
 		}
-		
+	
+		// if no requests are currently being processed sleep until signaled
 		if (!request_count) {
 			pthread_cond_wait(&request_cond, &request_mutex);
 			continue;
 		}
 
+		// unlock to process any ongoing curl requests
 		pthread_mutex_unlock(&request_mutex);
 
 		curl_multi_perform(multi_handle, &still_running);
@@ -466,7 +510,8 @@ void *image_cache_run(void* args) {
 			FD_ZERO(&fdwrite);
 			FD_ZERO(&fdexcep);
 
-			/* set a suitable timeout to play around with */ 
+
+			// set a default timeout before getting one from curl
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
 
@@ -482,13 +527,7 @@ void *image_cache_run(void* args) {
 			/* get file descriptors from the transfers */ 
 			curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
-			/* In a real-world program you OF COURSE check the return code of the
-			   function calls.  On success, the value of maxfd is guaranteed to be
-			   greater or equal than -1.  We call select(maxfd + 1, ...), specially in
-			   case of (maxfd == -1), we call select(0, ...), which is basically equal
-			   to sleep. */ 
-
-			rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
+			int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
 
 			switch(rc) {
 				case -1:
@@ -500,10 +539,10 @@ void *image_cache_run(void* args) {
 					break;
 			}
 		} while (still_running == request_count);
-		LOG("request count: %d\n", still_running);
+
+		LOG("after request count: %d\n", still_running);
 
 		// at least one request has finished
-		/* See how the transfers went */ 
 		CURLMsg *msg; /* for picking up messages with the transfer status */ 
 		int msgs_left; /* how many messages are left */ 
 		while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
@@ -519,11 +558,11 @@ void *image_cache_run(void* args) {
 				}
 
 				struct request *request = request_pool[idx];
-				LOG("finished request: %p\n", request);
-				LOG("finished handle: %p %d\n", msg->easy_handle, found);
+				LOG("finished request: %s\n", request->load_item->url);
 
-				// got image data...?
 				struct etag_data *etag_data = NULL;
+				// Check to see if this url already has etag data
+				// if it doesnt create it now
 				HASH_FIND_STR(etag_cache, request->load_item->url, etag_data);
 				if (!etag_data) {
 					etag_data = (struct etag_data*)malloc(sizeof(struct etag_data));
@@ -539,6 +578,7 @@ void *image_cache_run(void* args) {
 				}
 
 
+				// if we got an image back from the server send the image data to the worker thread for processing
 				if (request->image.size > 0) {
 					struct image_data *image_data = (struct image_data*)malloc(sizeof(struct image_data));
 					image_data->url = strdup(request->load_item->url);
@@ -559,12 +599,14 @@ void *image_cache_run(void* args) {
 					// save all etags to a file
 					write_etags_to_cache();
 
-					// add work to the work list
-					pthread_mutex_lock(&worker_mutex);
+					// create a new work item
 					struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
 					work_item->image_data = image_data;
 					work_item->next = work_items;
-					work_items = work_item;
+
+					// add the work item to the work list
+					pthread_mutex_lock(&worker_mutex);
+					PUSH_BACK(work_items, work_item);
 					pthread_cond_signal(&worker_cond);
 					pthread_mutex_unlock(&worker_mutex);
 
@@ -579,7 +621,7 @@ void *image_cache_run(void* args) {
 				curl_multi_remove_handle(multi_handle, request->handle);
 
 
-				// swap idx to the end of the request pool
+				// move this request to the end of the request pool so it can be freed
 				struct request *temp = request_pool[request_count - 1];
 				request_pool[request_count - 1] = request_pool[idx];
 				request_pool[idx] = temp;
@@ -613,14 +655,16 @@ void *worker_run(void *args) {
 
 		// clear list
 		struct work_item *item = work_items;
-		work_items = NULL;
+		CLEAR_LIST(work_items);
 
-		// do work
 		pthread_mutex_unlock(&worker_mutex);
-
+		
+		// process each item in the work queue
 		while (item) {
 			struct work_item *prev_item = item;
 
+			// if no image bytes were provided try loading the image from disk
+			// otherwise save the image
 			if (!item->image_data->bytes) {
 				LOG("no need to fetch/update image: %s\n", item->image_data->url);
 				get_cached_image_for_url(item->image_data);
@@ -629,8 +673,10 @@ void *worker_run(void *args) {
 				save_image_for_url(item->image_data->url, item->image_data);
 			}
 
+			// call the provided image load callback with image data
 			image_load_callback(item->image_data);	
 
+			// move to the next item in the list and free memory for the processed item
 			item = item->next;
 
 			free(prev_item->image_data->bytes);
