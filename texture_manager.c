@@ -217,18 +217,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 	// If URL represents a remote resource, or is a special resource
 	if (remote_resource) {
         if (!strncmp("http", url, 4)) {  
-			char* fileURL = (char*) image_cache_get(url);
-			free(fileURL);
-			/*
-			LOG("GOT CACHED FILE PATH: %s\n", fileURL);
-			free(tex->url);
-			tex->url = fileURL;
-			//lock, add to the pool and signal something has been added
-			pthread_mutex_lock(&mutex);
-			LIST_ADD(&tex_load_list, tex);
-			pthread_cond_signal(&cond_var); //signal there is a texture to load
-			pthread_mutex_unlock(&mutex);
-			*/
+			image_cache_load(url);
         } else {
             launch_remote_texture_load(permanent_url);
         }

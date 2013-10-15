@@ -324,18 +324,22 @@ char *parse_etag_from_headers(char *headers) {
 	return etag;
 }
 
-char* image_cache_get(const char *url) {
+void image_cache_load(const char *url) {
 	// if the file exists return the path to the image...
-	char* file_path = NULL;
 	if (image_exists_in_cache(url)) {
-		/*
-		char* file_name = get_filename_from_url(url);
-		if (file_name) {
-			file_path =  get_full_path(file_name);
-		}
-		free(file_name);
-		*/
-		file_path = get_filename_from_url(url);
+		struct image_data *image_data = (struct image_data*)malloc(sizeof(struct image_data));
+		image_data->url = strdup(url);
+		image_data->bytes = NULL;
+		image_data->size = 0;
+
+		// add work to the work list
+		pthread_mutex_lock(&worker_mutex);
+		struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
+		work_item->image_data = image_data;
+		work_item->next = work_items;
+		work_items = work_item;
+		pthread_cond_signal(&worker_cond);
+		pthread_mutex_unlock(&worker_mutex);
 	}
 
 	pthread_mutex_lock(&request_mutex);
@@ -348,8 +352,7 @@ char* image_cache_get(const char *url) {
 	pthread_cond_signal(&request_cond);
 	pthread_mutex_unlock(&request_mutex);
 
-	LOG("URL: %s RETURNING PATH: %s\n", url, file_path);
-	return file_path;
+	LOG("starting load for: %s\n", url);
 }
 
 void *image_cache_run(void* args) {
@@ -532,13 +535,13 @@ void *image_cache_run(void* args) {
 					}
 					HASH_ADD_KEYPTR(hh, etag_cache, etag_data->url, strlen(etag_data->url), etag_data);
 				} else {
-					LOG("loaded existing image data\n");
+					LOG("loaded existing etag data\n");
 				}
 
-				struct image_data *image_data = (struct image_data*)malloc(sizeof(struct image_data));
-				image_data->url = strdup(request->load_item->url);
 
 				if (request->image.size > 0) {
+					struct image_data *image_data = (struct image_data*)malloc(sizeof(struct image_data));
+					image_data->url = strdup(request->load_item->url);
 
 					LOG("got an updated image! %zd\n", request->image.size);
 					//we got an image back
@@ -555,11 +558,18 @@ void *image_cache_run(void* args) {
 
 					// save all etags to a file
 					write_etags_to_cache();
-					
+
+					// add work to the work list
+					pthread_mutex_lock(&worker_mutex);
+					struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
+					work_item->image_data = image_data;
+					work_item->next = work_items;
+					work_items = work_item;
+					pthread_cond_signal(&worker_cond);
+					pthread_mutex_unlock(&worker_mutex);
+
 				} else {
 					free(request->image.bytes);
-					image_data->bytes = NULL;
-					image_data->size = 0;
 					LOG("didn't get an image from the server - probably already up to date\n");
 				}
 
@@ -568,15 +578,6 @@ void *image_cache_run(void* args) {
 				free(request->load_item);
 				curl_multi_remove_handle(multi_handle, request->handle);
 
-
-				// add work to the work list
-				pthread_mutex_lock(&worker_mutex);
-				struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
-				work_item->image_data = image_data;
-				work_item->next = work_items;
-				work_items = work_item;
-				pthread_cond_signal(&worker_cond);
-				pthread_mutex_unlock(&worker_mutex);
 
 				// swap idx to the end of the request pool
 				struct request *temp = request_pool[request_count - 1];
@@ -642,9 +643,9 @@ void *worker_run(void *args) {
 	}
 
 	// free any remaining work items
-	while (item) {
-		struct work_item *prev_item = item;
-		item = item->next;
+	while (work_items) {
+		struct work_item *prev_item = work_items;
+		work_items = work_items->next;
 
 		free(prev_item->image_data->bytes);
 		free(prev_item->image_data->url);
