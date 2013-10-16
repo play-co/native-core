@@ -528,8 +528,6 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
         pthread_mutex_lock(&mutex);
 		texture_2d *tex = texture_manager_get_texture(manager, data->url);
 		if (tex != NULL) {
-			free(tex->url);
-			tex->url = strdup(data->url);
 			tex->num_channels = num_channels;
 			tex->width = width;
 			tex->height = height;

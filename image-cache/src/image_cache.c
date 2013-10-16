@@ -358,6 +358,20 @@ char *parse_etag_from_headers(char *headers) {
 	return etag;
 }
 
+void image_cache_remove(const char *url) {
+	if (image_exists_in_cache(url)) {
+		char *filename = get_filename_from_url(url);
+		if (filename) {
+			char *file_path = get_full_path(filename);
+			if (file_path) {
+				remove(file_path);
+				free(file_path);
+			}
+			free(filename);
+		}
+	}
+}
+
 void image_cache_load(const char *url) {
 	// if the file exists return the path to the image...
 	if (image_exists_in_cache(url)) {
