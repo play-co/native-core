@@ -153,7 +153,7 @@ void read_etags_from_cache() {
 	if (access(etags_file_path, F_OK) != -1) {
 		FILE *f = fopen(etags_file_path, "r");
 		if (!f) {
-			LOG("Error opening etags cache file.  Does the directory exist?\n");
+			LOG("Error opening etags cache file for read: %s\n", etag_file_name);
 		} else {
 			fseek(f, 0, SEEK_END);
 			size_t file_size = ftell(f);
@@ -181,22 +181,27 @@ void read_etags_from_cache() {
 }
 
 void write_etags_to_cache() {
+	static const char *format = "%s %s\n";
 	struct etag_data *data = NULL;
 	struct etag_data *tmp = NULL;
+
 	char *path = get_full_path(etag_file_name);
 	FILE *f = fopen(path, "w");
-	static const char *format = "%s %s\n";
-	HASH_ITER(hh, etag_cache, data, tmp) {
-		if (data->etag && data->url) {
-			size_t length = strlen(data->etag) + strlen(data->url) + strlen(format) + 1;
-			char *line = (char*)malloc(sizeof(char) * length);
-			snprintf(line, length, format, data->url, data->etag);
-			fwrite(line, sizeof(char), strlen(line), f);
-			free(line);
+	if (!f) {
+		LOG("Error opening etags cache file for write: %s\n", etag_file_name);
+	} else {
+		HASH_ITER(hh, etag_cache, data, tmp) {
+			if (data->etag && data->url) {
+				size_t length = strlen(data->etag) + strlen(data->url) + strlen(format) + 1;
+				char *line = (char*)malloc(sizeof(char) * length);
+				snprintf(line, length, format, data->url, data->etag);
+				fwrite(line, sizeof(char), strlen(line), f);
+				free(line);
+			}
 		}
+		fwrite("\n", sizeof(char), 1, f);
+		fclose(f);
 	}
-    fwrite("\n", sizeof(char), 1, f);
-	fclose(f);
 	free(path);
 }
 
