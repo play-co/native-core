@@ -21,22 +21,35 @@
 
 
 unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
-	/* Test if it is a png first */
-	unsigned char header[8];
-	memcpy(header, bits, 8);
-	int is_png = !png_sig_cmp(header, 0, 8);
+	// must have at least 8 bytes be read
+	if (bits_length >= 8) {
+		/* Test if it is a png first */
+		unsigned char header[8];
+		memcpy(header, bits, 8);
+		int is_png = !png_sig_cmp(header, 0, 8);
 
-	if (is_png) {
-		return load_png_from_memory(bits, width, height, channels);
-	} else {
-		return load_jpg_from_memory(bits, bits_length, width, height, channels);
+		if (is_png) {
+			return load_png_from_memory(bits, bits_length, width, height, channels);
+		} else {
+			return load_jpg_from_memory(bits, bits_length, width, height, channels);
+		}
 	}
+	return NULL;
 }
+
+struct bounded_buffer {
+	unsigned char *pos;
+	unsigned char *end;
+};
 
 //helper function for load_png_from_memory
 void png_image_bytes_read(png_structp png_ptr, png_bytep data, png_size_t length) {
-	memcpy(data, png_ptr->io_ptr , length);
-	png_ptr->io_ptr += length;
+	struct bounded_buffer *buff = (struct bounded_buffer*) png_ptr->io_ptr;
+	unsigned char *next_pos = buff->pos + length;
+	if (next_pos <= buff->end) {
+		memcpy(data, buff->pos , length);
+		buff->pos = next_pos;
+	} 
 }
 
 static void readpng2_error_handler(png_structp png_ptr, 
@@ -51,7 +64,7 @@ static void readpng2_error_handler(png_structp png_ptr,
     longjmp(*jbuf, 1);
 }
 
-unsigned char *load_png_from_memory(unsigned char *bits, int *width, int *height, int *channels) {
+unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
 	jmp_buf jbuf;
 
 	//create png struct
@@ -82,7 +95,9 @@ unsigned char *load_png_from_memory(unsigned char *bits, int *width, int *height
 		return NULL;
 	}
 
-	png_set_read_fn(png_ptr, bits + 8 , png_image_bytes_read);
+	//create a bounded buffer for reading (set the inital pos to 8 <right after the header>)
+	struct bounded_buffer buff = {bits + 8, bits + bits_length};
+	png_set_read_fn(png_ptr, &buff, png_image_bytes_read);
 	//let libpng know you already read the first 8 bytes
 	png_set_sig_bytes(png_ptr, 8);
 	// read all the info up to the image data

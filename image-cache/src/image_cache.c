@@ -13,7 +13,7 @@
 #define LOG(...) printf(__VA_ARGS__)
 //#include "core/log.h"
 //#define printf(...) LOG(__VA_ARGS__)
-#define MAX_REQUESTS 10
+#define MAX_REQUESTS 5
 
 struct data {
 	char *bytes;
@@ -38,6 +38,7 @@ struct request {
 
 struct work_item {
 	struct image_data *image_data;
+	bool request_failed;
 	struct work_item *next;
 };
 
@@ -383,6 +384,7 @@ void image_cache_load(const char *url) {
 		// add work to the work list
 		struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
 		work_item->image_data = image_data;
+		work_item->request_failed = false;
 
 		pthread_mutex_lock(&worker_mutex);
 		PUSH_BACK(work_items, work_item);
@@ -497,8 +499,8 @@ void *image_cache_run(void* args) {
 				curl_easy_setopt(request->handle, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 			}
 
-			// timouet if currently 15 seconds
-			curl_easy_setopt(request->handle, CURLOPT_TIMEOUT, 15);
+			// timeout for long requests
+			curl_easy_setopt(request->handle, CURLOPT_TIMEOUT, 60);
 
 			// add this handle to the group of multi requests
 			curl_multi_add_handle(multi_handle, request->handle);
@@ -572,61 +574,83 @@ void *image_cache_run(void* args) {
 				}
 
 				struct request *request = request_pool[idx];
-				LOG("finished request: %s\n", request->load_item->url);
-
-				struct etag_data *etag_data = NULL;
-				// Check to see if this url already has etag data
-				// if it doesnt create it now
-				HASH_FIND_STR(etag_cache, request->load_item->url, etag_data);
-				if (!etag_data) {
-					etag_data = (struct etag_data*)malloc(sizeof(struct etag_data));
-					etag_data->url = strdup(request->load_item->url);
-					if (request->etag) {
-						etag_data->etag = strdup(request->etag);
+				LOG("finished request: %s with result %d and image size %d\n", request->load_item->url, msg->data.result, request->image.size);
+				if (msg->data.result == CURLE_OK) {
+					struct etag_data *etag_data = NULL;
+					// Check to see if this url already has etag data
+					// if it doesnt create it now
+					HASH_FIND_STR(etag_cache, request->load_item->url, etag_data);
+					if (!etag_data) {
+						etag_data = (struct etag_data*)malloc(sizeof(struct etag_data));
+						etag_data->url = strdup(request->load_item->url);
+						if (request->etag) {
+							etag_data->etag = strdup(request->etag);
+						} else {
+							etag_data->etag = NULL;
+						}
+						HASH_ADD_KEYPTR(hh, etag_cache, etag_data->url, strlen(etag_data->url), etag_data);
 					} else {
-						etag_data->etag = NULL;
+						LOG("loaded existing etag data\n");
 					}
-					HASH_ADD_KEYPTR(hh, etag_cache, etag_data->url, strlen(etag_data->url), etag_data);
+
+
+					// if we got an image back from the server send the image data to the worker thread for processing
+					if (request->image.size > 0) {
+						struct image_data *image_data = (struct image_data*) malloc(sizeof(struct image_data));
+						image_data->url = strdup(request->load_item->url);
+
+						LOG("got an updated image! %zd\n", request->image.size);
+						//we got an image back
+						image_data->bytes = request->image.bytes;
+						image_data->size = request->image.size;
+						free(etag_data->etag);
+						
+						char *etag = parse_etag_from_headers(request->header.bytes);
+						if (etag) {
+							etag_data->etag = strdup(etag);
+						} else {
+							LOG("no etag for %s\n", etag_data->url);
+						}
+
+						// save all etags to a file
+						write_etags_to_cache();
+
+						// create a new work item
+						struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
+						work_item->image_data = image_data;
+						work_item->next = work_items;
+						work_item->request_failed = false;
+
+						// add the work item to the work list
+						pthread_mutex_lock(&worker_mutex);
+						PUSH_BACK(work_items, work_item);
+						pthread_cond_signal(&worker_cond);
+						pthread_mutex_unlock(&worker_mutex);
+
+					} else {
+						free(request->image.bytes);
+						LOG("didn't get an image from the server - probably already up to date\n");
+					}
 				} else {
-					LOG("loaded existing etag data\n");
-				}
+					// free any bytes acquired during the request
+					free(request->image.bytes);
 
-
-				// if we got an image back from the server send the image data to the worker thread for processing
-				if (request->image.size > 0) {
-					struct image_data *image_data = (struct image_data*)malloc(sizeof(struct image_data));
+					//on error send empty work item to the background worker
+					struct image_data *image_data = (struct image_data*) malloc(sizeof(struct image_data));
 					image_data->url = strdup(request->load_item->url);
+					image_data->bytes = NULL;
+					image_data->size = 0;
 
-					LOG("got an updated image! %zd\n", request->image.size);
-					//we got an image back
-					image_data->bytes = request->image.bytes;
-					image_data->size = request->image.size;
-					free(etag_data->etag);
-					
-					char *etag = parse_etag_from_headers(request->header.bytes);
-					if (etag) {
-						etag_data->etag = strdup(etag);
-					} else {
-						LOG("no etag for %s\n", etag_data->url);
-					}
-
-					// save all etags to a file
-					write_etags_to_cache();
-
-					// create a new work item
 					struct work_item *work_item = (struct work_item*) malloc(sizeof(struct work_item));
 					work_item->image_data = image_data;
 					work_item->next = work_items;
+					work_item->request_failed = true;
 
 					// add the work item to the work list
 					pthread_mutex_lock(&worker_mutex);
 					PUSH_BACK(work_items, work_item);
 					pthread_cond_signal(&worker_cond);
 					pthread_mutex_unlock(&worker_mutex);
-
-				} else {
-					free(request->image.bytes);
-					LOG("didn't get an image from the server - probably already up to date\n");
 				}
 
 				free(request->header.bytes);
@@ -688,7 +712,10 @@ void *worker_run(void *args) {
 			}
 
 			// call the provided image load callback with image data
-			image_load_callback(item->image_data);	
+			// When the request fails only fire the callback if image data has null bytes
+			if (!(item->request_failed && item->image_data->bytes)) {
+				image_load_callback(item->image_data);	
+			}
 
 			// move to the next item in the list and free memory for the processed item
 			item = item->next;
