@@ -13,6 +13,7 @@ struct etag_data {
 	char *url;
 	char *etag;
 	UT_hash_handle hh;
+	UT_hash_handle hhr;
 };
 
 

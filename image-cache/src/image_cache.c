@@ -181,22 +181,20 @@ struct work_item {
 static void (*image_load_callback)(struct image_data*);
 
 // Request thread variables
-static pthread_t request_thread;
-static pthread_mutex_t request_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t request_cond = PTHREAD_COND_INITIALIZER;
+static pthread_t m_request_thread;
+static pthread_mutex_t m_request_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t m_request_cond = PTHREAD_COND_INITIALIZER;
 // To modify these variables you must hold the request_mutex lock
-static bool request_thread_running = true;
-static struct load_item *load_items = NULL;
-static struct load_item *load_items_tail = NULL;
+static volatile bool m_request_thread_running = true;
+static volatile struct load_item *m_load_items = 0;
 
 // Worker thread variables
-static pthread_t worker_thread;
-static pthread_mutex_t worker_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t worker_cond = PTHREAD_COND_INITIALIZER;
+static pthread_t m_worker_thread;
+static pthread_mutex_t m_worker_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t m_worker_cond = PTHREAD_COND_INITIALIZER;
 // To modify these variables you must hold the worker_mutex lock
-static bool worker_thread_running = true;
-static struct work_item *work_items = NULL;
-static struct work_item *work_items_tail = NULL;
+static volatile bool m_worker_thread_running = true;
+static volatile struct work_item *m_work_items = 0;
 
 // Local function declarations
 struct image_data *image_cache_fetch_remote_image(const char *url, const char *etag);
@@ -206,37 +204,13 @@ void *worker_run(void *args);
 // Simple macros for manipulating the work/request lists
 // ex. load_items is the head of the load items list and load_items_tail is the end of the list
 
-// Add an item to the end of the list
-#define PUSH_BACK(list_name, item) {  \
-if (!list_name) {\
-list_name = item;\
-}\
-if (list_name##_tail) {\
-list_name##_tail->next = item;\
-}\
-list_name##_tail = item;\
-item->next = NULL;\
-}
+#define LIST_PUSH(head, item) item->next = head; head = item;
+#define LIST_POP(head, item) item = head; if (head) { head = item->next; }
 
-// Remove the item at the head of the list
-#define POP_FRONT(list_name) {\
-list_name = list_name->next;\
-if (!list_name) {\
-list_name##_tail = NULL;\
-}\
-}
-
-// Clear list
-#define CLEAR_LIST(list_name) {\
-list_name = NULL;\
-list_name##_tail = NULL;\
-}\
-
-static char *file_cache_path;
-
-static struct etag_data *etag_cache = NULL;
-static struct etag_data *reverse_cache = NULL;
-static const char *etag_file_name = ".etags";
+static struct etag_data *m_etag_cache = NULL;
+static struct etag_data *m_reverse_cache = NULL;
+static const char *ETAG_FILE = ".etags";
+static char *m_file_cache_path;
 
 static size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
 	size_t real_size = size * nmemb;
@@ -267,8 +241,8 @@ void add_etags_to_memory_cache(char *f) {
 			struct etag_data *data = (struct etag_data*)malloc(sizeof(struct etag_data));
 			data->etag = strdup(etag);
 			data->url = strdup(url);
-			HASH_ADD_KEYPTR(hh, etag_cache, data->url, strlen(data->url), data);
-			HASH_ADD_KEYPTR(hhr, reverse_cache, data->etag, strlen(data->etag), data);
+			HASH_ADD_KEYPTR(hh, m_etag_cache, data->url, strlen(data->url), data);
+			HASH_ADD_KEYPTR(hhr, m_reverse_cache, data->etag, strlen(data->etag), data);
 		}
         url = strtok_r(NULL, " ", &saveptr);
     }
@@ -276,9 +250,9 @@ void add_etags_to_memory_cache(char *f) {
 
 char *get_full_path(const char *filename) {
 	static const char *format = "%s/%s";
-	size_t length = strlen(filename) + strlen(file_cache_path) + 1 + 1;
+	size_t length = strlen(filename) + strlen(m_file_cache_path) + 1 + 1;
 	char *file_path = (char *)malloc(sizeof(char) * length);
-	snprintf(file_path, length, format, file_cache_path, filename);
+	snprintf(file_path, length, format, m_file_cache_path, filename);
 	return file_path;
 }
 /*
@@ -286,11 +260,13 @@ char *get_full_path(const char *filename) {
  * 	http://example.com/foo.png 383761229c544a77af3df6dd1cc5c01d
  */
 void read_etags_from_cache() {
-	char *etags_file_path = get_full_path(etag_file_name);
-	if (access(etags_file_path, F_OK) != -1) {
-		FILE *f = fopen(etags_file_path, "r");
+	char *path = get_full_path(ETAG_FILE);
+
+	if (access(path, F_OK) != -1) {
+		FILE *f = fopen(path, "r");
+
 		if (!f) {
-			LOG("Error opening etags cache file for read: %s\n", etag_file_name);
+			LOG("Error opening etags cache file for read: %s\n", path);
 		} else {
 			fseek(f, 0, SEEK_END);
 			size_t file_size = ftell(f);
@@ -306,6 +282,7 @@ void read_etags_from_cache() {
 				}
 			}
 			fclose(f);
+
             LOG("============== read file\n\n%s\n\n===========", file_buffer);
 			
             add_etags_to_memory_cache(file_buffer);
@@ -314,7 +291,8 @@ void read_etags_from_cache() {
 			
 		}
 	}
-	free(etags_file_path);
+
+	free(path);
 }
 
 void write_etags_to_cache() {
@@ -322,10 +300,11 @@ void write_etags_to_cache() {
 	struct etag_data *data = NULL;
 	struct etag_data *tmp = NULL;
 	
-	char *path = get_full_path(etag_file_name);
+	char *path = get_full_path(ETAG_FILE);
 	FILE *f = fopen(path, "w");
+
 	if (!f) {
-		LOG("Error opening etags cache file for write: %s\n", etag_file_name);
+		LOG("Error opening etags cache file for write: %s\n", path);
 	} else {
 		HASH_ITER(hh, etag_cache, data, tmp) {
 			if (data->etag && data->url) {
@@ -339,6 +318,7 @@ void write_etags_to_cache() {
 		fwrite("\n", sizeof(char), 1, f);
 		fclose(f);
 	}
+
 	free(path);
 }
 
@@ -730,7 +710,6 @@ void *image_cache_run(void* args) {
 						etag_data->url = strdup(request->load_item->url);
 						if (request->etag) {
 							etag_data->etag = strdup(request->etag);
-							HASH_ADD_KEYPTR(hhr, reverse_cache, etag_data->etag, strlen(etag_data->etag), etag_data);
 						} else {
 							etag_data->etag = NULL;
 						}
@@ -753,6 +732,7 @@ void *image_cache_run(void* args) {
 						char *etag = parse_etag_from_headers(request->header.bytes);
 						if (etag) {
 							etag_data->etag = strdup(etag);
+							HASH_ADD_KEYPTR(hhr, reverse_cache, etag_data->etag, strlen(etag_data->etag), etag_data);
 						} else {
 							LOG("no etag for %s\n", etag_data->url);
 						}
@@ -837,8 +817,8 @@ void *worker_run(void *args) {
 		}
 		
 		// clear list
-		struct work_item *item = work_items;
-		CLEAR_LIST(work_items);
+		struct work_item *item = m_work_items;
+		m_work_items = 0;
 		
 		pthread_mutex_unlock(&worker_mutex);
 		
