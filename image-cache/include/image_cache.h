@@ -26,7 +26,6 @@ extern "C" {
 
 void image_cache_init(const char *path, void (*load_callback)(struct image_data*));
 void image_cache_destroy();
-struct image_data *image_cache_get_image(const char *url);
 void image_cache_remove(const char *url);
 void image_cache_load(const char *url);
 
