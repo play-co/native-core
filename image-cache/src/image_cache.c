@@ -576,7 +576,7 @@ static void *image_cache_run(void *args) {
 				char *etag_header_str = malloc(header_str_len);
 				snprintf(etag_header_str, header_str_len, FORMAT, request->etag);
 
-				struct curl_slist *headers = curl_slist_append(headers, etag_header_str);
+				struct curl_slist *headers = curl_slist_append(0, etag_header_str);
 
 				curl_easy_setopt(request->handle, CURLOPT_HTTPHEADER, headers);
 
