@@ -47,7 +47,7 @@
 #endif // IMGCACHE_STANDALONE
 
 #define MAX_REQUESTS 4 /* max parallel requests */
-#define CACHE_MAX_SIZE 3 /* max image cache files to keep */
+#define CACHE_MAX_SIZE 300 /* max image cache files to keep */
 #define CACHE_MAX_TIME (60 * 60 * 24 * 7) /* 1 week in seconds */
 
 // If these change, clean_cache() needs to be rewritten
