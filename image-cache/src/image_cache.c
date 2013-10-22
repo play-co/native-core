@@ -81,6 +81,7 @@ struct request {
 
 struct work_item {
 	struct image_data image;
+	bool tried_server;
 	bool request_failed;
 	volatile struct work_item *next;
 };
@@ -127,13 +128,14 @@ static char *get_full_path(const char *filename) {
 	return file_path;
 }
 
-static volatile struct work_item *alloc_work_item(const char *url, char *bytes, int size, bool request_failed) {
+static volatile struct work_item *alloc_work_item(const char *url, char *bytes, int size, bool request_failed, bool tried_server) {
 	struct work_item *item = (struct work_item *)malloc(sizeof(struct work_item));
 
 	item->image.url = strdup(url);
 	item->image.bytes = bytes;
 	item->image.size = size;
 	item->request_failed = request_failed;
+	item->tried_server = tried_server;
 
 	return item;
 }
@@ -146,8 +148,8 @@ static void free_work_item(volatile struct work_item *item) {
 	}
 }
 
-static void queue_work_item(const char *url, char *bytes, int size, bool request_failed) {
-	volatile struct work_item *item = alloc_work_item(url, bytes, size, request_failed);
+static void queue_work_item(const char *url, char *bytes, int size, bool request_failed, bool tried_server) {
+	volatile struct work_item *item = alloc_work_item(url, bytes, size, request_failed, tried_server);
 
 	// add the work item to the work list
 	pthread_mutex_lock(&m_worker_mutex);
@@ -695,7 +697,7 @@ static void *image_cache_run(void *args) {
 
 						DLOG("{image-cache} Got an updated image for %s (%zd bytes) etag=%d", request->load_item->url, request->image.size, etag ? 1 : 0);
 
-						queue_work_item(request->load_item->url, request->image.bytes, request->image.size, false);
+						queue_work_item(request->load_item->url, request->image.bytes, request->image.size, false, true);
 
 						// If something changed,
 						if (etag_data->etag || etag) {
@@ -706,7 +708,7 @@ static void *image_cache_run(void *args) {
 						free(etag_data->etag);
 						etag_data->etag = etag ? strdup(etag) : 0;
 					} else {
-						queue_work_item(request->load_item->url, 0, 0, false);
+						queue_work_item(request->load_item->url, 0, 0, false, true);
 
 						free(request->image.bytes);
 						DLOG("{image-cache} Did not get an image from server for %s", request->load_item->url);
@@ -717,7 +719,7 @@ static void *image_cache_run(void *args) {
 					// free any bytes acquired during the request
 					free(request->image.bytes);
 
-					queue_work_item(request->load_item->url, 0, 0, true);
+					queue_work_item(request->load_item->url, 0, 0, true, true);
 				}
 				
 				free(request->header.bytes);
@@ -757,7 +759,7 @@ static void *image_cache_run(void *args) {
 
 //// Worker Thread
 
-static void callback_cached_image(char *url) {
+static void callback_cached_image(char *url, bool report_error) {
 	char *filename = get_filename_from_url(url);
 	char *path = get_full_path(filename);
 
@@ -798,8 +800,12 @@ static void callback_cached_image(char *url) {
 		close(fd);
 	}
 
-	m_image_load_callback(&image);
+	// If it is time to run the callback,
+	if (success || report_error) {
+		m_image_load_callback(&image);
+	}
 
+	// If successfully mapped,
 	if (success) {
 		munmap(image.bytes, image.size);
 	}
@@ -937,12 +943,19 @@ static void *worker_run(void *args) {
 			// if no image bytes were provided try loading the image from disk
 			// otherwise save the image
 			if (0 == image->bytes) {
-				// If request was attempted but failed,
-				if (item->request_failed) {
-					DLOG("{image-cache} Worker: Using cache for: %s (bytes = 0)", image->url);
-					callback_cached_image(image->url);
+				// If server response came back,
+				if (item->tried_server) {
+					// If image was not in cache either,
+					if (!image_exists_in_cache(image->url)) {
+						// Callback with failure now
+						m_image_load_callback(image);
+					}
+					// Otherwise: Already delivered as it exists
+					// TODO: This may never call the callback if the file was not accessible
+				} else {
+					// Callback on success but not failure
+					callback_cached_image(image->url, false);
 				}
-				// Otherwise: We still are trying to contact the server
 			} else {
 				LOG("{image-cache} Worker: Saving updated image and etag: %s (bytes = %d)", image->url, (int)image->size);
 				save_image(image);
@@ -1028,7 +1041,8 @@ void image_cache_remove(const char *url) {
 void image_cache_load(const char *url) {
 	// If image is already in cache,
 	if (image_exists_in_cache(url)) {
-		queue_work_item(url, 0, 0, false);
+		DLOG("{image-cache} Image exists in cache so attempt to return that: %s", url);
+		queue_work_item(url, 0, 0, true, false);
 	}
 
 	// TODO: Do not request from server again within a certain amount of time
