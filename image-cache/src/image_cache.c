@@ -23,7 +23,13 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <sys/mman.h>
+
+#ifdef __ANDROID__
+#include <fcntl.h>
+#else
 #include <sys/fcntl.h>
+#endif
+
 #include <errno.h>
 
 #include "curl/curl.h"
@@ -254,8 +260,11 @@ static void read_etags_from_cache() {
 	} else {
 		unsigned long len = lseek(fd, 0, SEEK_END);
 
+#ifndef __ANDROID__
+		// These are BSD/iOS-only
 		fcntl(fd, F_NOCACHE, 1);
 		fcntl(fd, F_RDAHEAD, 1);
+#endif
 
 		if (len > 0) {
 			void *raw = mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -344,7 +353,9 @@ static char *get_filename_from_url(const char *url) {
 	char *filename = malloc(FILENAME_PREFIX_BYTES + FILENAME_HASH_BYTES*2+1);
 	
 	memcpy(filename, FILENAME_PREFIX, FILENAME_PREFIX_BYTES);
-	for (int i = 0; i < FILENAME_HASH_BYTES; ++i) {
+
+	int i;
+	for (i = 0; i < FILENAME_HASH_BYTES; ++i) {
 		filename[FILENAME_PREFIX_BYTES+i*2+0] = HEX_CONV[result[i] & 15];
 		filename[FILENAME_PREFIX_BYTES+i*2+1] = HEX_CONV[result[i] >> 4];
 	}
@@ -388,7 +399,8 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 
 	// Reverse encoding:
 
-	for (int ii = 0; ii < FILENAME_HASH_BYTES; ++ii) {
+	int ii;
+	for (ii = 0; ii < FILENAME_HASH_BYTES; ++ii) {
 		unsigned char lo = FROM_HEX[(unsigned char)url_hash_str[0]];
 		unsigned char hi = FROM_HEX[(unsigned char)url_hash_str[1]];
 
@@ -418,7 +430,6 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 
 // NOTE: etag cache file needs to be written after this
 void kill_etag_for_url(const char *url) {
-	const char *etag = 0;
 	struct etag_data *data = 0;
 
 	HASH_FIND_STR(m_etag_cache, url, data);
@@ -778,8 +789,11 @@ static void callback_cached_image(char *url, bool report_error) {
 	} else {
 		unsigned long len = lseek(fd, 0, SEEK_END);
 
+#ifndef __ANDROID__
+		// These are BSD/iOS-only
 		fcntl(fd, F_NOCACHE, 1);
 		fcntl(fd, F_RDAHEAD, 1);
+#endif
 
 		if (len > 0) {
 			void *raw = mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
