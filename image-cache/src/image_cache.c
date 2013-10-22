@@ -957,9 +957,11 @@ static void *worker_run(void *args) {
 					callback_cached_image(image->url, false);
 				}
 			} else {
-				LOG("{image-cache} Worker: Saving updated image and etag: %s (bytes = %d)", image->url, (int)image->size);
-				save_image(image);
 				m_image_load_callback(image);
+
+				save_image(image);
+
+				LOG("{image-cache} Updated: %s (bytes = %d)", image->url, (int)image->size);
 			}
 
 			free_work_item(item);
