@@ -34,8 +34,8 @@
 
 #include "curl/curl.h"
 
-#include "murmur.h"
-#include "image_cache.h"
+#include "../include/murmur.h"
+#include "../include/image_cache.h"
 
 
 // Define IMGCACHE_VERBOSE to enable extra debug logs
