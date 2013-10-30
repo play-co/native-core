@@ -1,5 +1,7 @@
 #include "core/image_writer.h"
 
+#include "core/deps/turbojpeg/turbojpeg.h"
+
 #include "platform/log.h"
 
 /*
@@ -273,27 +275,7 @@ bool write_image_to_file(const char *path, const char *name, unsigned char * dat
 }
 
 bool write_jpeg_to_file(const char *path, const char *name, unsigned char *data, int width, int height, int channels) {
-
 	bool did_write = false;
-
-	// if incoming image has an alpha channel, copy over only rgb to another buffer
-	// make sure to free this second buffer at the end
-	bool reduce_channels = (channels == 4);
-
-	unsigned char *temp_data = NULL;
-	if (reduce_channels) {
-		temp_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
-		int temp_data_pos = 0;
-		int i;
-		for (i = 0; i < width * height * channels; i += 4) {
-			temp_data[temp_data_pos++] = data[i];
-			temp_data[temp_data_pos++] = data[i + 1];
-			temp_data[temp_data_pos++] = data[i + 2];
-		}
-	}
-	else {
-		temp_data = data;
-	}
 
 	// append filename to path
 	int full_path_len = strlen(path) + strlen("/") + strlen(name);
@@ -301,53 +283,39 @@ bool write_jpeg_to_file(const char *path, const char *name, unsigned char *data,
 	memset(full_path, 0, full_path_len);
 	sprintf(full_path, "%s%s%s", path, "/", name);
 
-	FILE *outfile;
-	if ((outfile = fopen(full_path, "wb")) == NULL) {
-		goto fopen_failed;
+	FILE *outfile = fopen(full_path, "wb");
+
+	if (!outfile) {
+		LOG("WARNING: Unable to open write path: %s", name);
+	} else {
+		tjhandle _jpegCompressor = tjInitCompress();
+		
+		unsigned char *buffer = 0;
+		unsigned long buffer_size = 0;
+		
+		int retval = tjCompress2(_jpegCompressor, buffer, width, 0, height,
+								 channels == 3 ? TJPF_RGB : TJPF_RGBA,
+								 &buffer, &buffer_size, TJSAMP_444, 90,
+								 TJFLAG_FASTDCT);
+
+		// If failure,
+		if (retval != 0 || !buffer) {
+			LOG("WARNING: Unable to compress JPEG: %s", name);
+		} else {
+			fwrite(buffer, buffer_size, 1, outfile);
+
+			did_write = true;
+		}
+
+		if (buffer) {
+			tjFree(buffer);
+		}
+		
+		tjDestroy(_jpegCompressor);
+
+		fclose(outfile);
 	}
 
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
-	jpeg_stdio_dest(&cinfo, outfile);
-	//useful code for saving to memory as opposed saving to the filesys
-	//unsigned char *raw_buffer = NULL;
-	//unsigned long raw_buffer_size = 0;
-	//jpeg_mem_dest(&cinfo, &raw_buffer, &raw_buffer_size);
-
-	cinfo.image_width = width;
-	cinfo.image_height = height;
-	cinfo.input_components = 3;
-	cinfo.in_color_space = JCS_RGB;
-
-	jpeg_set_defaults(&cinfo);
-	// set the quality [0..100]
-	jpeg_set_quality(&cinfo, 100, true);
-	jpeg_start_compress(&cinfo, true);
-
-	JSAMPROW row_pointer;
-	int row_stride = width * 3;
-
-	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer = (JSAMPROW) &temp_data[cinfo.next_scanline*row_stride];
-		jpeg_write_scanlines(&cinfo, &row_pointer, 1);
-	}
-
-	did_write = true;
-
-	// free temp_data if it was used in reducing channels
-	if (reduce_channels) {
-		free(temp_data);
-	}
-
-	jpeg_finish_compress(&cinfo);
-
-	fclose(outfile);
-
-	jpeg_destroy_compress(&cinfo);
-fopen_failed:
 	return did_write;
 }
 

@@ -23,8 +23,6 @@
 #include "core/deps/png/pngstruct.h"
 #endif
 
-#include "core/deps/jpg/jpeglib.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,12 +32,6 @@ unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *
 unsigned char *load_jpg_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels);
 //png helper func
 void png_image_bytes_read(png_structp png_ptr, png_bytep data, png_size_t length);
-//jpg helper funcs
-void jpg_init_source(j_decompress_ptr cinfo);
-boolean jpg_fill_input_buffer(j_decompress_ptr cinfo);
-void jpg_skip_input_data(j_decompress_ptr cinfo, long num_bytes);
-void jpg_term_source(j_decompress_ptr cinfo);
-void jpeg_mem_src(j_decompress_ptr cinfo, void *buffer, long nbytes);
 
 #ifdef __cplusplus
 }

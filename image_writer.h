@@ -8,7 +8,6 @@
 #include "core/deps/png/pngstruct.h"
 #endif
 
-#include "core/deps/jpg/jpeglib.h"
 #include "core/log.h"
 #include "core/types.h"
 
