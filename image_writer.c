@@ -69,7 +69,6 @@ void WriteBase64(const void *buffer, int bytes, char *encoded_buffer)
 }
 
 char *write_image_to_base64(const char *image_type, unsigned char * data, int width, int height, int channels) {
-
 	int file_type = -1;
 	char *base64 = NULL;
 
@@ -85,8 +84,9 @@ char *write_image_to_base64(const char *image_type, unsigned char * data, int wi
 	if (file_type == IMAGE_TYPE_PNG) {
 		base64 = write_png_to_base64(data, width, height, channels);
 	} else if (file_type == IMAGE_TYPE_JPEG) {
-		LOG("WARNING: Writing JPEG to base64 currently not supported.");
 		base64 = write_jpeg_to_base64(data, width, height, channels);
+	} else {
+		LOG("WARNING: Unsupported image type for base64: %s", image_type);
 	}
 
 	return base64;
@@ -184,66 +184,37 @@ png_create_write_struct_failed:
 	}
 }
 
-//TODO: needs to be implemented
-//useful -> http://stackoverflow.com/questions/4559648/write-to-memory-buffer-instead-of-file-with-libjpeg
 char *write_jpeg_to_base64(unsigned char * data, int width, int height, int channels) {
-
-//	// if incoming image has an alpha channel, copy over only rgb to another buffer
-//	// make sure to free this second buffer at the end
-//	bool reduce_channels = (channels == 4);
-//
-//	unsigned char *temp_data = NULL;
-//	if (reduce_channels) {
-//		temp_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
-//		int temp_data_pos = 0;
-//		int i;
-//		for (i = 0; i < width * height * channels; i += 4) {
-//			temp_data[temp_data_pos++] = data[i];
-//			temp_data[temp_data_pos++] = data[i + 1];
-//			temp_data[temp_data_pos++] = data[i + 2];
-//		}
-//	}
-//	else {
-//		temp_data = data;
-//	}
-//
-//	struct jpeg_compress_struct cinfo;
-//	struct jpeg_error_mgr jerr;
-//
-//	cinfo.err = jpeg_std_error(&jerr);
-//	jpeg_create_compress(&cinfo);
-//  //add function pointers for libjpeg
-//
-//	cinfo.image_width = width;
-//	cinfo.image_height = height;
-//	cinfo.input_components = 3;
-//	cinfo.in_color_space = JCS_RGB;
-//
-//	jpeg_set_defaults(&cinfo);
-//	// set the quality [0..100]
-//	jpeg_set_quality(&cinfo, 100, true);
-//	jpeg_start_compress(&cinfo, true);
-//
-//	JSAMPROW row_pointer;
-//	int row_stride = width * 3;
-//
-//	while (cinfo.next_scanline < cinfo.image_height) {
-//		row_pointer = (JSAMPROW) &temp_data[cinfo.next_scanline*row_stride];
-//		jpeg_write_scanlines(&cinfo, &row_pointer, 1);
-//	}
-//
-//	// free temp_data if it was used in reducing channels
-//	if (reduce_channels) {
-//		free(temp_data);
-//	}
-//
-//	jpeg_finish_compress(&cinfo);
-//	jpeg_destroy_compress(&cinfo);
-//fopen_failed:
-//	return raw_buffer;
-//
-//
-	return NULL;
+	char *base64 = 0;
+	
+	tjhandle _jpegCompressor = tjInitCompress();
+	
+	unsigned char *buffer = 0;
+	unsigned long buffer_size = 0;
+	
+	int retval = tjCompress2(_jpegCompressor, buffer, width, 0, height,
+							 channels == 3 ? TJPF_RGB : TJPF_RGBA,
+							 &buffer, &buffer_size, TJSAMP_444, 90,
+							 TJFLAG_FASTDCT);
+	
+	// If failure,
+	if (retval != 0 || !buffer) {
+		LOG("WARNING: Unable to compress %d x %d base64 JPEG", width, height);
+	} else {
+		const int b64size = GetBase64LengthFromBinaryLength(buffer_size);
+		char *base64 = malloc(b64size + 1);
+		
+		WriteBase64(buffer, buffer_size, base64);
+		base64[b64size] = '\0';
+	}
+	
+	if (buffer) {
+		tjFree(buffer);
+	}
+	
+	tjDestroy(_jpegCompressor);
+	
+	return base64;
 }
 
 bool write_image_to_file(const char *path, const char *name, unsigned char * data, int width, int height, int channels) {
