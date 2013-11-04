@@ -4,6 +4,8 @@
 
 #include "platform/log.h"
 
+#include <stdlib.h>
+
 /*
 	A base64 encoder NOT using OpenSSL (by a very snarky Chris Taylor)
 

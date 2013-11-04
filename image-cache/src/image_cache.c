@@ -48,8 +48,21 @@
 // For stand-alone version, use printf instead of the core logger
 #ifdef IMGCACHE_STANDALONE
 #define LOG(str, ...) printf(str "\n", ## __VA_ARGS__)
+
+// Inlined from my core implementation:
+#define ThreadsThread pthread_t
+typedef void (*ThreadsThreadProc)(void *);
+pthread_t threads_create_thread(ThreadsThreadProc proc, void *arg) {
+	pthread_t thread = {0};
+	pthread_create(&thread, 0, proc, arg);
+	return thread;
+}
+void threads_join_thread(ThreadThread *thread) {
+	pthread_join(*thread, 0);
+}
 #else
 #include "core/log.h"
+#include "core/platform/threads.h"
 #endif // IMGCACHE_STANDALONE
 
 #define MAX_REQUESTS 4 /* max parallel requests */
@@ -95,7 +108,7 @@ struct work_item {
 static void (*m_image_load_callback)(struct image_data *);
 
 // Request thread variables
-static pthread_t m_request_thread;
+static ThreadsThread m_request_thread;
 static pthread_mutex_t m_request_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t m_request_cond = PTHREAD_COND_INITIALIZER;
 // To modify these variables you must hold the request_mutex lock
@@ -103,7 +116,7 @@ static volatile bool m_request_thread_running = true;
 static volatile struct load_item *m_load_items = 0;
 
 // Worker thread variables
-static pthread_t m_worker_thread;
+static ThreadsThread m_worker_thread;
 static pthread_mutex_t m_worker_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t m_worker_cond = PTHREAD_COND_INITIALIZER;
 // To modify these variables you must hold the worker_mutex lock
@@ -111,8 +124,8 @@ static volatile bool m_worker_thread_running = true;
 static volatile struct work_item *m_work_items = 0;
 
 // Local function declarations
-static void *image_cache_run(void* args);
-static void *worker_run(void *args);
+static void image_cache_run(void* args);
+static void worker_run(void *args);
 
 // Simple macros for manipulating the work/request lists
 // ex. load_items is the head of the load items list and load_items_tail is the end of the list
@@ -517,7 +530,7 @@ static size_t write_data(void *contents, size_t size, size_t nmemb, void *userp)
 	return real_size;
 }
 
-static void *image_cache_run(void *args) {
+static void image_cache_run(void *args) {
 	struct request *request_pool[MAX_REQUESTS];
 	struct timeval timeout;
 	int i;
@@ -763,8 +776,6 @@ static void *image_cache_run(void *args) {
 		curl_easy_cleanup(request_pool[i]->handle);
 		free(request_pool[i]);
 	}
-
-	return 0;
 }
 
 
@@ -916,7 +927,7 @@ static void clean_cache() {
 }
 
 // worker thread
-static void *worker_run(void *args) {
+static void worker_run(void *args) {
 	// Run these off a side thread to avoid blocking startup:
 
 	read_etags_from_cache();
@@ -924,7 +935,7 @@ static void *worker_run(void *args) {
 	clean_cache();
 
 	// Start request thread after cache is fixed up
-	pthread_create(&m_request_thread, 0, image_cache_run, 0);
+	m_request_thread = threads_create_thread(image_cache_run, 0);
 
 	// Local work item list
 	volatile struct work_item *local_items = 0;
@@ -985,8 +996,6 @@ static void *worker_run(void *args) {
 	}
 
 	pthread_mutex_unlock(&m_worker_mutex);
-
-	return 0;
 }
 
 
@@ -1003,7 +1012,7 @@ void image_cache_init(const char *path, image_cache_cb load_callback) {
 	m_request_thread_running = true;
 	m_worker_thread_running = true;
 
-	pthread_create(&m_worker_thread, 0, worker_run, 0);
+	m_worker_thread = threads_create_thread(worker_run, 0);
 }
 
 void image_cache_destroy() {
@@ -1020,8 +1029,8 @@ void image_cache_destroy() {
 	pthread_mutex_unlock(&m_worker_mutex);
 
 	// Join worker thread first, since it starts the request thread
-	pthread_join(m_worker_thread, 0);
-	pthread_join(m_request_thread, 0);
+	threads_join_thread(&m_worker_thread);
+	threads_join_thread(&m_request_thread);
 
 	clear_cache();
 	clear_work_items();
