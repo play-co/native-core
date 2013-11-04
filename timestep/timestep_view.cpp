@@ -115,7 +115,6 @@ timestep_view *timestep_view_init() {
 	v->anims = NULL;
 	v->view_data = NULL;
 	js_object_wrapper_init(&v->map_ref);
-	js_object_wrapper_init(&v->pin_view);
 
 	v->filter_color.r = 0;
 	v->filter_color.g = 0;
@@ -345,8 +344,6 @@ bool timestep_view_add_subview(timestep_view *v, timestep_view *subview) {
 	subview->needs_reflow = true;
 	v->dirty_z_index = true;
 
-	js_object_wrapper_root(&subview->pin_view, subview->js_view);
-
 	LOGFN("end timestep_view_add_subview");
 	return true;
 }
@@ -369,7 +366,6 @@ bool timestep_view_remove_subview(timestep_view *v, timestep_view *subview) {
 			v->subviews[i]->subview_index = i;
 		}
 		subview->superview = NULL;
-		js_object_wrapper_delete(&subview->pin_view);
 		LOGFN("end timestep_view_remove_subview");
 		return true;
 	} else {
@@ -420,13 +416,10 @@ void timestep_view_delete(timestep_view *v) {
 
 		// Stomp.
 		subview->superview = NULL;
-
-		// Remove self-reference in subview if it had one
-		js_object_wrapper_delete(&subview->pin_view);
 	}
 
+	free(v->subviews);
 	js_object_wrapper_delete(&v->map_ref);
-	js_object_wrapper_delete(&v->pin_view);
 	free(v);
 }
 
