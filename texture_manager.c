@@ -141,16 +141,6 @@ texture_2d *texture_manager_get_texture(texture_manager *manager, const char *ur
 
 void texture_manager_get_sheet_size(char *url, int *width, int *height) {
 	LOGFN("texture_manager_get_sheet_size");
-	if (!spritesheet_map_root) {
-		//load map.json
-		char * map_str = resource_loader_string_from_url("spritesheets/spritesheetSizeMap.json");
-		char * font_str = resource_loader_string_from_url("resources/fonts/fontsheetSizeMap.json");
-		json_error_t error;
-		spritesheet_map_root = json_loads(map_str, 0, &error);
-		fontsheet_map_root = json_loads(font_str, 0, &error);
-		free(map_str);
-		free(font_str);
-	}
 
 	if (spritesheet_map_root) {
 		json_t *sheet_obj = json_object_get(spritesheet_map_root, url);
