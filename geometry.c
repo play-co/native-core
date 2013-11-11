@@ -95,6 +95,33 @@ void matrix_3x3_translate(matrix_3x3 *a, float x, float y) {
 #endif
 }
 
+//Apply affine transform described by a, b, c, d and dx, dy to matrix
+void matrix_3x3_transform(matrix_3x3 *mat, float a, float b, float c, float d, float dx, float dy) {
+	float a00 = mat->m00;
+	float a01 = mat->m10;
+	float a02 = mat->m20;
+
+	float a10 = mat->m01;
+	float a11 = mat->m11;
+	float a12 = mat->m21;
+	
+	float a20 = mat->m02;
+	float a21 = mat->m12;
+	float a22 = mat->m22;
+    
+	mat->m00 = a * a00 + b * a10;
+	mat->m10 = a * a01 + b * a11;
+	mat->m20 = a * a02 + b * a12;
+
+	mat->m01 = c * a00 + d * a10;
+	mat->m11 = c * a01 + d * a11;
+	mat->m21 = c * a02 + d * a12;
+
+	mat->m02 = dx * a00 + dy * a10 + a20;
+	mat->m12 = dx * a01 + dy * a11 + a21;
+	mat->m22 = dx * a02 + dy * a12 + a22;
+}    
+
 //Scale the matrix a by x and y
 void matrix_3x3_scale(matrix_3x3 *a, float x, float y) {
 	//multiply the first column by x

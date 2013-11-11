@@ -744,6 +744,10 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
 	tealeaf_shaders_bind(PRIMARY_SHADER);
 }
 
+void context_2d_transform(context_2d *ctx, float a, float b, float c, float d, float dx, float dy) {
+    matrix_3x3_transform(GET_MODEL_VIEW_MATRIX(ctx), a, b, c, d, dx, dy);
+}
+
 /**
  * @name	context_2d_scale
  * @brief	scales the given context by given options

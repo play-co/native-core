@@ -170,6 +170,7 @@ void matrix_3x3_ortho(matrix_3x3 *a, float left, float right, float top, float b
 void matrix_3x3_transpose(matrix_3x3 *a);
 void matrix_3x3_rotate(matrix_3x3 *a, float angle);
 void matrix_3x3_translate(matrix_3x3 *a, float x, float y);
+void matrix_3x3_transform(matrix_3x3 *mat, float a, float b, float c, float d, float dx, float dy);
 void matrix_3x3_scale(matrix_3x3 *a, float x, float y);
 
 __attribute__((unused)) static void inline matrix_3x3_identity(matrix_3x3 *a) {
