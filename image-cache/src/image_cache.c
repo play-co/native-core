@@ -69,7 +69,7 @@ void threads_join_thread(ThreadThread *thread) {
 
 #define MAX_REQUESTS 4 /* max parallel requests */
 #define CACHE_MAX_SIZE 300 /* max image cache files to keep */
-#define CACHE_MAX_TIME (60 * 60 * 24 * 7) /* 1 week in seconds */
+#define CACHE_MAX_TIME (60 * 60 * 24 * 2) /* 2 days in seconds */
 
 // If these change, clean_cache() needs to be rewritten
 #define FILENAME_SEED 0
@@ -224,40 +224,50 @@ static struct etag_data *etag_add(char *url, char *etag) {
 // Parse etag data from in-memory image of the file without modifying it
 static void parse_etag_file_data(const char *f, int len) {
 	const char *end = f + len;
-	
+	int etag_count = 0;
+
 	LOG("{image-cache} Parsing etags database of len=%d", len);
-	
+
 	// While there is data to read,
 	while (f < end) {
 		// Find URL length
 		const char *url = f;
 		int url_len = safe_strtoklen(url, ' ', end);
-		
+
 		// If URL is missing,
 		if (url_len <= 0) {
 			break;
 		}
-		
+
 		// Find ETAG length
 		const char *etag = url + url_len + 1;
 		int etag_len = safe_strtoklen(etag, '\n', end);
-		
+
 		// If ETAG is missing,
 		if (etag_len <= 0) {
 			break;
 		}
-		
+
 		// Duplicate string without a terminating nul
 		char *url_cstr = safe_strdup(url, url_len);
 		char *etag_cstr = safe_strdup(etag, etag_len);
-		
+
 		DLOG("{image-cache} Adding etag url='%s' : etag='%s'", url_cstr, etag_cstr);
-		
+
 		etag_add(url_cstr, etag_cstr);
-		
+		++etag_count;
+
+		// Stop processing after a reasonable amount of etags because this takes
+		// a wild amount of time after a long game session
+		if (etag_count > CACHE_MAX_SIZE) {
+			break;
+		}
+
 		// Set read pointer to next etag
 		f = etag + etag_len + 1;
 	}
+
+	DLOG("{image-cache} Parsed %d etags from database", etag_count);
 }
 
 /*
@@ -902,7 +912,7 @@ static void clean_cache() {
 				strlen(filename) == FILENAME_LENGTH) {
 				
 				char *path = get_full_path(filename);
-				
+
 				if (count >= CACHE_MAX_SIZE) {
 					remove(path);
 					kill_etag_for_url_hash(filename + FILENAME_PREFIX_BYTES);
