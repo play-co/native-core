@@ -69,6 +69,7 @@ void threads_join_thread(ThreadThread *thread) {
 
 #define MAX_REQUESTS 4 /* max parallel requests */
 #define CACHE_MAX_SIZE 300 /* max image cache files to keep */
+#define DB_MAX_SIZE (CACHE_MAX_SIZE*2) /* max etag entries in database */
 #define CACHE_MAX_TIME (60 * 60 * 24 * 2) /* 2 days in seconds */
 
 // If these change, clean_cache() needs to be rewritten
@@ -259,7 +260,7 @@ static void parse_etag_file_data(const char *f, int len) {
 
 		// Stop processing after a reasonable amount of etags because this takes
 		// a wild amount of time after a long game session
-		if (etag_count > CACHE_MAX_SIZE) {
+		if (etag_count > DB_MAX_SIZE) {
 			break;
 		}
 
@@ -317,6 +318,7 @@ static void write_etags_to_cache() {
 	DLOG("{image-cache} Writing etag cache");
 	
 	FILE *f = fopen(path, "w");
+	int etag_count = 0;
 	
 	if (!f) {
 		LOG("{image-cache} ERROR: Unable to open-write etags cache file %s errno=%d", path, errno);
@@ -332,6 +334,12 @@ static void write_etags_to_cache() {
 				fwrite(" ", 1, 1, f);
 				fwrite(data->etag, 1, strlen(data->etag), f);
 				fwrite("\n", 1, 1, f);
+
+				// If etag count exceeds the database maximum,
+				if (++etag_count > DB_MAX_SIZE) {
+					// Stop here
+					break;
+				}
 			} else {
 				DLOG("{image-cache} Skipped writing etag='%s' for url='%s'", data->etag ? data->etag : "(null)", data->url ? data->url : "(null)");
 			}
