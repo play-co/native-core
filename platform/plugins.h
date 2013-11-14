@@ -17,5 +17,6 @@
 #define PLUGINS_H
 
 char *plugins_send_event(const char *pluginClass, const char *pluginClassMethod, const char *data);
+void plugins_send_request(const char *pluginClass, const char *pluginClassMethod, const char *data, int request_id);
 
 #endif
