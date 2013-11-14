@@ -49,10 +49,6 @@ typedef struct timestep_view_t {
 	bool has_jsrender;
 	bool has_jstick;
 
-	// This reference is held to pin the js_view if it has a parent, so that
-	// the parent's reference is represented to the garbage collector (GC).
-	PERSISTENT_JS_OBJECT_WRAPPER pin_view;
-
 	double x;
 	double y;
 	double width;
