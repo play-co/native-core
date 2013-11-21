@@ -59,7 +59,7 @@ pthread_t threads_create_thread(ThreadsThreadProc proc, void *arg) {
 	pthread_create(&thread, 0, proc, arg);
 	return thread;
 }
-void threads_join_thread(ThreadThread *thread) {
+void threads_join_thread(ThreadsThread *thread) {
 	pthread_join(*thread, 0);
 }
 #else
