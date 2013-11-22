@@ -506,7 +506,7 @@ char *get_etag_for_url(const char *url) {
 	} else {
 		DLOG("{image-cache} Did not find image etag in cache: %s", url);
 	}
-	etag = strdup(etag);
+	etag = etag ? strdup(etag) : 0;
 	pthread_mutex_unlock(&m_etag_mutex);
 	
 	return etag;
