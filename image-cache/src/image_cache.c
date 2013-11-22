@@ -466,7 +466,7 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 				DLOG("{image-cache} kill_etag_for_url_hash found matching URL to kill: %s", data->url);
 				HASH_DEL(m_etag_cache, data);
 				free_etag_data(data);
-				return;
+				break;
 			}
 		}
 	}
