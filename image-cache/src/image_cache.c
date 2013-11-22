@@ -883,7 +883,7 @@ static void callback_cached_image(char *url, bool report_error) {
 		munmap(image.bytes, image.size);
 	}
 
-	pthread_mutex_lock(&m_file_io_mutex);
+	pthread_mutex_unlock(&m_file_io_mutex);
 	
 	free(filename);
 	free(path);
