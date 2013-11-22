@@ -581,9 +581,9 @@ static void image_cache_run(void *args) {
 	int request_count = 0;
 	
 	CURLM *multi_handle = curl_multi_init();
-	
-	// store the timeout requested by curl
-	long curl_timeo = -1;
+
+	// Enable pipelining for speed
+	curl_multi_setopt(multi_handle, CURLMOPT_PIPELINING, 1L);
 	
 	// number of multi requests still running
 	int still_running;
@@ -601,7 +601,7 @@ static void image_cache_run(void *args) {
 		request_pool[i] = (struct request*) malloc(sizeof(struct request));
 		request_pool[i]->handle = curl_easy_init();
 	}
-	
+
 	pthread_mutex_lock(&m_request_mutex);
 	while (m_request_thread_running) {
 		// while there are free handles start up new requests
@@ -652,16 +652,20 @@ static void image_cache_run(void *args) {
 				
 				free(etag_header_str);
 			}
-			
-			curl_easy_setopt(request->handle, CURLOPT_VERBOSE, false);
-			curl_easy_setopt(request->handle, CURLOPT_NOPROGRESS, true);
+
+#ifdef IMGCACHE_VERBOSE
+			curl_easy_setopt(request->handle, CURLOPT_VERBOSE, 1L);
+#else
+			curl_easy_setopt(request->handle, CURLOPT_VERBOSE, 0L);
+#endif
+			curl_easy_setopt(request->handle, CURLOPT_NOPROGRESS, 1L);
 			curl_easy_setopt(request->handle, CURLOPT_WRITEFUNCTION, write_data);
 			curl_easy_setopt(request->handle, CURLOPT_WRITEHEADER, &request->header);
 			curl_easy_setopt(request->handle, CURLOPT_WRITEDATA, &request->image);
 			
 			// Disable SSL verification steps
-			curl_easy_setopt(request->handle, CURLOPT_SSL_VERIFYPEER, false);
-			curl_easy_setopt(request->handle, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_easy_setopt(request->handle, CURLOPT_SSL_VERIFYPEER, 0L);
+			curl_easy_setopt(request->handle, CURLOPT_SSL_VERIFYHOST, 0L);
 			
 			// If HTTPS,
 			if (strncasecmp(load_item->url, "https://", 8) == 0) {
@@ -669,13 +673,16 @@ static void image_cache_run(void *args) {
 			}
 			
 			// Follow redirects to work with Facebook API et al
-			curl_easy_setopt(request->handle, CURLOPT_FOLLOWLOCATION, true);
+			curl_easy_setopt(request->handle, CURLOPT_FOLLOWLOCATION, 1L);
 			
 			// timeout for long requests
-			curl_easy_setopt(request->handle, CURLOPT_TIMEOUT, 60);
+			curl_easy_setopt(request->handle, CURLOPT_TIMEOUT, 20);
+			curl_easy_setopt(request->handle, CURLOPT_FAILONERROR, 1L);
 			
 			// add this handle to the group of multi requests
-			curl_multi_add_handle(multi_handle, request->handle);
+			if (curl_multi_add_handle(multi_handle, request->handle) != CURLM_OK) {
+				LOG("{image-cache} WARNING: curl_multi_add_handle failed for %s", load_item->url);
+			}
 			
 			request_count++;
 		}
@@ -689,7 +696,9 @@ static void image_cache_run(void *args) {
 		// unlock to process any ongoing curl requests
 		pthread_mutex_unlock(&m_request_mutex);
 		
-		curl_multi_perform(multi_handle, &still_running);
+		if (curl_multi_perform(multi_handle, &still_running) != CURLM_OK) {
+			LOG("{image-cache} WARNING: curl_multi_perform failed");
+		}
 		
 		DLOG("{image-cache} Loader thread: Performing. still running = %d, request count = %d", still_running, request_count);
 		
@@ -702,16 +711,7 @@ static void image_cache_run(void *args) {
 			// set a default timeout before getting one from curl
 			timeout.tv_sec = 1;
 			timeout.tv_usec = 0;
-			
-			curl_multi_timeout(multi_handle, &curl_timeo);
-			if(curl_timeo >= 0) {
-				timeout.tv_sec = curl_timeo / 1000;
-				if(timeout.tv_sec > 1)
-					timeout.tv_sec = 1;
-				else
-					timeout.tv_usec = (curl_timeo % 1000) * 1000;
-			}
-			
+
 			/* get file descriptors from the transfers */
 			curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 			
@@ -723,7 +723,9 @@ static void image_cache_run(void *args) {
 					break;
 				case 0: /* timeout */
 				default: /* action */
-					curl_multi_perform(multi_handle, &still_running);
+					if (curl_multi_perform(multi_handle, &still_running) != CURLM_OK) {
+						LOG("{image-cache} WARNING: curl_multi_perform failed");
+					}
 					break;
 			}
 		} while (still_running == request_count);
@@ -1064,7 +1066,7 @@ void image_cache_init(const char *path, image_cache_cb load_callback) {
 	LOG("{image-cache} Initializing");
 	
 	curl_global_init(CURL_GLOBAL_ALL);
-	
+
 	m_file_cache_path = strdup(path); // intentional leak
 	
 	m_image_load_callback = load_callback;
