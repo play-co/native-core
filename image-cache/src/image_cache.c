@@ -213,15 +213,14 @@ static char *safe_strdup(const char *f, int len) {
 }
 
 // Precondition: url and etag have been strdup()
+// Call with m_etag_mutex held
 static struct etag_data *etag_add(char *url, char *etag) {
 	struct etag_data *data = (struct etag_data *)malloc(sizeof(struct etag_data));
 	
 	data->url = url;
 	data->etag = etag;
 
-	pthread_mutex_lock(&m_etag_mutex);
 	HASH_ADD_KEYPTR(hh, m_etag_cache, url, strlen(url), data);
-	pthread_mutex_unlock(&m_etag_mutex);
 	
 	return data;
 }
@@ -232,6 +231,8 @@ static void parse_etag_file_data(const char *f, int len) {
 	int etag_count = 0;
 
 	LOG("{image-cache} Parsing etags database of len=%d", len);
+
+	pthread_mutex_lock(&m_etag_mutex);
 
 	// While there is data to read,
 	while (f < end) {
@@ -271,6 +272,8 @@ static void parse_etag_file_data(const char *f, int len) {
 		// Set read pointer to next etag
 		f = etag + etag_len + 1;
 	}
+
+	pthread_mutex_unlock(&m_etag_mutex);
 
 	DLOG("{image-cache} Parsed %d etags from database", etag_count);
 }
