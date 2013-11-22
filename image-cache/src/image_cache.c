@@ -127,6 +127,7 @@ static volatile bool m_worker_thread_running = true;
 static volatile struct work_item *m_work_items = 0;
 
 // Local function declarations
+static pthread_mutex_t m_file_io_mutex = PTHREAD_MUTEX_INITIALIZER;
 static void image_cache_run(void* args);
 static void worker_run(void *args);
 
@@ -136,6 +137,7 @@ static void worker_run(void *args);
 #define LIST_PUSH(head, item) item->next = head; head = item;
 #define LIST_POP(head, item) item = head; if (head) { head = item->next; }
 
+static pthread_mutex_t m_etag_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct etag_data *m_etag_cache = 0;
 static const char *ETAG_FILE = ".etags";
 static char *m_file_cache_path;
@@ -216,8 +218,10 @@ static struct etag_data *etag_add(char *url, char *etag) {
 	
 	data->url = url;
 	data->etag = etag;
-	
+
+	pthread_mutex_lock(&m_etag_mutex);
 	HASH_ADD_KEYPTR(hh, m_etag_cache, url, strlen(url), data);
+	pthread_mutex_unlock(&m_etag_mutex);
 	
 	return data;
 }
@@ -277,7 +281,7 @@ static void parse_etag_file_data(const char *f, int len) {
  */
 static void read_etags_from_cache() {
 	char *path = get_full_path(ETAG_FILE);
-	
+
 	// Open the file
 	int fd = open(path, O_RDONLY);
 	
@@ -316,7 +320,7 @@ static void write_etags_to_cache() {
 	char *path = get_full_path(ETAG_FILE);
 	
 	DLOG("{image-cache} Writing etag cache");
-	
+
 	FILE *f = fopen(path, "w");
 	int etag_count = 0;
 	
@@ -326,6 +330,7 @@ static void write_etags_to_cache() {
 		struct etag_data *data = 0;
 		struct etag_data *tmp = 0;
 		
+		pthread_mutex_lock(&m_etag_mutex);
 		HASH_ITER(hh, m_etag_cache, data, tmp) {
 			if (data->etag && data->url) {
 				//DLOG("{image-cache} Wrote etag='%s' for url='%s'", data->etag, data->url);
@@ -344,6 +349,7 @@ static void write_etags_to_cache() {
 				DLOG("{image-cache} Skipped writing etag='%s' for url='%s'", data->etag ? data->etag : "(null)", data->url ? data->url : "(null)");
 			}
 		}
+		pthread_mutex_unlock(&m_etag_mutex);
 		
 		fclose(f);
 	}
@@ -361,9 +367,11 @@ static void clear_cache() {
 	struct etag_data *data = 0;
 	struct etag_data *tmp = 0;
 	
+	pthread_mutex_lock(&m_etag_mutex);
 	HASH_ITER(hh, m_etag_cache, data, tmp) {
 		free_etag_data(data);
 	}
+	pthread_mutex_unlock(&m_etag_mutex);
 }
 
 static void clear_work_items() {
@@ -448,6 +456,7 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 	struct etag_data *data = 0;
 	struct etag_data *tmp = 0;
 	
+	pthread_mutex_lock(&m_etag_mutex);
 	HASH_ITER(hh, m_etag_cache, data, tmp) {
 		if (data && data->url) {
 			MurmurHash3_x86_128(data->url, (int)strlen(data->url), 0, data_hash);
@@ -461,12 +470,14 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 			}
 		}
 	}
+	pthread_mutex_unlock(&m_etag_mutex);
 }
 
 // NOTE: etag cache file needs to be written after this
 void kill_etag_for_url(const char *url) {
 	struct etag_data *data = 0;
 	
+	pthread_mutex_lock(&m_etag_mutex);
 	HASH_FIND_STR(m_etag_cache, url, data);
 	
 	if (data) {
@@ -477,12 +488,15 @@ void kill_etag_for_url(const char *url) {
 	} else {
 		DLOG("{image-cache} Did not find image etag in cache to kill: %s", url);
 	}
+
+	pthread_mutex_unlock(&m_etag_mutex);
 }
 
 const char *get_etag_for_url(const char *url) {
 	const char *etag = 0;
 	struct etag_data *data = 0;
 	
+	pthread_mutex_lock(&m_etag_mutex);
 	HASH_FIND_STR(m_etag_cache, url, data);
 	
 	if (data) {
@@ -491,6 +505,8 @@ const char *get_etag_for_url(const char *url) {
 	} else {
 		DLOG("{image-cache} Did not find image etag in cache: %s", url);
 	}
+	etag = strdup(etag);
+	pthread_mutex_unlock(&m_etag_mutex);
 	
 	return etag;
 }
@@ -734,12 +750,14 @@ static void image_cache_run(void *args) {
 					
 					// Check to see if this url already has etag data
 					// if it doesnt create it now
+					pthread_mutex_lock(&m_etag_mutex);
 					HASH_FIND_STR(m_etag_cache, request->load_item->url, etag_data);
 					if (!etag_data) {
 						etag_data = etag_add(strdup(request->load_item->url), request->etag ? strdup(request->etag) : 0);
 					} else {
 						DLOG("{image-cache} Loader thread: Loaded existing etag data for %s", request->load_item->url);
 					}
+					pthread_mutex_unlock(&m_etag_mutex);
 					
 					// if we got an image back from the server send the image data to the worker thread for processing
 					if (request->image.size > 0) {
@@ -817,7 +835,9 @@ static void callback_cached_image(char *url, bool report_error) {
 	image.url = url;
 	image.bytes = 0;
 	image.size = 0;
-	
+
+	pthread_mutex_lock(&m_file_io_mutex);
+
 	// Open the file
 	int fd = open(path, O_RDONLY);
 	
@@ -862,6 +882,8 @@ static void callback_cached_image(char *url, bool report_error) {
 	if (success) {
 		munmap(image.bytes, image.size);
 	}
+
+	pthread_mutex_lock(&m_file_io_mutex);
 	
 	free(filename);
 	free(path);
@@ -871,7 +893,9 @@ static bool save_image(struct image_data *image) {
     bool success = true;
 	char *filename = get_filename_from_url(image->url);
 	char *path = get_full_path(filename);
-	
+
+	pthread_mutex_lock(&m_file_io_mutex);
+
 	FILE *f = fopen(path, "wb");
     if (!f) {
         LOG("{image-cache} WARNING: Unable to open to save file %s errno=%d", path, errno);
@@ -892,6 +916,8 @@ static bool save_image(struct image_data *image) {
         }
         fclose(f);
     }
+
+	pthread_mutex_unlock(&m_file_io_mutex);
 	
 	free(filename);
 	free(path);
