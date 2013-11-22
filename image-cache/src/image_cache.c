@@ -95,7 +95,7 @@ struct load_item {
 
 struct request {
 	CURL *handle;
-	const char *etag;
+	char *etag;
 	struct data image;
 	struct data header;
 	volatile struct load_item *load_item;
@@ -492,8 +492,9 @@ void kill_etag_for_url(const char *url) {
 	pthread_mutex_unlock(&m_etag_mutex);
 }
 
-const char *get_etag_for_url(const char *url) {
-	const char *etag = 0;
+// Returns strdup version, be sure to free!
+char *get_etag_for_url(const char *url) {
+	char *etag = 0;
 	struct etag_data *data = 0;
 	
 	pthread_mutex_lock(&m_etag_mutex);
@@ -790,6 +791,7 @@ static void image_cache_run(void *args) {
 					queue_work_item(request->load_item->url, 0, 0, true, true);
 				}
 				
+				free(request->etag);
 				free(request->header.bytes);
 				free(request->load_item->url);
 				free((void*)request->load_item);
