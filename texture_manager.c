@@ -80,6 +80,7 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 // TODO: Optimize the mutex lock holding times
 
 //#define TEXMAN_VERBOSE
+//#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
 #else
@@ -351,7 +352,7 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 		int old_bytes_used = manager->texture_bytes_used;
 #endif
 
-#if defined(TEXMAN_VERBOSE)
+#if defined(TEXMAN_EXTRA_VERBOSE)
 		{
 			texture_2d *tex = NULL;
 			texture_2d *tmp = NULL;
@@ -384,7 +385,7 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 
 		LOG("{tex} Unloaded %d stale textures. Now: Texture count = %d. Bytes used = %d -> %d / %d", (int)(old_tex_count - manager->tex_count), (int)manager->tex_count, (int)old_bytes_used, (int)manager->texture_bytes_used, (int)adjusted_max_texture_bytes);
 
-#if defined(TEXMAN_VERBOSE)
+#if defined(TEXMAN_EXTRA_VERBOSE)
 		{
 			texture_2d *tex = NULL;
 			texture_2d *tmp = NULL;
@@ -544,20 +545,20 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
 
 }
 
-
 void texture_manager_set_use_halfsized_textures() {
     texture_manager *texman = texture_manager_get();
 
 	if (use_halfsized_textures) {
 		LOG("{tex} Using half-sized textures");
 	}
-
+#ifdef LOWER_TEX_LIMIT_ON_HALFSIZE
 	long new_limit = use_halfsized_textures ? MAX_BYTES_FOR_HALFSIZED_TEXTURES : MAX_BYTES_FOR_FULLSIZED_TEXTURES;
 
 	// Ratchet it down only
 	if (texman->max_texture_bytes > new_limit) {
 		texman->max_texture_bytes = new_limit;
 	}
+#endif
 }
 
 texture_manager *texture_manager_get() {
