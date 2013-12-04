@@ -546,12 +546,8 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
 }
 
 void texture_manager_set_use_halfsized_textures() {
-    texture_manager *texman = texture_manager_get();
-
-	if (use_halfsized_textures) {
-		LOG("{tex} Using half-sized textures");
-	}
 #ifdef LOWER_TEX_LIMIT_ON_HALFSIZE
+    texture_manager *texman = texture_manager_get();
 	long new_limit = use_halfsized_textures ? MAX_BYTES_FOR_HALFSIZED_TEXTURES : MAX_BYTES_FOR_FULLSIZED_TEXTURES;
 
 	// Ratchet it down only
@@ -559,6 +555,10 @@ void texture_manager_set_use_halfsized_textures() {
 		texman->max_texture_bytes = new_limit;
 	}
 #endif
+
+	if (use_halfsized_textures) {
+		LOG("{tex} Using half-sized textures");
+	}
 }
 
 texture_manager *texture_manager_get() {
