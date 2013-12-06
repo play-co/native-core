@@ -31,6 +31,14 @@
 #include "core/deps/jansson/jansson.h"
 #include "core/platform/threads.h"
 
+// This mode allows the texture manager to opportunistically free canvases
+// if they have not been accessed lately
+#define FREE_CANVASES
+
+// This mode notifies immediately on losing the canvas, otherwise it notifies
+// when the canvas is used
+//#define FREE_CANVASES_NOTIFY_IMMEDIATELY
+
 // 1024 x 1024 with 4 channels
 // this is not necassarily the size of every sheet
 #define MAX_SHEET_BYTES (1024*1024*4)
@@ -79,7 +87,7 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-//#define TEXMAN_VERBOSE
+#define TEXMAN_VERBOSE
 //#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
@@ -119,6 +127,44 @@ texture_2d *texture_manager_new_texture(texture_manager *manager, int width, int
 	return tex;
 }
 
+#ifdef FREE_CANVASES
+
+static void notify_canvas_death(const char *url) {
+	char *event_str;
+	int event_len;
+
+	char *dynamic_str = 0;
+	char stack_str[512];
+
+	// Generate event string
+	{
+		int url_len = (int)strlen(url);
+
+		if (url_len > 300) {
+			event_len = url_len + 212;
+			dynamic_str = (char*)malloc(event_len);
+			event_str = dynamic_str;
+		} else {
+			event_len = 512;
+			event_str = stack_str;
+		}
+	}
+
+	event_len = snprintf(event_str, event_len,
+			"{\"url\":\"%s\",\"name\":\"canvasFreed\",\"priority\":0}",
+			url);
+
+	event_str[event_len] = '\0';
+
+	core_dispatch_event(event_str);
+
+	if (dynamic_str) {
+		free(dynamic_str);
+	}
+}
+
+#endif
+
 texture_2d *texture_manager_get_texture(texture_manager *manager, const char *url) {
 	LOGFN("texture_manager_get_texture");
 	size_t len = strlen(url);
@@ -135,6 +181,19 @@ texture_2d *texture_manager_get_texture(texture_manager *manager, const char *ur
 			tex->frame_epoch = m_frame_epoch;
 			m_frame_used_bytes += tex->used_texture_bytes;
 		}
+#ifdef FREE_CANVASES
+#ifndef FREE_CANVASES_NOTIFY_IMMEDIATELY
+	} else {
+		// If it was a canvas,
+		if (url[0] == '_' && url[1] == '_' &&
+			url[2] == 'c' && url[3] == 'a' &&
+			url[4] == 'n' && url[5] == 'v' &&
+			url[6] == 'a' && url[7] == 's' &&
+			url[8] == '_' && url[9] == '_') {
+			notify_canvas_death(url);
+		}
+#endif
+#endif
 	}
 
 	return tex;
@@ -366,9 +425,14 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 		texture_2d *tex = NULL;
 		texture_2d *tmp = NULL;
 		HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
+#ifdef FREE_CANVASES
+			// do not clear a texture which has not yet been loaded!
+			if (!tex->loaded) {
+#else
 			// keep canvases always, they have data we can't recreate
 			// also do not clear a texture which has not yet been loaded!
 			if (tex->is_canvas || !tex->loaded) {
+#endif
 				continue;
 			}
 
@@ -480,6 +544,12 @@ void texture_manager_free_texture(texture_manager *manager, texture_2d *tex) {
 			manager->approx_bytes_to_load -= tex->assumed_texture_bytes;
 		}
 
+#ifdef FREE_CANVASES_NOTIFY_IMMEDIATELY
+		if (tex->is_canvas) {
+			notify_canvas_death(tex->url);
+		}
+#endif
+
 		TEXLOG("Texture freed: %s!  COUNT=%d, USED=%d", tex->url, (int)manager->tex_count, (int)manager->texture_bytes_used);
 		texture_2d_destroy(tex);
 	}
@@ -517,7 +587,6 @@ void texture_manager_background_texture_loader(void *dummy) {
 }
 
 CEXPORT void image_cache_load_callback(struct image_data *data) {
-
 		int num_channels, width, height, originalWidth, originalHeight, scale;
 		unsigned char *bytes  = texture_2d_load_texture_raw(data->url, data->bytes, data->size, &num_channels, &width, &height, &originalWidth, &originalHeight, &scale);
 		bool failed = (bytes == NULL);
@@ -541,8 +610,6 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
 		}
 
         pthread_mutex_unlock(&mutex);
-
-
 }
 
 void texture_manager_set_use_halfsized_textures() {
@@ -644,6 +711,19 @@ void texture_manager_touch_texture(texture_manager *manager, const char *url) {
 			tex->frame_epoch = m_frame_epoch;
 			m_frame_used_bytes += tex->used_texture_bytes;
 		}
+#ifdef FREE_CANVASES
+#ifndef FREE_CANVASES_NOTIFY_IMMEDIATELY
+	} else {
+		// If it was a canvas,
+		if (url[0] == '_' && url[1] == '_' &&
+			url[2] == 'c' && url[3] == 'a' &&
+			url[4] == 'n' && url[5] == 'v' &&
+			url[6] == 'a' && url[7] == 's' &&
+			url[8] == '_' && url[9] == '_') {
+			notify_canvas_death(url);
+		}
+#endif
+#endif
 	}
 }
 
@@ -750,13 +830,13 @@ void texture_manager_tick(texture_manager *manager) {
 
 		GLuint texture = 0;
 		if (!cur_tex->failed) {
-
 			GLTRACE(glGenTextures(1, &texture));
 			GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
 			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 			GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+
 			//create the texture
 			int channels = cur_tex->num_channels;
 			int width = cur_tex->width / cur_tex->scale;
@@ -830,7 +910,6 @@ void texture_manager_tick(texture_manager *manager) {
 		if (dynamic_str) {
 			free(dynamic_str);
 		}
-
 
 		pthread_mutex_lock(&mutex);
 
