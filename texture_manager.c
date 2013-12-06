@@ -87,7 +87,7 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-#define TEXMAN_VERBOSE
+//#define TEXMAN_VERBOSE
 //#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
@@ -416,7 +416,7 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 			texture_2d *tex = NULL;
 			texture_2d *tmp = NULL;
 			HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-				TEXLOG("Before: %s canvas=%d access=%d", tex->url, tex->is_canvas, (int)tex->last_accessed);
+				TEXLOG("Before: %s canvas=%d access=%d tex-epoch: %d frame-epoch: %d", tex->url, tex->is_canvas, (int)tex->last_accessed, tex->frame_epoch, m_frame_epoch);
 			}
 		}
 #endif
@@ -433,6 +433,12 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 			// also do not clear a texture which has not yet been loaded!
 			if (tex->is_canvas || !tex->loaded) {
 #endif
+				continue;
+			}
+
+			// If texture is already half-sized and it was used last frame,
+			if (tex->scale > 1 && tex->frame_epoch == m_frame_epoch) {
+				// Do not reload this one (and maybe go over the memory limit)
 				continue;
 			}
 
@@ -801,6 +807,9 @@ void texture_manager_tick(texture_manager *manager) {
 		}
 	}
 
+	//clear uneeded textures and make space for ones about to be loaded
+	texture_manager_clear_textures(manager, false);
+
 	// Invalidate earlier frame epochs tagged on textures
 	m_frame_epoch++;
 	m_frame_used_bytes = 0;
@@ -815,9 +824,6 @@ void texture_manager_tick(texture_manager *manager) {
 		LOG("{tex} Frame texture memory usage for interval = %ld", highest);
 	}
 #endif
-
-	//clear uneeded textures and make space for ones about to be loaded
-	texture_manager_clear_textures(manager, false);
 
 	// Load new textures
 	texture_2d *cur_tex = tex_load_list;
@@ -839,8 +845,8 @@ void texture_manager_tick(texture_manager *manager) {
 
 			//create the texture
 			int channels = cur_tex->num_channels;
-			int width = cur_tex->width / cur_tex->scale;
-			int height = cur_tex->height / cur_tex->scale;
+			int width = cur_tex->width >> (cur_tex->scale - 1);
+			int height = cur_tex->height >> (cur_tex->scale - 1);
 
 			// Select the right internal and input format based on the number of channels
 			GLint format;
