@@ -436,8 +436,8 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 				continue;
 			}
 
-			// If texture is already half-sized and it was used last frame,
-			if (tex->scale > 1 && tex->frame_epoch == m_frame_epoch) {
+			// If texture is already half-sized (or canvas) and it was used last frame,
+			if ((tex->scale > 1 || tex->is_canvas) && tex->frame_epoch == m_frame_epoch) {
 				// Do not reload this one (and maybe go over the memory limit)
 				continue;
 			}
