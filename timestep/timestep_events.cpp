@@ -18,40 +18,59 @@
 #include "timestep_events.h"
 #include "core/log.h"
 
-static unsigned int count = 0;
-static const unsigned int buffer_size = 32;
-static input_event events[buffer_size];
+#define OPT_MERGE_EVENTS
+
+static const int BUFFER_SIZE = 32;
+static input_event m_events[BUFFER_SIZE];
+static int m_count = 0;
 
 CEXPORT void timestep_events_push(int id, int type, int x, int y) {
+	int ii;
 
 	LOGFN("timestep_events_push");
-	if (count < buffer_size) {
-		input_event *t = &events[count];
+
+#ifdef OPT_MERGE_EVENTS
+	for (ii = 0; ii < m_count; ++ii) {
+		input_event *t = &m_events[ii];
+
+		if (t->id == id && t->type == type) {
+			t->x = x;
+			t->y = y;
+			return;
+		}
+	}
+#endif
+
+	if (m_count < BUFFER_SIZE) {
+		input_event *t = &m_events[m_count++];
+
 		t->id = id;
 		t->type = type;
 		t->x = x;
 		t->y = y;
-
-		++count;
 	}
+
 	LOGFN("end timestep_events_push");
 }
 
 // WARNING: caller must immediately make a copy since the data
 // will be destroyed
 CEXPORT input_event_list timestep_events_get() {
-	LOGFN("timestep_events_get");
-	int current_count = count;
+	int current_count = m_count;
 
-	count = 0;
+	LOGFN("timestep_events_get");
+
+	m_count = 0;
 
 	LOGFN("end timestep_events_get");
+
 	return (input_event_list_t) {
-		events,
+		m_events,
 		current_count
 	};
 }
 
 CEXPORT void timestep_events_shutdown() {
-	count = 0;
+	m_count = 0;
 }
+
