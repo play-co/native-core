@@ -163,15 +163,18 @@ unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *
 }
 
 unsigned char *load_jpg_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
-	int jpegSubsamp, w, h;
+	int jpegSubsamp, w, h, pitch;
 	
 	tjhandle _jpegDecompressor = tjInitDecompress();
 	
 	tjDecompressHeader2(_jpegDecompressor, bits, bits_length, &w, &h, &jpegSubsamp);
 
-	unsigned char *buffer = malloc(3 * w * h);
+	pitch = tjPixelSize[TJPF_RGB] * w;
 
-	tjDecompress2(_jpegDecompressor, bits, bits_length, buffer, w, 0/*pitch*/, h, TJPF_RGB, TJFLAG_FASTDCT);
+	unsigned char *buffer = malloc(pitch * h + 8);
+	// Add 8 extra bytes to fix bug in tjDecompress where it is writing beyond the end of the buffer
+
+	tjDecompress2(_jpegDecompressor, bits, bits_length, buffer, w, pitch, h, TJPF_RGB, TJFLAG_FASTDCT);
 
 	tjDestroy(_jpegDecompressor);
 
