@@ -258,25 +258,201 @@ CEXPORT void view_animation_tick_animations(int dt) {
 	LOGFN("end view_animation_tick_animations");
 }
 
-// exports.linear = function (n) { return n; }
-#define FN_LINEAR(n) n
-// exports.easeIn = function (n) { return n * n; }
-#define FN_EASE_IN(n) (n * n)
-// exports.easeInOut = function (n) { return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2); }
-#define FN_EASE_IN_OUT(n) ((n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n - 2) * (n - 2) * (n - 2) + 2))
-// exports.easeOut = function(n) { return n * (2 - n); }
-#define FN_EASE_OUT(n) (n * (2 - n))
-// TODO
-#define FN_BOUNCE(n) n
+// Easing Functions
+
+#define PI 3.14159265
+double FN_LINEAR (double n) {
+	return n;
+};
+// AKA: FN_EASE_IN
+double FN_EASE_IN_QUAD (double n) {
+	return n * n;
+};
+// AKA: FN_EASE_OUT
+double FN_EASE_OUT_QUAD (double n) {
+	return n * (2 - n);
+};
+double FN_EASE_IN_OUT_QUAD (double n) {
+	if ((n *= 2) < 1) return 0.5 * n * n;
+	return -0.5 * ((--n) * (n - 2) - 1);
+};
+double FN_EASE_IN_CUBIC (double n) {
+	return n * n * n;
+};
+double FN_EASE_OUT_CUBIC (double n) {
+	return ((n -= 1) * n * n + 1);
+};
+// AKA: FN_EASE_IN_OUT
+double FN_EASE_IN_OUT_CUBIC (double n) {
+	if ((n *= 2) < 1) return 0.5 * n * n * n;
+	return 0.5 * ((n -= 2) * n * n + 2);
+};
+double FN_EASE_IN_QUART (double n) {
+	return n * n * n * n;
+};
+double FN_EASE_OUT_QUART (double n) {
+	return -1 * ((n -= 1) * n * n * n - 1);
+};
+double FN_EASE_IN_OUT_QUART (double n) {
+	if ((n *= 2) < 1) return 0.5 * n * n * n * n;
+	return -0.5 * ((n -= 2) * n * n * n - 2);
+};
+double FN_EASE_IN_QUINT (double n) {
+	return n * n * n * n * n;
+};
+double FN_EASE_OUT_QUINT (double n) {
+	return ((n -= 1) * n * n * n * n + 1);
+};
+double FN_EASE_IN_OUT_QUINT (double n) {
+	if ((n *= 2) < 1) return 0.5 * n * n * n * n * n;
+	return 0.5 * ((n -= 2) * n * n * n * n + 2);
+};
+double FN_EASE_IN_SINE (double n){
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return -1 * cos(n * (PI / 2)) + 1;
+};
+double FN_EASE_OUT_SINE (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return  sin(n * (PI / 2));
+};
+double FN_EASE_IN_OUT_SINE (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return -0.5 * (cos(PI * n) - 1);
+};
+double FN_EASE_IN_EXPO (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return (n == 0) ? 0 : pow(2, 10 * (n - 1));
+};
+double FN_EASE_OUT_EXPO (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return (n==1) ? 1 : (-pow(2, -10 * n) + 1);
+};
+double FN_EASE_IN_OUT_EXPO (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	if ((n *= 2) < 1) return 0.5 * pow(2, 10 * (n - 1));
+	return 0.5 * (-pow(2, -10 * --n) + 2);
+};
+double FN_EASE_IN_CIRC (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return -1 * (sqrt(1 - n * n) - 1);
+};
+double FN_EASE_OUT_CIRC (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	return  sqrt(1 - (n -= 1) * n);
+};
+double FN_EASE_IN_OUT_CIRC (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	if ((n *= 2) < 1) return -0.5 * (sqrt(1 - n * n) - 1);
+	return 0.5 * (sqrt(1 - (n -= 2) * n) + 1);
+};
+double FN_EASE_IN_ELASTIC (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	double p = 0.3;
+	double s = 0.075;	// p / (2*PI) * asin(1)
+	return -(pow(2, 10 * (n -= 1)) * sin((n - s) * (2 * PI) / p));
+};
+double FN_EASE_OUT_ELASTIC (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	double p = 0.3;
+	double s = 0.075;	// p / (2*PI) * asin(1)
+	return pow(2, -10 * n) * sin((n - s) * (2 * PI) / p) + 1;
+};
+double FN_EASE_IN_OUT_ELASTIC (double n) {
+	if (n == 0) return 0;
+	if ((n *= 2) == 2) return 1;
+	double p = 0.45;	// 0.3 * 1.5
+	double s = 0.1125;	// p / (2*PI) * asin(1)
+	if (n < 1) return -.5 * (pow(2, 10 * (n -= 1)) * sin((n * 1 - s) * (2 * PI) / p));
+	return pow(2, -10 * (n -= 1)) * sin((n * 1 - s) * (2 * PI) / p) * .5 + 1;
+};
+double FN_EASE_IN_BACK (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	double s = 1.70158;
+	return n * n * ((s + 1) * n - s);
+};
+double FN_EASE_OUT_BACK (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	double s = 1.70158;
+	return ((n -= 1) * n * ((s + 1) * n + s) + 1);
+};
+double FN_EASE_IN_OUT_BACK (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	double s = 1.70158;
+	if ((n *= 2) < 1) return 0.5 * (n * n * (((s *= (1.525)) + 1) * n - s));
+	return 0.5 * ((n -= 2) * n * (((s *= (1.525)) + 1) * n + s) + 2);
+};
+double FN_EASE_OUT_BOUNCE (double n) {
+	if (n == 0) return 0;
+	if (n == 1) return 1;
+	if ((n) < (1 / 2.75)) {
+		return (7.5625 * n * n);
+	} else if (n < (2 / 2.75)) {
+		return (7.5625 * (n -= (1.5 / 2.75)) * n + .75);
+	} else if (n < (2.5 / 2.75)) {
+		return (7.5625 * (n -= (2.25 / 2.75)) * n + .9375);
+	} else {
+		return (7.5625 * (n -= (2.625 / 2.75)) * n + .984375);
+	}
+};
+double FN_EASE_IN_BOUNCE (double n) {
+	return 1 - FN_EASE_OUT_BOUNCE(1 - n);
+};
+double FN_EASE_IN_OUT_BOUNCE (double n) {
+	if (n < 0.5) return FN_EASE_IN_BOUNCE (n * 2) * .5;
+	return FN_EASE_OUT_BOUNCE ((n * 2) - 1) * .5 + .5;
+};
 
 static double apply_transition(anim_frame *frame, double t) {
 	switch (frame->transition) {
-		case LINEAR: return FN_LINEAR(t);
-		case EASE_IN: return FN_EASE_IN(t);
-		case EASE_OUT: return FN_EASE_OUT(t);
-		case BOUNCE: return FN_BOUNCE(t);
+		case LINEAR:				return FN_LINEAR(t);
+		case EASE_IN:
+		case EASE_IN_QUAD:			return FN_EASE_IN_QUAD(t);
+		case EASE_OUT:
+		case EASE_OUT_QUAD:			return FN_EASE_OUT_QUAD(t);
+		case EASE_IN_OUT_QUAD:		return FN_EASE_IN_OUT_QUAD(t);
+		case EASE_IN_CUBIC:			return FN_EASE_IN_CUBIC(t);
+		case EASE_OUT_CUBIC:		return FN_EASE_OUT_CUBIC(t);
+		case EASE_IN_QUART:			return FN_EASE_IN_QUART(t);
+		case EASE_OUT_QUART:		return FN_EASE_OUT_QUART(t);
+		case EASE_IN_OUT_QUART:		return FN_EASE_IN_OUT_QUART(t);
+		case EASE_IN_QUINT:			return FN_EASE_IN_QUINT(t);
+		case EASE_OUT_QUINT:		return FN_EASE_OUT_QUINT(t);
+		case EASE_IN_OUT_QUINT:		return FN_EASE_IN_OUT_QUINT(t);
+		case EASE_IN_SINE:			return FN_EASE_IN_SINE(t);
+		case EASE_OUT_SINE:			return FN_EASE_OUT_SINE(t);
+		case EASE_IN_OUT_SINE:		return FN_EASE_IN_OUT_SINE(t);
+		case EASE_IN_EXPO:			return FN_EASE_IN_EXPO(t);
+		case EASE_OUT_EXPO:			return FN_EASE_OUT_EXPO(t);
+		case EASE_IN_OUT_EXPO:		return FN_EASE_IN_OUT_EXPO(t);
+		case EASE_IN_CIRC:			return FN_EASE_IN_CIRC(t);
+		case EASE_OUT_CIRC:			return FN_EASE_OUT_CIRC(t);
+		case EASE_IN_OUT_CIRC:		return FN_EASE_IN_OUT_CIRC(t);
+		case EASE_IN_ELASTIC:		return FN_EASE_IN_ELASTIC(t);
+		case EASE_OUT_ELASTIC:		return FN_EASE_OUT_ELASTIC(t);
+		case EASE_IN_OUT_ELASTIC:	return FN_EASE_IN_OUT_ELASTIC(t);
+		case EASE_IN_BACK:			return FN_EASE_IN_BACK(t);
+		case EASE_OUT_BACK:			return FN_EASE_OUT_BACK(t);
+		case EASE_IN_OUT_BACK:		return FN_EASE_IN_OUT_BACK(t);
+		case EASE_OUT_BOUNCE:		return FN_EASE_OUT_BOUNCE(t);
+		case EASE_IN_BOUNCE:		return FN_EASE_IN_BOUNCE(t);
+		case EASE_IN_OUT_BOUNCE:	return FN_EASE_IN_OUT_BOUNCE(t);
 		case EASE_IN_OUT:
-		default: return FN_EASE_IN_OUT(t);
+		case EASE_IN_OUT_CUBIC:
+		default:					return FN_EASE_IN_OUT_CUBIC(t);
 	}
 }
 
