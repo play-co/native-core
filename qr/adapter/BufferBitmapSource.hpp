@@ -6,17 +6,22 @@ namespace qrviddec {
 	class BufferBitmapSource : public LuminanceSource {
 		private:
 			int width, height; 
-			unsigned char * buffer; 
+			const unsigned char * buffer;
 
 		public:
-			BufferBitmapSource(int inWidth, int inHeight, unsigned char * inBuffer); 
-			~BufferBitmapSource(); 
+			BufferBitmapSource(int inWidth, int inHeight, const unsigned char *inBuffer);
+			virtual ~BufferBitmapSource();
 
-			int getWidth() const; 
-			int getHeight() const; 
-			unsigned char* getRow(int y, unsigned char* row); 
-			unsigned char* getMatrix(); 
-	}; 
+			virtual ArrayRef<char> getRow(int y, ArrayRef<char> row) const;
+			virtual ArrayRef<char> getMatrix() const;
+		
+			virtual bool isCropSupported() const;
+			virtual Ref<LuminanceSource> crop(int left, int top, int width, int height) const;
+		
+			virtual bool isRotateSupported() const;
+		
+			virtual Ref<LuminanceSource> invert() const;
+		
+			virtual Ref<LuminanceSource> rotateCounterClockwise() const;
+	};
 }
-
-

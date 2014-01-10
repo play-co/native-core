@@ -1,7 +1,8 @@
 #include "BufferBitmapSource.hpp"
 
 namespace qrviddec {
-	BufferBitmapSource::BufferBitmapSource(int inWidth, int inHeight, unsigned char *inBuffer)  {
+	BufferBitmapSource::BufferBitmapSource(int inWidth, int inHeight, const unsigned char *inBuffer)
+	: LuminanceSource(inWidth, inHeight) {
 		width = inWidth; 
 		height = inHeight; 
 		buffer = inBuffer; 
@@ -10,20 +11,32 @@ namespace qrviddec {
 	BufferBitmapSource::~BufferBitmapSource() {
 	}
 
-	int BufferBitmapSource::getWidth() const {
-		return width; 
+	ArrayRef<char> BufferBitmapSource::getRow(int y, ArrayRef<char> row) const {
+		return ArrayRef<char>( (char *)buffer + height * y, width );
 	}
 
-	int BufferBitmapSource::getHeight() const {
-		return height; 
+	ArrayRef<char> BufferBitmapSource::getMatrix() const {
+		return ArrayRef<char>( (char *)buffer, width * height );
+	}
+	
+	bool BufferBitmapSource::isCropSupported() const {
+		return false;
 	}
 
-	unsigned char *BufferBitmapSource::getRow(int y, unsigned char *row) {
-		return buffer + y * width;
+	Ref<LuminanceSource> BufferBitmapSource::crop(int left, int top, int width, int height) const {
+		return Ref<LuminanceSource> ( 0 );
 	}
-
-	unsigned char *BufferBitmapSource::getMatrix() {
-		return buffer; 
+	
+	bool BufferBitmapSource::isRotateSupported() const {
+		return false;
+	}
+	
+	Ref<LuminanceSource> BufferBitmapSource::invert() const {
+		return Ref<LuminanceSource> ( 0 );
+	}
+	
+	Ref<LuminanceSource> BufferBitmapSource::rotateCounterClockwise() const {
+		return Ref<LuminanceSource> ( 0 );
 	}
 }
 

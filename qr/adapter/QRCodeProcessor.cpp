@@ -1,80 +1,51 @@
-    #include <iostream>
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <fstream>
-    #include <string>
-    #include <zxing/qrcode/QRCodeReader.h>
-    #include <zxing/Exception.h>
-    #include <zxing/common/GlobalHistogramBinarizer.h>
-    #include <zxing/DecodeHints.h>
-    #include "BufferBitmapSource.h"
-     
-    using namespace std; 
-    using namespace zxing; 
-    using namespace zxing::qrcode;
-    using namespace qrviddec; 
-     
-    int main(int argc, char ** argv)
-    {
-    	try
-    	{
-     
-     
-    		// A buffer containing an image. In your code, this would be an image from your camera. In this 
-    		// example, it's just an array containing the code for "Hello!". 
-    		uint8_t buffer[] = 
-    		{ 
-    			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 
-    			255,  0 , 255, 255, 255, 255, 255,  0 , 255, 255,  0 , 255,  0 , 255, 255,  0 , 255, 255, 255, 255, 255,  0 , 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 255,  0 ,  0 , 255, 255, 255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 255,  0 ,  0 ,  0 , 255, 255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 255, 255,  0 , 255,  0 , 255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 
-    			255,  0 , 255, 255, 255, 255, 255,  0 , 255, 255, 255, 255,  0 ,  0 , 255,  0 , 255, 255, 255, 255, 255,  0 , 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 , 255,  0 , 255,  0 , 255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 
-    			255, 255, 255, 255, 255, 255, 255, 255, 255,  0 ,  0 ,  0 ,  0 ,  0 , 255, 255, 255, 255, 255, 255, 255, 255, 255, 
-    			255,  0 ,  0 , 255,  0 ,  0 , 255,  0 , 255, 255,  0 ,  0 , 255,  0 , 255,  0 , 255, 255, 255, 255, 255,  0 , 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 , 255, 255,  0 , 255, 255,  0 , 255,  0 , 255,  0 , 255,  0 ,  0 ,  0 , 255, 255, 255, 
-    			255, 255, 255, 255, 255, 255, 255,  0 , 255,  0 ,  0 ,  0 , 255, 255,  0 ,  0 , 255,  0 , 255,  0 ,  0 ,  0 , 255, 
-    			255, 255, 255,  0 ,  0 , 255, 255, 255,  0 ,  0 ,  0 , 255,  0 , 255, 255, 255, 255, 255, 255,  0 , 255, 255, 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 255,  0 , 255, 255, 255, 255,  0 , 255, 255,  0 , 255,  0 , 255, 255, 
-    			255, 255, 255, 255, 255, 255, 255, 255, 255,  0 ,  0 , 255,  0 ,  0 , 255, 255, 255, 255,  0 , 255,  0 ,  0 , 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 255, 255,  0 , 255,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 , 255, 255, 255, 
-    			255,  0 , 255, 255, 255, 255, 255,  0 , 255, 255,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 ,  0 ,  0 ,  0 , 255, 255, 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255,  0 , 255, 255,  0 ,  0 , 255,  0 ,  0 , 255,  0 , 255,  0 ,  0 , 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255,  0 , 255,  0 ,  0 ,  0 , 255, 255, 255, 255, 255, 255, 255, 255, 255, 
-    			255,  0 , 255,  0 ,  0 ,  0 , 255,  0 , 255, 255,  0 ,  0 , 255, 255, 255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 
-    			255,  0 , 255, 255, 255, 255, 255,  0 , 255,  0 , 255,  0 , 255, 255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255, 
-    			255,  0 ,  0 ,  0 ,  0 ,  0 ,  0 ,  0 , 255,  0 , 255,  0 ,  0 , 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 
-    			255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255
-    		}; 
-    		int width = 23; 
-    		int height = 23; 
-     
-    		// Convert the buffer to something that the library understands. 
-    		Ref<LuminanceSource> source (new BufferBitmapSource(width, height, buffer)); 
-     
-    		// Turn it into a binary image. 
-    		Ref<Binarizer> binarizer (new GlobalHistogramBinarizer(source)); 
-    		Ref<BinaryBitmap> image(new BinaryBitmap(binarizer));
-     
-    		// Tell the decoder to try as hard as possible. 
-    		DecodeHints hints(DecodeHints::DEFAULT_HINT); 
-    		hints.setTryHarder(true); 
-     
-    		// Perform the decoding. 
-        QRCodeReader reader;
-        Ref<Result> result(reader.decode(image, hints));
-     
-    		// Output the result. 
-        cout << result->getText()->getText() << endl;
-     
-      } 
-    	catch (zxing::Exception& e) 
-    	{
-        cerr << "Error: " << e.what() << endl;
-      }
-    	return 0; 
-    }
+#include <iostream>
+#include <stdlib.h>
+#include <stdint.h>
+#include <fstream>
+#include <string>
+#include "zxing/qrcode/QRCodeReader.h"
+#include "zxing/Exception.h"
+#include "zxing/common/GlobalHistogramBinarizer.h"
+#include "zxing/DecodeHints.h"
+#include "BufferBitmapSource.hpp"
 
+using namespace std; 
+using namespace zxing; 
+using namespace zxing::qrcode;
+using namespace qrviddec; 
+
+extern "C" void qr_process(const unsigned char *buffer, int width, int height, char text[512]) {
+	text[0] = 0;
+
+	try {
+		// Convert the buffer to something that the library understands. 
+		Ref<LuminanceSource> source (new BufferBitmapSource(width, height, buffer)); 
+
+		// Turn it into a binary image. 
+		Ref<Binarizer> binarizer (new GlobalHistogramBinarizer(source)); 
+		Ref<BinaryBitmap> image(new BinaryBitmap(binarizer));
+
+		// Tell the decoder to try as hard as possible. 
+		DecodeHints hints(DecodeHints::DEFAULT_HINT); 
+		hints.setTryHarder(true); 
+
+		// Perform the decoding. 
+		QRCodeReader reader;
+		Ref<Result> result(reader.decode(image, hints));
+
+		// Output the result. 
+		const char *cstr = result->getText()->getText().c_str();
+
+		for (int ii = 0; ii < 511; ++ii) {
+			char ch = cstr[ii];
+			text[ii] = ch;
+			if (!ch) {
+				break;
+			}
+		}
+		text[511] = 0;
+	} catch (zxing::Exception& e) {
+		cerr << "{qr} ERROR: " << e.what() << endl;
+	}
+}
 
