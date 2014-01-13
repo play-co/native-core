@@ -9,31 +9,31 @@
 #include "zxing/DecodeHints.h"
 #include "BufferBitmapSource.hpp"
 
-using namespace std; 
-using namespace zxing; 
+using namespace std;
+using namespace zxing;
 using namespace zxing::qrcode;
-using namespace qrviddec; 
+using namespace qrviddec;
 
 extern "C" void qr_process(const unsigned char *buffer, int width, int height, char text[512]) {
 	text[0] = 0;
 
 	try {
-		// Convert the buffer to something that the library understands. 
-		Ref<LuminanceSource> source (new BufferBitmapSource(width, height, buffer)); 
+		// Convert the buffer to something that the library understands.
+		Ref<LuminanceSource> source (new BufferBitmapSource(width, height, buffer));
 
-		// Turn it into a binary image. 
-		Ref<Binarizer> binarizer (new GlobalHistogramBinarizer(source)); 
+		// Turn it into a binary image.
+		Ref<Binarizer> binarizer (new GlobalHistogramBinarizer(source));
 		Ref<BinaryBitmap> image(new BinaryBitmap(binarizer));
 
-		// Tell the decoder to try as hard as possible. 
-		DecodeHints hints(DecodeHints::DEFAULT_HINT); 
-		hints.setTryHarder(true); 
+		// Tell the decoder to try as hard as possible.
+		DecodeHints hints(DecodeHints::QR_CODE_HINT);
+		hints.setTryHarder(true);
 
-		// Perform the decoding. 
+		// Perform the decoding.
 		QRCodeReader reader;
 		Ref<Result> result(reader.decode(image, hints));
 
-		// Output the result. 
+		// Output the result.
 		const char *cstr = result->getText()->getText().c_str();
 
 		for (int ii = 0; ii < 511; ++ii) {
@@ -48,4 +48,5 @@ extern "C" void qr_process(const unsigned char *buffer, int width, int height, c
 		cerr << "{qr} ERROR: " << e.what() << endl;
 	}
 }
+
 
