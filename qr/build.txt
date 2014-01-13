@@ -101,4 +101,13 @@ bigint/BigIntegerUtils.cc
 bigint/BigUnsigned.cc
 bigint/BigUnsignedInABase.cc
 
+libqrencode/bitstream.c
+libqrencode/mask.c
+libqrencode/mmask.c
+libqrencode/mqrspec.c
+libqrencode/qrencode.c
+libqrencode/qrinput.c
+libqrencode/qrspec.c
+libqrencode/rsecc.c
+libqrencode/split.c
 

@@ -121,7 +121,6 @@ void png_write_data_func(png_structp png_ptr, png_bytep data, png_size_t length)
 }
 
 char *write_png_to_base64(unsigned char * data, int width, int height, int channels) {
-
 	struct mem_encode state;
 	state.buffer = NULL;
 	state.size = 0;
@@ -168,7 +167,6 @@ png_failure:
 png_create_info_struct_failed:
 	png_destroy_write_struct (&png_ptr, &info_ptr);
 png_create_write_struct_failed:
-
 	
 	if (state.buffer == NULL) {
 		return NULL;
@@ -218,7 +216,6 @@ char *write_jpeg_to_base64(unsigned char * data, int width, int height, int chan
 }
 
 bool write_image_to_file(const char *path, const char *name, unsigned char * data, int width, int height, int channels) {
-
 	int file_type = -1;
 	bool did_write = false;
 
@@ -293,7 +290,6 @@ bool write_jpeg_to_file(const char *path, const char *name, unsigned char *data,
 }
 
 bool write_png_to_file(const char *path, const char *name, unsigned char *data, int width, int height, int channels) {
-
 	bool did_write = false;
 
 	// append path to filename
