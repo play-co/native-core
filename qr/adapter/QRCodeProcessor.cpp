@@ -126,11 +126,13 @@ extern "C" void qr_process_base64_image(const char *b64image, char text[512]) {
 
 extern "C" char *qr_generate_base64_image(const char *text, int *width, int *height) {
 	if (!text || !width || !height) {
+		LOG("{qr} qr_generate_base64_image invalid input");
 		return 0;
 	}
 
 	QRcode *qr = QRcode_encodeString8bit(text, 0, QR_ECLEVEL_Q);
 	if (!qr) {
+		LOG("{qr} Unable to encode text %s", text);
 		return 0;
 	}
 
@@ -154,6 +156,10 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 	}
 
 	char *b64image = write_image_to_base64("PNG", image, qr->width, qr->width, 3);
+
+	if (!b64image) {
+		LOG("{qr} Unable to write image wh=%d", qr->width);
+	}
 
 	*width = qr->width;
 	*height = qr->width;
