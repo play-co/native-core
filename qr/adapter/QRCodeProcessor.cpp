@@ -130,13 +130,14 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 		return 0;
 	}
 
-	QRcode *qr = QRcode_encodeString(text, 0, QR_ECLEVEL_L, QR_MODE_8, 0);
+	QRcode *qr = QRcode_encodeString(text, 0, QR_ECLEVEL_H, QR_MODE_8, 1);
 	if (!qr) {
 		LOG("{qr} Unable to encode text %s", text);
 		return 0;
 	}
 
-	const int image_width = (qr->width + 2) * 8;
+	const int IMAGE_SCALE = 16;
+	const int image_width = (qr->width + 2) * IMAGE_SCALE;
 
 	// Write out the QR code monochrome image
 	// The orientation of the code is important to preserve, and this does it the right way up
@@ -149,29 +150,35 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 	memset(image, 0xff, image_size);
 	
 	// Skip first row
-	pixel += stride * 8 * 8;
+	pixel += stride * IMAGE_SCALE * IMAGE_SCALE;
 	
 	for (int i = 0; i < qr->width; ++i) {
 		unsigned char *scanline = pixel;
 
 		// Skip left edge
-		scanline += 24;
-		
-		for (int j = 0; j < qr->width; ++j) {
+		scanline += 3 * IMAGE_SCALE;
+
+		// Orient properly
+		for (int j = qr->width - 1; j >= 0; --j) {
 			if (qr->data[(j * qr->width) + i] & 0x1) {
 				uint64_t *out = (uint64_t *)scanline;
-				for (int kk = 0; kk < 8; ++kk) {
+
+				for (int kk = 0; kk < IMAGE_SCALE; ++kk) {
+					// Count of these assignments depends on IMAGE_SCALE
 					out[0] = 0;
 					out[1] = 0;
 					out[2] = 0;
-					out += stride;
+					out[3] = 0;
+					out[4] = 0;
+					out[5] = 0;
+					out += stride * IMAGE_SCALE / 8;
 				}
 			}
 
-			scanline += 24;
+			scanline += 3 * IMAGE_SCALE;
 		}
 
-		pixel += stride * 8 * 8;
+		pixel += stride * IMAGE_SCALE * IMAGE_SCALE;
 	}
 
 	char *b64image = write_image_to_base64("PNG", image, image_width, image_width, 3);
@@ -180,8 +187,8 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 		LOG("{qr} Unable to write image wh=%d", qr->width);
 	}
 
-	*width = qr->width * 8;
-	*height = qr->width * 8;
+	*width = qr->width * IMAGE_SCALE;
+	*height = qr->width * IMAGE_SCALE;
 
 	free(image);
 
