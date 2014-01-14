@@ -136,33 +136,52 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 		return 0;
 	}
 
+	const int image_width = (qr->width + 2) * 8;
+
 	// Write out the QR code monochrome image
 	// The orientation of the code is important to preserve, and this does it the right way up
-	unsigned char *image = (unsigned char *)malloc(3 * qr->width * qr->width);
+	const int image_size = 3 * image_width * image_width;
+	unsigned char *image = (unsigned char *)malloc(image_size);
+	const int stride = 3 * (qr->width + 2);
 	unsigned char *pixel = image;
-	for (int i = 0; i < qr->width; i++) {
-		for (int j = qr->width - 1; j >= 0; j--) {
+
+	// Set image to white
+	memset(image, 0xff, image_size);
+	
+	// Skip first row
+	pixel += stride * 8 * 8;
+	
+	for (int i = 0; i < qr->width; ++i) {
+		unsigned char *scanline = pixel;
+
+		// Skip left edge
+		scanline += 24;
+		
+		for (int j = 0; j < qr->width; ++j) {
 			if (qr->data[(j * qr->width) + i] & 0x1) {
-				pixel[0] = 0; // black
-				pixel[1] = 0; // black
-				pixel[2] = 0; // black
-			} else {
-				pixel[0] = 255; // white
-				pixel[1] = 255; // white
-				pixel[2] = 255; // white
+				uint64_t *out = (uint64_t *)scanline;
+				for (int kk = 0; kk < 8; ++kk) {
+					out[0] = 0;
+					out[1] = 0;
+					out[2] = 0;
+					out += stride;
+				}
 			}
-			pixel += 3;
+
+			scanline += 24;
 		}
+
+		pixel += stride * 8 * 8;
 	}
 
-	char *b64image = write_image_to_base64("PNG", image, qr->width, qr->width, 3);
+	char *b64image = write_image_to_base64("PNG", image, image_width, image_width, 3);
 
 	if (!b64image) {
 		LOG("{qr} Unable to write image wh=%d", qr->width);
 	}
 
-	*width = qr->width;
-	*height = qr->width;
+	*width = qr->width * 8;
+	*height = qr->width * 8;
 
 	free(image);
 
