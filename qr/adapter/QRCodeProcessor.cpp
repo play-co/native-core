@@ -130,7 +130,7 @@ extern "C" char *qr_generate_base64_image(const char *text, int *width, int *hei
 		return 0;
 	}
 
-	QRcode *qr = QRcode_encodeString8bit(text, 0, QR_ECLEVEL_Q);
+	QRcode *qr = QRcode_encodeString(text, 0, QR_ECLEVEL_L, QR_MODE_8, 0);
 	if (!qr) {
 		LOG("{qr} Unable to encode text %s", text);
 		return 0;
