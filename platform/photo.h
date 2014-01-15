@@ -21,7 +21,7 @@ extern "C" {
 #endif
     
     
-int camera_get_photo(const char *url, int width, int height);
+int camera_get_photo(const char *url, int width, int height, int crop);
 int gallery_get_photo(const char *url, int width, int height);
 int camera_get_next_id();
 int gallery_get_next_id();
