@@ -24,7 +24,7 @@
 
 //// Conversion from Base64
 
-static const unsigned char DC = 0;
+#define DC 0
 
 static const unsigned char FROM_BASE64[256] = {
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // 0-15
@@ -44,6 +44,8 @@ static const unsigned char FROM_BASE64[256] = {
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
 	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC
 };
+
+#undef DC
 
 
 static int GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes)
