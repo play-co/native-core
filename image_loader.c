@@ -22,6 +22,114 @@
 #define TEXTURE_LOAD_ERROR 0
 
 
+//// Conversion from Base64
+
+#define DC 0
+
+static const unsigned char FROM_BASE64[256] = {
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // 0-15
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // 16-31
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, 62, DC, DC, DC, 63, // 32-47
+	52, 53, 54, 55, 56, 57, 58, 59, 60, 61, DC, DC, DC, DC, DC, DC, // 48-63
+	DC, 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 , 10, 11, 12, 13, 14, // 64-79
+	15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, DC, DC, DC, DC, DC, // 80-95
+	DC, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // 96-111
+	41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, DC, DC, DC, DC, DC, // 112-127
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // 128-
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // Extended
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // Extended
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // Extended
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, // ASCII
+	DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC, DC
+};
+
+#undef DC
+
+
+static int GetBinaryLengthFromBase64Length(const char *encoded_buffer, int bytes)
+{
+	if (bytes <= 0) {
+		return 0;
+	}
+
+	// Skip characters from end until one is a valid BASE64 character
+	while (bytes >= 1) {
+		unsigned char ch = encoded_buffer[bytes - 1];
+
+		if (ch == '0' || FROM_BASE64[ch] != 0) {
+			break;
+		}
+
+		--bytes;
+	}
+
+	return (bytes * 3) / 4;
+}
+
+static int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decoded_buffer, int decoded_bytes)
+{
+	// Skip characters from end until one is a valid BASE64 character
+	while (encoded_bytes >= 1) {
+		unsigned char ch = encoded_buffer[encoded_bytes - 1];
+
+		if (ch == '0' || FROM_BASE64[ch] != 0) {
+			break;
+		}
+
+		--encoded_bytes;
+	}
+
+	if (encoded_bytes <= 0 || decoded_bytes <= 0 ||
+		decoded_bytes < (encoded_bytes * 3) / 4)
+	{
+		return 0;
+	}
+
+	const unsigned char *from = (const unsigned char*)( encoded_buffer );
+	unsigned char *to = (unsigned char*)( decoded_buffer );
+
+	unsigned char a, b, c, d;
+
+	int ii, jj, end;
+	for (ii = 0, jj = 0, end = encoded_bytes - 3; ii < end; ii += 4, jj += 3)
+	{
+		a = FROM_BASE64[from[ii]];
+		b = FROM_BASE64[from[ii+1]];
+		c = FROM_BASE64[from[ii+2]];
+		d = FROM_BASE64[from[ii+3]];
+
+		to[jj] = (a << 2) | (b >> 4);
+		to[jj+1] = (b << 4) | (c >> 2);
+		to[jj+2] = (c << 6) | d;
+	}
+
+	switch (encoded_bytes & 3)
+	{
+	case 3: // 3 characters left
+		a = FROM_BASE64[from[ii]];
+		b = FROM_BASE64[from[ii+1]];
+		c = FROM_BASE64[from[ii+2]];
+
+		to[jj] = (a << 2) | (b >> 4);
+		to[jj+1] = (b << 4) | (c >> 2);
+		return jj+2;
+
+	case 2: // 2 characters left
+		a = FROM_BASE64[from[ii]];
+		b = FROM_BASE64[from[ii+1]];
+
+		to[jj] = (a << 2) | (b >> 4);
+		return jj+1;
+	}
+
+	return jj;
+}
+
+
+//// Loader
+
 unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
 	// must have at least 8 bytes be read
 	if (bits_length >= 8) {
@@ -37,6 +145,22 @@ unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int
 		}
 	}
 	return NULL;
+}
+
+unsigned char *load_image_from_base64(const char *base64image, int *width, int *height, int *channels) {
+	int len = (int)strlen(base64image);
+	int decoded_bytes = GetBinaryLengthFromBase64Length(base64image, len);
+
+	// Read base64 image into binary image data
+	char *decoded_buffer = (char *)malloc(decoded_bytes);
+	int read_bytes = ReadBase64(base64image, len, decoded_buffer, decoded_bytes);
+
+	// Load PNG/JPEG image
+	unsigned char *image = load_image_from_memory((unsigned char *)decoded_buffer, read_bytes, width, height, channels);
+
+	free(decoded_buffer);
+
+	return image;
 }
 
 struct bounded_buffer {

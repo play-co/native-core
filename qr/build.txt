@@ -1,0 +1,17 @@
+The following files are required to build zxing on a mobile platform:
+
+libqrencode/bitstream.c
+libqrencode/mask.c
+libqrencode/mmask.c
+libqrencode/mqrspec.c
+libqrencode/qrencode.c
+libqrencode/qrinput.c
+libqrencode/qrspec.c
+libqrencode/rsecc.c
+libqrencode/split.c
+quirc/decode.c
+quirc/identify.c
+quirc/quirc.c
+quirc/version_db.c
+adapter/qrprocess.c
+
