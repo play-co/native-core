@@ -261,157 +261,185 @@ CEXPORT void view_animation_tick_animations(int dt) {
 // Easing Functions
 
 #define PI 3.14159265
-double FN_LINEAR (double n) {
+static inline double FN_LINEAR (double n) {
 	return n;
 };
 // AKA: FN_EASE_IN
-double FN_EASE_IN_QUAD (double n) {
+static inline double FN_EASE_IN_QUAD (double n) {
 	return n * n;
 };
 // AKA: FN_EASE_OUT
-double FN_EASE_OUT_QUAD (double n) {
+static inline double FN_EASE_OUT_QUAD (double n) {
 	return n * (2 - n);
 };
-double FN_EASE_IN_OUT_QUAD (double n) {
-	if ((n *= 2) < 1) return 0.5 * n * n;
-	return -0.5 * ((--n) * (n - 2) - 1);
+static inline double FN_EASE_IN_OUT_QUAD (double n) {
+	n *= 2;
+	if (n < 1) return 0.5 * n * n;
+	--n;
+	return -0.5 * (n * (n - 2) - 1);
 };
-double FN_EASE_IN_CUBIC (double n) {
+static inline double FN_EASE_IN_CUBIC (double n) {
 	return n * n * n;
 };
-double FN_EASE_OUT_CUBIC (double n) {
-	return ((n -= 1) * n * n + 1);
+static inline double FN_EASE_OUT_CUBIC (double n) {
+	--n;
+	return (n * n * n + 1);
 };
 // AKA: FN_EASE_IN_OUT
-double FN_EASE_IN_OUT_CUBIC (double n) {
-	if ((n *= 2) < 1) return 0.5 * n * n * n;
-	return 0.5 * ((n -= 2) * n * n + 2);
+static inline double FN_EASE_IN_OUT_CUBIC (double n) {
+	n *= 2;
+	if (n < 1) return 0.5 * n * n * n;
+	n -= 2;
+	return 0.5 * (n * n * n + 2);
 };
-double FN_EASE_IN_QUART (double n) {
+static inline double FN_EASE_IN_QUART (double n) {
 	return n * n * n * n;
 };
-double FN_EASE_OUT_QUART (double n) {
-	return -1 * ((n -= 1) * n * n * n - 1);
+static inline double FN_EASE_OUT_QUART (double n) {
+	--n;
+	return -1 * (n * n * n * n - 1);
 };
-double FN_EASE_IN_OUT_QUART (double n) {
-	if ((n *= 2) < 1) return 0.5 * n * n * n * n;
-	return -0.5 * ((n -= 2) * n * n * n - 2);
+static inline double FN_EASE_IN_OUT_QUART (double n) {
+	n *= 2;
+	if (n < 1) return 0.5 * n * n * n * n;
+	n -= 2;
+	return -0.5 * (n * n * n * n - 2);
 };
-double FN_EASE_IN_QUINT (double n) {
+static inline double FN_EASE_IN_QUINT (double n) {
 	return n * n * n * n * n;
 };
-double FN_EASE_OUT_QUINT (double n) {
-	return ((n -= 1) * n * n * n * n + 1);
+static inline double FN_EASE_OUT_QUINT (double n) {
+	--n;
+	return (n * n * n * n * n + 1);
 };
-double FN_EASE_IN_OUT_QUINT (double n) {
-	if ((n *= 2) < 1) return 0.5 * n * n * n * n * n;
-	return 0.5 * ((n -= 2) * n * n * n * n + 2);
+static inline double FN_EASE_IN_OUT_QUINT (double n) {
+	n *= 2;
+	if (n < 1) return 0.5 * n * n * n * n * n;
+	n -= 2;
+	return 0.5 * (n * n * n * n * n + 2);
 };
-double FN_EASE_IN_SINE (double n){
+static inline double FN_EASE_IN_SINE (double n){
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return -1 * cos(n * (PI / 2)) + 1;
 };
-double FN_EASE_OUT_SINE (double n) {
+static inline double FN_EASE_OUT_SINE (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return  sin(n * (PI / 2));
 };
-double FN_EASE_IN_OUT_SINE (double n) {
+static inline double FN_EASE_IN_OUT_SINE (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return -0.5 * (cos(PI * n) - 1);
 };
-double FN_EASE_IN_EXPO (double n) {
+static inline double FN_EASE_IN_EXPO (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return (n == 0) ? 0 : pow(2, 10 * (n - 1));
 };
-double FN_EASE_OUT_EXPO (double n) {
+static inline double FN_EASE_OUT_EXPO (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return (n==1) ? 1 : (-pow(2, -10 * n) + 1);
 };
-double FN_EASE_IN_OUT_EXPO (double n) {
+static inline double FN_EASE_IN_OUT_EXPO (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
-	if ((n *= 2) < 1) return 0.5 * pow(2, 10 * (n - 1));
-	return 0.5 * (-pow(2, -10 * --n) + 2);
+	n *= 2;
+	if (n < 1) return 0.5 * pow(2, 10 * (n - 1));
+	--n;
+	return 0.5 * (-pow(2, -10 * n) + 2);
 };
-double FN_EASE_IN_CIRC (double n) {
+static inline double FN_EASE_IN_CIRC (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	return -1 * (sqrt(1 - n * n) - 1);
 };
-double FN_EASE_OUT_CIRC (double n) {
+static inline double FN_EASE_OUT_CIRC (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
-	return  sqrt(1 - (n -= 1) * n);
+	--n;
+	return  sqrt(1 - n * n);
 };
-double FN_EASE_IN_OUT_CIRC (double n) {
+static inline double FN_EASE_IN_OUT_CIRC (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
-	if ((n *= 2) < 1) return -0.5 * (sqrt(1 - n * n) - 1);
-	return 0.5 * (sqrt(1 - (n -= 2) * n) + 1);
+	n *= 2;
+	if (n < 1) return -0.5 * (sqrt(1 - n * n) - 1);
+	n -= 2;
+	return 0.5 * (sqrt(1 - n * n) + 1);
 };
-double FN_EASE_IN_ELASTIC (double n) {
+static inline double FN_EASE_IN_ELASTIC (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	double p = 0.3;
 	double s = 0.075;	// p / (2*PI) * asin(1)
-	return -(pow(2, 10 * (n -= 1)) * sin((n - s) * (2 * PI) / p));
+	--n;
+	return -(pow(2, 10 * n) * sin((n - s) * (2 * PI) / p));
 };
-double FN_EASE_OUT_ELASTIC (double n) {
+static inline double FN_EASE_OUT_ELASTIC (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	double p = 0.3;
 	double s = 0.075;	// p / (2*PI) * asin(1)
 	return pow(2, -10 * n) * sin((n - s) * (2 * PI) / p) + 1;
 };
-double FN_EASE_IN_OUT_ELASTIC (double n) {
+static inline double FN_EASE_IN_OUT_ELASTIC (double n) {
 	if (n == 0) return 0;
-	if ((n *= 2) == 2) return 1;
+	n *= 2;
+	if (n == 2) return 1;
 	double p = 0.45;	// 0.3 * 1.5
 	double s = 0.1125;	// p / (2*PI) * asin(1)
-	if (n < 1) return -.5 * (pow(2, 10 * (n -= 1)) * sin((n * 1 - s) * (2 * PI) / p));
-	return pow(2, -10 * (n -= 1)) * sin((n * 1 - s) * (2 * PI) / p) * .5 + 1;
+	--n;
+	if (n < 1) return -.5 * (pow(2, 10 * n) * sin((n * 1 - s) * (2 * PI) / p));
+	--n;
+	return pow(2, -10 * n) * sin((n * 1 - s) * (2 * PI) / p) * .5 + 1;
 };
-double FN_EASE_IN_BACK (double n) {
+static inline double FN_EASE_IN_BACK (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	double s = 1.70158;
 	return n * n * ((s + 1) * n - s);
 };
-double FN_EASE_OUT_BACK (double n) {
+static inline double FN_EASE_OUT_BACK (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	double s = 1.70158;
-	return ((n -= 1) * n * ((s + 1) * n + s) + 1);
+	--n;
+	return (n * n * ((s + 1) * n + s) + 1);
 };
-double FN_EASE_IN_OUT_BACK (double n) {
+static inline double FN_EASE_IN_OUT_BACK (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	double s = 1.70158;
-	if ((n *= 2) < 1) return 0.5 * (n * n * (((s *= (1.525)) + 1) * n - s));
-	return 0.5 * ((n -= 2) * n * (((s *= (1.525)) + 1) * n + s) + 2);
+	n *= 2;
+	s *= 1.525;
+	if (n < 1) return 0.5 * (n * n * ((s + 1) * n - s));
+	s *= 1.525;
+	n -= 2;
+	return 0.5 * (n * n * ((s + 1) * n + s) + 2);
 };
-double FN_EASE_OUT_BOUNCE (double n) {
+static inline double FN_EASE_OUT_BOUNCE (double n) {
 	if (n == 0) return 0;
 	if (n == 1) return 1;
 	if ((n) < (1 / 2.75)) {
 		return (7.5625 * n * n);
 	} else if (n < (2 / 2.75)) {
-		return (7.5625 * (n -= (1.5 / 2.75)) * n + .75);
+		n -= (1.5 / 2.75);
+		return (7.5625 * n * n + .75);
 	} else if (n < (2.5 / 2.75)) {
-		return (7.5625 * (n -= (2.25 / 2.75)) * n + .9375);
+		n -= (2.25 / 2.75);
+		return (7.5625 * n * n + .9375);
 	} else {
-		return (7.5625 * (n -= (2.625 / 2.75)) * n + .984375);
+		n -= (2.625 / 2.75);
+		return (7.5625 * n * n + .984375);
 	}
 };
-double FN_EASE_IN_BOUNCE (double n) {
+static inline double FN_EASE_IN_BOUNCE (double n) {
 	return 1 - FN_EASE_OUT_BOUNCE(1 - n);
 };
-double FN_EASE_IN_OUT_BOUNCE (double n) {
+static inline double FN_EASE_IN_OUT_BOUNCE (double n) {
 	if (n < 0.5) return FN_EASE_IN_BOUNCE (n * 2) * .5;
 	return FN_EASE_OUT_BOUNCE ((n * 2) - 1) * .5 + .5;
 };
