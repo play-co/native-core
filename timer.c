@@ -23,18 +23,23 @@
 #include "util/detect.h"
 
 static core_timer *timer_head = NULL;
+static core_timer *m_insert_head = NULL;
 
 static int timer_id = 0;
 
-/**
- * @name	core_timer_schedule
- * @brief	adds the given timer to the timer list
- * @param	timer - (core_timer *) timer to add
- * @retval	NONE
- */
-CEXPORT void core_timer_schedule(core_timer *timer) {
+#define MAX_TIMERS_PER_TICK 400
+
+static void queue_insert(core_timer *timer) {
+	timer->prev = 0;
+	timer->next = m_insert_head;
+	m_insert_head = timer;
+}
+
+static void insert_timer(core_timer *timer) {
 	if (!timer_head) {
 		timer_head = timer;
+		timer->prev = 0;
+		timer->next = 0;
 	} else {
 		core_timer *current = timer_head;
 
@@ -52,6 +57,28 @@ CEXPORT void core_timer_schedule(core_timer *timer) {
 		current->prev = timer;
 		timer->next = current;
 	}
+}
+
+static void insert_queued_timers() {
+	core_timer *timer = m_insert_head;
+	core_timer *next;
+
+	for (; timer; timer = next) {
+		next = timer->next;
+		insert_timer(timer);
+	}
+
+	m_insert_head = NULL;
+}
+
+/**
+ * @name	core_timer_schedule
+ * @brief	adds the given timer to the timer list
+ * @param	timer - (core_timer *) timer to add
+ * @retval	NONE
+ */
+CEXPORT void core_timer_schedule(core_timer *timer) {
+	queue_insert(timer);
 }
 
 /**
@@ -156,6 +183,8 @@ CEXPORT void core_timer_clear(int id) {
 CEXPORT void core_timer_clear_all() {
 	core_timer *timer = timer_head;
 
+	LOG("{CAT} CLEARING ALL TIMERS");
+
 	while (timer) {
 		core_timer *next = timer->next;
 		timer_unlink(timer);
@@ -172,13 +201,24 @@ CEXPORT void core_timer_clear_all() {
  * @retval	NONE
  */
 CEXPORT void core_timer_tick(int dt) {
+	insert_queued_timers();
+
 	if (dt < 0) {
 		return;
 	}
 
 	core_timer *timer = timer_head;
+	core_timer *last;
+	int max_ticks = MAX_TIMERS_PER_TICK;
 
 	while (timer) {
+		last = timer;
+
+		if (--max_ticks <= 0) {
+			LOG("{timer} WARNING: More than %d timer callbacks in one tick.  Waiting for next tick", MAX_TIMERS_PER_TICK);
+			break;
+		}
+
 		core_timer *next = timer->next;
 
 		if (!timer->cleared) {
@@ -192,6 +232,11 @@ CEXPORT void core_timer_tick(int dt) {
 		}
 
 		timer = next;
+		if (timer == last) {
+			LOG("{timer} WARNING: Infinite loop detected.  Dumping all timers!");
+			core_timer_clear_all();
+			break;
+		}
 	}
 }
 
