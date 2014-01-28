@@ -71,6 +71,23 @@ static void insert_queued_timers() {
 	m_insert_head = NULL;
 }
 
+// Return non-zero if timer was cleared
+static int unschedule_queued_timer(int id) {
+	core_timer *timer = m_insert_head;
+	core_timer *next;
+
+	for (; timer; timer = next) {
+		next = timer->next;
+
+		if (timer->id == id) {
+			timer->cleared = true;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 /**
  * @name	core_timer_schedule
  * @brief	adds the given timer to the timer list
@@ -170,6 +187,11 @@ CEXPORT void core_timer_clear(int id) {
 		}
 
 		timer = timer->next;
+	}
+
+	// It may be in the queue still
+	if (unschedule_queued_timer(id)) {
+		return;
 	}
 
 	LOG("{timer} Tried to clear timer %i when it didn't exist", id);
