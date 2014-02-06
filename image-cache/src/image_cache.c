@@ -594,7 +594,7 @@ static void image_cache_run(void *args) {
 	fd_set fdexcep;
 	int maxfd = -1;
 	
-	DLOG("{image-cache} Loader thread: Revving engines");
+	DLOG("{image-cache} Loader thread: Starting");
 	
 	// init the handle pool and free handles
 	for (i = 0; i < MAX_REQUESTS; i++) {
@@ -628,7 +628,17 @@ static void image_cache_run(void *args) {
 			
 			// the load item for this request is stored for use after the request finishes
 			request->load_item = load_item;
-			curl_easy_setopt(request->handle, CURLOPT_URL, load_item->url);
+
+			if (strncmp(load_item->url, "//", 2) == 0) {
+				// if request begins with "//", change to "http://..."
+				// 6 accounts for "http:" and '\0'
+				char *request_url = malloc(strlen(load_item->url) + 6);
+				sprintf(request_url, "http:%s", load_item->url);
+				curl_easy_setopt(request->handle, CURLOPT_URL, request_url);
+				free(request_url);
+			} else { 
+				curl_easy_setopt(request->handle, CURLOPT_URL, load_item->url);
+			}	
 			
 			// if we have a cached version of the file on disk then try to get its etag
 			if (image_exists_in_cache(load_item->url)) {

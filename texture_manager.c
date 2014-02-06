@@ -107,7 +107,7 @@ bool is_remote_resource(const char *url) {
 		is_remote = false;
 	} else if (*url == '@') {
 		is_remote = true;
-	} else if (!strncmp("http", url, 4)) {
+	} else if (!strncmp("http", url, 4) || !strncmp("//", url, 2)) {
 		is_remote = true;
 	}
 
@@ -276,7 +276,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 
 	// If URL represents a remote resource, or is a special resource
 	if (remote_resource) {
-        if (!strncmp("http", url, 4)) {  
+        if (!strncmp("http", url, 4) || !strncmp("//", url, 2)) {  
 			image_cache_load(url);
         } else {
             launch_remote_texture_load(permanent_url);
