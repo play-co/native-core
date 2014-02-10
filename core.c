@@ -154,6 +154,8 @@ void core_init_gl(int framebuffer_name) {
  * @retval	bool - (true | false) depending on whether running the javascript source was successful
  */
 bool core_init_js(const char *uri, const char *version) {
+	core_timer_clear_all();
+
 	init_js(uri, version);
 	return run_file("native.js");
 }
