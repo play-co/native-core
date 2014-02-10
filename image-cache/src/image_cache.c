@@ -242,6 +242,7 @@ static void parse_etag_file_data(const char *f, int len) {
 
 		// If URL is missing,
 		if (url_len <= 0) {
+			DLOG("{image-cache} Stopping early because url was missing");
 			break;
 		}
 
@@ -251,6 +252,7 @@ static void parse_etag_file_data(const char *f, int len) {
 
 		// If ETAG is missing,
 		if (etag_len <= 0) {
+			DLOG("{image-cache} Stopping early because etag was missing");
 			break;
 		}
 
@@ -266,6 +268,7 @@ static void parse_etag_file_data(const char *f, int len) {
 		// Stop processing after a reasonable amount of etags because this takes
 		// a wild amount of time after a long game session
 		if (etag_count > DB_MAX_SIZE) {
+			DLOG("{image-cache} Stopping early because etag count exceeded maximum database size");
 			break;
 		}
 
