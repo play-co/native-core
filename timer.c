@@ -203,16 +203,23 @@ CEXPORT void core_timer_clear(int id) {
  * @retval	NONE
  */
 CEXPORT void core_timer_clear_all() {
-	core_timer *timer = timer_head;
+	core_timer *next, *timer = timer_head;
 
-	LOG("{CAT} CLEARING ALL TIMERS");
+	LOG("{timer} Clearing all timers");
 
-	while (timer) {
-		core_timer *next = timer->next;
+	for (; timer; timer = next) {
+		next = timer->next;
 		timer_unlink(timer);
-		timer = next;
 	}
 
+	timer = m_insert_head;
+
+	for (; timer; timer = next) {
+		next = timer->next;
+		timer_unlink(timer);
+	}
+
+	m_insert_head = NULL;
 	timer_head = NULL;
 }
 
