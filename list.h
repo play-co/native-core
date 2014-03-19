@@ -37,8 +37,10 @@
 			if (node == *head) {                     \
 				*head = node->next;                  \
 			}                                        \
-		}                                            \
-	} while (0)
+        }                                            \
+        node->prev = NULL;                           \
+        node->next = NULL;                           \
+} while (0)
 
 //DO NOT REMOVE FROM LIST BEFORE an ITERATE
 //You can safely remove after an iterate by
@@ -54,6 +56,8 @@
 			current = NULL;                          \
 		}                                            \
 	} while (0)
+
+#define LIST_IN_LIST(head, current) ((current)->prev && (current)->next)
 
 #define DEBUG_TEST_LIST_IN(head, node) do {          \
 		void *item = (void *) node;                      \

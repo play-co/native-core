@@ -634,6 +634,16 @@ void texture_manager_set_use_halfsized_textures() {
 	}
 }
 
+texture_manager *texture_manager_acquire() {
+    texture_manager *manager = texture_manager_get();
+    pthread_mutex_lock(&mutex);
+    return manager;
+}
+
+void texture_manager_release() {
+    pthread_mutex_unlock(&mutex);
+}
+
 texture_manager *texture_manager_get() {
 	LOGFN("texture_manager_get");
 
