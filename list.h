@@ -37,8 +37,10 @@
 			if (node == *head) {                     \
 				*head = node->next;                  \
 			}                                        \
-		}                                            \
-	} while (0)
+        }                                            \
+        node->prev = NULL;                           \
+        node->next = NULL;                           \
+} while (0)
 
 //DO NOT REMOVE FROM LIST BEFORE an ITERATE
 //You can safely remove after an iterate by
