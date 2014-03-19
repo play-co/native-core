@@ -57,6 +57,8 @@
 		}                                            \
 	} while (0)
 
+#define LIST_IN_LIST(head, current) ((current)->prev && (current)->next)
+
 #define DEBUG_TEST_LIST_IN(head, node) do {          \
 		void *item = (void *) node;                      \
 		int seen_head = 0;                               \
