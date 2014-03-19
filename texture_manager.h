@@ -66,6 +66,8 @@ void texture_manager_on_texture_failed_to_load(texture_manager *manager, const c
 void texture_manager_memory_warning(texture_manager *manager);
 void texture_manager_set_max_memory(texture_manager *manager, int bytes); // Will only ratchet down
 void image_cache_load_callback(struct image_data *data);
+texture_manager *texture_manager_acquire();
+void texture_manager_release();
 
 #ifdef __cplusplus
 }
