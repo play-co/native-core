@@ -87,8 +87,8 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-#define TEXMAN_VERBOSE
-#define TEXMAN_EXTRA_VERBOSE
+//#define TEXMAN_VERBOSE
+//#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
 #else
