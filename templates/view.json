@@ -114,15 +114,12 @@
 		{
 			"type": "int",
 			"name": "filterType"
-		},
-		{
-			"type": "int",
-			"name": "compositeOperation"
 		}
 	],
 	"properties": [
 		"width",
-		"height"
+		"height",
+		"compositeOperation"
 	],
 	"methods": [
 		{

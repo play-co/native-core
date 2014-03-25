@@ -103,6 +103,8 @@ timestep_view *timestep_view_init() {
 	v->first_render = true;
 	v->__first_render = false;
 
+	v->composite_operation = 0;
+
 	v->needs_reflow = true;
 
 	v->background_color.r = 0;
@@ -218,10 +220,10 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	}
 
 	// Set Global Composite Operation
-	int oldOp;
-	if (v->composite_operation) {
+	int oldOp = 0, compositeOperation = v->composite_operation;
+	if (0 != compositeOperation) {
 		oldOp = context_2d_getGlobalCompositeOperation(ctx);
-		context_2d_setGlobalCompositeOperation(v->composite_operation);
+		context_2d_setGlobalCompositeOperation(ctx, compositeOperation);
 	}
 
 	JS_OBJECT_WRAPPER js_viewport;
@@ -235,8 +237,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	}
 
 	// Restore the old Global Composite Operation
-	if (v->composite_operation) {
-		context_2d_setGlobalCompositeOperation(oldOp);
+	if (0 != compositeOperation) {
+		context_2d_setGlobalCompositeOperation(ctx, oldOp);
 	}
 
 	//restore filters
