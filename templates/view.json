@@ -114,6 +114,10 @@
 		{
 			"type": "int",
 			"name": "filterType"
+		},
+		{
+			"type": "int",
+			"name": "compositeOperation"
 		}
 	],
 	"properties": [

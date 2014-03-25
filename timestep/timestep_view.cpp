@@ -217,6 +217,13 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 					v->flip_y ? -v->height / 2 : 0);
 	}
 
+	// Set Global Composite Operation
+	int oldOp;
+	if (v->composite_operation) {
+		oldOp = context_2d_getGlobalCompositeOperation(ctx);
+		context_2d_setGlobalCompositeOperation(v->composite_operation);
+	}
+
 	JS_OBJECT_WRAPPER js_viewport;
 	bool should_restore_viewport = false;
 	if (v->has_jsrender) {
@@ -225,6 +232,11 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		def_timestep_view_render(v->js_view, js_ctx, js_opts);
 	} else {
 		v->timestep_view_render(v, ctx);
+	}
+
+	// Restore the old Global Composite Operation
+	if (v->composite_operation) {
+		context_2d_setGlobalCompositeOperation(oldOp);
 	}
 
 	//restore filters

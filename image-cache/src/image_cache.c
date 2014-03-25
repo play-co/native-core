@@ -38,7 +38,7 @@
 #include "../include/image_cache.h"
 
 
-//#define IMGCACHE_VERBOSE
+#define IMGCACHE_VERBOSE
 
 // Define IMGCACHE_VERBOSE to enable extra debug logs
 #ifdef IMGCACHE_VERBOSE
