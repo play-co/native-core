@@ -50,6 +50,9 @@ static void image_view_render(timestep_view *v, context_2d *ctx) {
 			LOG("ERROR: !! The map canary is dead !! %x", map->canary);
 		} else {
 #endif
+			if (1345 == context_2d_getGlobalCompositeOperation(ctx)) {
+				LOG("WORKING");
+			}
 			context_2d_drawImage(ctx, 0, map->url, &src_rect, &dest_rect);
 #if defined(DEBUG)
 		}
@@ -220,10 +223,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 	}
 
 	// Set Global Composite Operation
-	int oldOp = 0, compositeOperation = v->composite_operation;
-	if (0 != compositeOperation) {
-		oldOp = context_2d_getGlobalCompositeOperation(ctx);
-		context_2d_setGlobalCompositeOperation(ctx, compositeOperation);
+	if (0 != v->composite_operation) {
+		context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
 	}
 
 	JS_OBJECT_WRAPPER js_viewport;
@@ -234,11 +235,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 		def_timestep_view_render(v->js_view, js_ctx, js_opts);
 	} else {
 		v->timestep_view_render(v, ctx);
-	}
-
-	// Restore the old Global Composite Operation
-	if (0 != compositeOperation) {
-		context_2d_setGlobalCompositeOperation(ctx, oldOp);
 	}
 
 	//restore filters
