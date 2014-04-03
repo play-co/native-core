@@ -673,6 +673,22 @@ void context_2d_translate(context_2d *ctx, float x, float y) {
 }
 
 /**
+ * @name	context_2d_transform
+ * @brief	transform's the given context by given options
+ * @param	ctx - (context_2d *) context to translate
+ * @param	a - (float) scales the drawing horizontally
+ * @param	b - (float) skew the the drawing horizontally
+ * @param	c - (float) skew the the drawing vertically
+ * @param	d - (float) scales the drawing vertically
+ * @param	e - (float) moves the the drawing horizontally
+ * @param	f - (float) moves the the drawing vertically
+ * @retval	NONE
+ */
+void context_2d_transform(context_2d *ctx, float a, float b, float c, float d, float e, float f) {
+	matrix_3x3_transform(GET_MODEL_VIEW_MATRIX(ctx), a, b, c, d, e, f);
+}
+
+/**
  * @name	context_2d_draw_point_sprites
  * @brief	Draws pointsprites using the given options (in batch along a line)
  * @param	ctx - (context_2d *) context to draw to

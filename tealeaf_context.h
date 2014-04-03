@@ -96,6 +96,7 @@ void context_2d_loadIdentity(context_2d *ctx);
 void context_2d_rotate(context_2d *ctx, float angle);
 void context_2d_translate(context_2d *ctx, float x, float y);
 void context_2d_scale(context_2d *ctx, float x, float y);
+void context_2d_transform(context_2d *ctx, float a, float b, float c, float d, float e, float f);
 void context_2d_clearRect(context_2d *ctx, const rect_2d *rect);
 void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color);
 void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha);
