@@ -112,6 +112,19 @@ void matrix_3x3_scale(matrix_3x3 *a, float x, float y) {
 #endif
 }
 
+//Transform the matrix
+void matrix_3x3_transform(matrix_3x3 *m, float a, float b, float c, float d, float e, float f) {
+	float m00 = m->m00, m10 = m->m10;
+	float m01 = m->m01, m11 = m->m11;
+	float m02 = m->m02, m12 = m->m12;
+	m->m00 = a * m00 + b * m01;
+	m->m01 = c * m00 + d * m01;
+	m->m02 = e * m00 + f * m01 + m02;
+	m->m10 = a * m10 + b * m11;
+	m->m11 = c * m10 + d * m11;
+	m->m12 = e * m10 + f * m11 + m12;
+}
+
 //Multiply the points x,y by the matrix a and output their values in x2 and y2
 void matrix_3x3_multiply_m_f_f_f_f(const matrix_3x3 *a, float x, float y, float *x2, float *y2) {
 

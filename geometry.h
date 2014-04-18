@@ -171,6 +171,7 @@ void matrix_3x3_transpose(matrix_3x3 *a);
 void matrix_3x3_rotate(matrix_3x3 *a, float angle);
 void matrix_3x3_translate(matrix_3x3 *a, float x, float y);
 void matrix_3x3_scale(matrix_3x3 *a, float x, float y);
+void matrix_3x3_transform(matrix_3x3 *m, float a, float b, float c, float d, float e, float f);
 
 __attribute__((unused)) static void inline matrix_3x3_identity(matrix_3x3 *a) {
 	a->m00 = 1;
