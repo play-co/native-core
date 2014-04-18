@@ -117,12 +117,12 @@ void matrix_3x3_transform(matrix_3x3 *m, float a, float b, float c, float d, flo
 	float m00 = m->m00, m10 = m->m10;
 	float m01 = m->m01, m11 = m->m11;
 	float m02 = m->m02, m12 = m->m12;
-	m->m00 = a * m00 + c * m10;
-	m->m10 = b * m00 + d * m10;
-	m->m01 = a * m01 + c * m11;
-	m->m11 = b * m01 + d * m11;
-	m->m02 = a * m02 + c * m12 + e;
-	m->m12 = b * m02 + d * m12 + f;
+	m->m00 = a * m00 + b * m01;
+	m->m01 = c * m00 + d * m01;
+	m->m02 = e * m00 + f * m01 + m02;
+	m->m10 = a * m10 + b * m11;
+	m->m11 = c * m10 + d * m11;
+	m->m12 = e * m10 + f * m11 + m12;
 }
 
 //Multiply the points x,y by the matrix a and output their values in x2 and y2
