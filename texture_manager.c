@@ -304,6 +304,11 @@ void texture_manager_on_texture_loaded(texture_manager *manager, const char *url
 	if (scale > 1) {
 		used /= 4;
 	}
+	int is_compressed = (num_channels & (1u << 31)) >> 31;
+	if (is_compressed) {
+		int image_size = (num_channels & (67108861));
+		used = image_size;
+	}
 
 	manager->texture_bytes_used += used;
 	const int epoch = (unsigned)m_frame_epoch & EPOCH_USED_MASK;
@@ -859,22 +864,30 @@ void texture_manager_tick(texture_manager *manager) {
 			int height = cur_tex->height >> (cur_tex->scale - 1);
 
 			// Select the right internal and input format based on the number of channels
-			GLint format;
-			switch (channels) {
-				case 1:
-					format = GL_LUMINANCE;
-					break;
-				case 3:
-					format = GL_RGB;
-					break;
-				default:
-				case 4:
-					format = GL_RGBA;
-					break;
+			int is_compressed = (channels & (1u << 31)) >> 31;
+			if (is_compressed) {
+				int compression_type = (channels & (31u << 26)) >> 26;
+				int image_size = (channels & (67108861));
+				LOG("ETC1: UPLOADING %d TYPE: %d\n", image_size, compression_type);
+				glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_ETC1_RGB8_OES, width, height, 0, image_size, cur_tex->pixel_data);
+				LOG("ETC1: ERROR %d\n", glGetError());
+			} else {
+				GLint format;
+				switch (channels) {
+					case 1:
+						format = GL_LUMINANCE;
+						break;
+					case 3:
+						format = GL_RGB;
+						break;
+					default:
+					case 4:
+						format = GL_RGBA;
+						break;
+				}
+
+				GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
 			}
-
-			GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
-
 			core_check_gl_error();
 			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,

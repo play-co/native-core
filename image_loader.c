@@ -129,6 +129,18 @@ static int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decod
 
 
 //// Loader
+struct ETC1Header {
+    char tag[6];        // "PKM 10"
+    unsigned char format[2];         // Format == number of mips (== zero)
+    unsigned char texWidth[2];       // Texture dimensions, multiple of 4 (big-endian)
+    unsigned char texHeight[2];
+    unsigned char origWidth[2];      // Original dimensions (big-endian)
+    unsigned char origHeight[2];
+};
+
+unsigned short readShort(unsigned char *bits) {
+	return (bits[0] << 8) + bits[1];
+}
 
 unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
 	// must have at least 8 bytes be read
@@ -141,7 +153,26 @@ unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int
 		if (is_png) {
 			return load_png_from_memory(bits, bits_length, width, height, channels);
 		} else {
-			return load_jpg_from_memory(bits, bits_length, width, height, channels);
+			int is_pkm = !strncmp("PKM 10", (char*) header, 6);
+			LOG("ETC1: HERE");
+			if (is_pkm && bits_length > sizeof(unsigned char) * 16) {
+				LOG("ETC1: HERE2");
+				unsigned char *pos = bits + 8;
+				*width = readShort(pos);
+				pos += 2;
+				*width = readShort(pos);
+				pos += 2 + 4;
+				unsigned int imgSize = sizeof(unsigned char) * (bits_length - 16);
+				unsigned char *data = (unsigned char*) malloc(imgSize);
+
+				*channels = (1u << 31) | (1u << 26) | (imgSize);
+
+				memcpy(data, pos, imgSize);
+				LOG("ETC1: OMG WE FOUND ETC %d %d %d ORIGINAL LENGTH: %ld\n", *width, *height, imgSize, bits_length);
+				return data;
+			} else {
+				return load_jpg_from_memory(bits, bits_length, width, height, channels);
+			}
 		}
 	}
 	return NULL;

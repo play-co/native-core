@@ -285,7 +285,7 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	}
 
 	// Process file data (PNG/JPEG) into rasterized image data in file format
-	int w_old = 0, h_old = 0, ch = 0;
+	int w_old = 0, h_old = 0, ch = 0, is_compressed = 0, compression_type = 0;
 	unsigned char *bits = load_image_from_memory((unsigned char*)data, (long)sz, &w_old, &h_old, &ch);
 	if (bits == NULL) {
 		return NULL;
@@ -301,11 +301,18 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 			// We accept 1, 3, and 4 -channel images
 			break;
 		default:
-			// Monochrome: 2 byte/pixel: first for color, second for alpha
-			// TODO: Needs to be converted up to RGBA to work with OpenGL
-			LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
-			free(bits);
-			return NULL;
+			is_compressed = (ch & (1u << 31)) >> 31;
+			compression_type = (ch & (31u << 26)) >> 26;
+			LOG("ETC1: IS COMPRESSED %d, TYPE: %d\n", is_compressed, compression_type);
+			if (is_compressed) {
+				return bits;
+			} else {
+				// Monochrome: 2 byte/pixel: first for color, second for alpha
+				// TODO: Needs to be converted up to RGBA to work with OpenGL
+				LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
+				free(bits);
+				return NULL;
+			}
 	}
 
 	// Catch invalid image dimensions
