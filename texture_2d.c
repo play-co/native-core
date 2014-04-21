@@ -64,6 +64,7 @@ texture_2d *texture_2d_new_from_image(char *url, int name, int width, int height
 	tex->failed = false;
 	tex->assumed_texture_bytes = width * height * 4;
 	tex->used_texture_bytes = 0;
+	tex->compression_type = 0;
 	tex->frame_epoch = 0;
 	return tex;
 }
@@ -106,6 +107,7 @@ texture_2d *texture_2d_new_from_url(char *url) {
 	tex->failed = false;
 	tex->assumed_texture_bytes = 0;
 	tex->used_texture_bytes = 0;
+	tex->compression_type = 0;
 	tex->frame_epoch = 0;
 	return tex;
 }
@@ -196,6 +198,7 @@ texture_2d *texture_2d_new_from_data(int width, int height, const void *data) {
 	tex->failed = false;
 	tex->assumed_texture_bytes = width * height * 4;
 	tex->used_texture_bytes = 0;
+	tex->compression_type = 0;
 	tex->frame_epoch = 0;
 	return tex;
 }
@@ -273,7 +276,7 @@ void texture_2d_destroy(texture_2d *tex) {
 #define MULT_ALPHA(c, a) (unsigned char)(((unsigned short)( c ) * (unsigned short)( a ) + 128) >> 8)
 
 // Load texture from raw image data, returning null on failure to load
-unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, unsigned long sz, int *out_channels, int *out_width, int *out_height, int *out_originalWidth, int *out_originalHeight, int *out_scale) {
+unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, unsigned long sz, int *out_channels, int *out_width, int *out_height, int *out_originalWidth, int *out_originalHeight, int *out_scale, long *out_size, int *out_compression_type) {
 
 	// Initially null pixel data
 	unsigned char *pixel_data = NULL;
@@ -285,8 +288,8 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	}
 
 	// Process file data (PNG/JPEG) into rasterized image data in file format
-	int w_old = 0, h_old = 0, ch = 0, is_compressed = 0, compression_type = 0;
-	unsigned char *bits = load_image_from_memory((unsigned char*)data, (long)sz, &w_old, &h_old, &ch);
+	int w_old = 0, h_old = 0, ch = 0;
+	unsigned char *bits = load_image_from_memory((unsigned char*)data, (long)sz, &w_old, &h_old, &ch, out_size, out_compression_type);
 	if (bits == NULL) {
 		return NULL;
 	}
@@ -294,25 +297,22 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
 	*out_originalWidth = w_old;
 	*out_originalHeight = h_old;
 	
-	switch (ch) {
-		case 1:
-		case 3:
-		case 4:
-			// We accept 1, 3, and 4 -channel images
-			break;
-		default:
-			is_compressed = (ch & (1u << 31)) >> 31;
-			compression_type = (ch & (31u << 26)) >> 26;
-			LOG("ETC1: IS COMPRESSED %d, TYPE: %d\n", is_compressed, compression_type);
-			if (is_compressed) {
-				return bits;
-			} else {
+	if (*out_compression_type) {
+		return bits;
+	} else {
+		switch (ch) {
+			case 1:
+			case 3:
+			case 4:
+				// We accept 1, 3, and 4 -channel images
+				break;
+			default:
 				// Monochrome: 2 byte/pixel: first for color, second for alpha
 				// TODO: Needs to be converted up to RGBA to work with OpenGL
 				LOG("{resources} WARNING: Unable to work with %d-channel image. Please convert this file to another format: %s", ch, url);
 				free(bits);
 				return NULL;
-			}
+		}
 	}
 
 	// Catch invalid image dimensions

@@ -17,6 +17,7 @@
 #include "log.h"
 #include <stdlib.h>
 
+#include "platform/gl.h"
 #include "core/deps/turbojpeg/turbojpeg.h"
 
 #define TEXTURE_LOAD_ERROR 0
@@ -127,55 +128,49 @@ static int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decod
 	return jj;
 }
 
-
-//// Loader
-struct ETC1Header {
-    char tag[6];        // "PKM 10"
-    unsigned char format[2];         // Format == number of mips (== zero)
-    unsigned char texWidth[2];       // Texture dimensions, multiple of 4 (big-endian)
-    unsigned char texHeight[2];
-    unsigned char origWidth[2];      // Original dimensions (big-endian)
-    unsigned char origHeight[2];
-};
-
 unsigned short readShort(unsigned char *bits) {
 	return (bits[0] << 8) + bits[1];
 }
 
-unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
+unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels, long *size, int *compression_type) {
+	unsigned char *data = NULL;
+	*size = 0;
+	*compression_type = 0;
+
 	// must have at least 8 bytes be read
 	if (bits_length >= 8) {
 		/* Test if it is a png first */
 		unsigned char header[8];
 		memcpy(header, bits, 8);
 		int is_png = !png_sig_cmp(header, 0, 8);
+		int is_pkm = !is_png && !strncmp("PKM 10", (char*) header, 6);
 
 		if (is_png) {
-			return load_png_from_memory(bits, bits_length, width, height, channels);
-		} else {
-			int is_pkm = !strncmp("PKM 10", (char*) header, 6);
-			LOG("ETC1: HERE");
-			if (is_pkm && bits_length > sizeof(unsigned char) * 16) {
-				LOG("ETC1: HERE2");
-				unsigned char *pos = bits + 8;
-				*width = readShort(pos);
-				pos += 2;
-				*width = readShort(pos);
-				pos += 2 + 4;
-				unsigned int imgSize = sizeof(unsigned char) * (bits_length - 16);
-				unsigned char *data = (unsigned char*) malloc(imgSize);
-
-				*channels = (1u << 31) | (1u << 26) | (imgSize);
-
-				memcpy(data, pos, imgSize);
-				LOG("ETC1: OMG WE FOUND ETC %d %d %d ORIGINAL LENGTH: %ld\n", *width, *height, imgSize, bits_length);
-				return data;
-			} else {
-				return load_jpg_from_memory(bits, bits_length, width, height, channels);
+			data = load_png_from_memory(bits, bits_length, width, height, channels);
+			*size = (*channels) * (*width) * (*height);
+		} else if (is_pkm) {
+			// ETC HEADER LAYOUT -> 16 bytes total
+			// tag -> "PKM 10" 6 bytes
+			// format -> 2 bytes
+			// texWidth -> 2 bytes
+			// texHeight -> 2 bytes
+			// originalWidth -> 2 bytes
+			// originalHeight -> 2 bytes
+			if (bits_length > sizeof(unsigned char) * 16) {
+				*compression_type = GL_ETC1_RGB8_OES;
+				*channels = 3;
+				*width = readShort(bits + 8);
+				*height = readShort(bits + 10);
+				*size = sizeof(unsigned char) * (bits_length - 16);
+				data = (unsigned char*) malloc(*size);
+				memcpy(data, bits + 16, *size);
 			}
+		} else {
+			data = load_jpg_from_memory(bits, bits_length, width, height, channels);
+			*size = (*channels) * (*width) * (*height);
 		}
 	}
-	return NULL;
+	return data;
 }
 
 unsigned char *load_image_from_base64(const char *base64image, int *width, int *height, int *channels) {
@@ -187,7 +182,9 @@ unsigned char *load_image_from_base64(const char *base64image, int *width, int *
 	int read_bytes = ReadBase64(base64image, len, decoded_buffer, decoded_bytes);
 
 	// Load PNG/JPEG image
-	unsigned char *image = load_image_from_memory((unsigned char *)decoded_buffer, read_bytes, width, height, channels);
+	long size;
+	int compression_type;
+	unsigned char *image = load_image_from_memory((unsigned char *)decoded_buffer, read_bytes, width, height, channels, &size, &compression_type);
 
 	free(decoded_buffer);
 

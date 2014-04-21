@@ -46,6 +46,7 @@ typedef struct texture_2d_t {
 	long assumed_texture_bytes;
 	long used_texture_bytes; // Bytes actually used, zero until loaded
 	int frame_epoch; // Frame ID to avoid double-counting usage
+	int compression_type;
 
 	struct texture_2d_t *next;
 	struct texture_2d_t *prev;
@@ -66,7 +67,7 @@ void texture_2d_save(texture_2d *tex);
 void texture_2d_reload(texture_2d *tex);
 
 // Load texture from raw image data, returning null on failure to load
-unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, unsigned long sz, int *out_channels, int *out_width, int *out_height, int *out_originalWidth, int *out_originalHeight, int *out_scale);
+unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, unsigned long sz, int *out_channels, int *out_width, int *out_height, int *out_originalWidth, int *out_originalHeight, int *out_scale, long *out_size, int *out_compression_type);
 
 #ifdef __cplusplus
 }
