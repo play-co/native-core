@@ -17,7 +17,6 @@
 #include "log.h"
 #include <stdlib.h>
 
-#include "platform/gl.h"
 #include "core/deps/turbojpeg/turbojpeg.h"
 
 #define TEXTURE_LOAD_ERROR 0
@@ -157,7 +156,7 @@ unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int
 			// originalWidth -> 2 bytes
 			// originalHeight -> 2 bytes
 			if (bits_length > sizeof(unsigned char) * 16) {
-				*compression_type = GL_ETC1_RGB8_OES;
+				*compression_type = 36196;// Opengl Constant for GL_ETC1_RGB8_OES (ETC1 compression)
 				*channels = 3;
 				*width = readShort(bits + 8);
 				*height = readShort(bits + 10);
