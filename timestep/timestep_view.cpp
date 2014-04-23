@@ -103,6 +103,8 @@ timestep_view *timestep_view_init() {
 	v->first_render = true;
 	v->__first_render = false;
 
+	v->composite_operation = 0;
+
 	v->needs_reflow = true;
 
 	v->background_color.r = 0;
@@ -215,6 +217,11 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 			context_2d_translate(ctx,
 					v->flip_x ? -v->width / 2 : 0,
 					v->flip_y ? -v->height / 2 : 0);
+	}
+
+	// Set Global Composite Operation
+	if (0 != v->composite_operation) {
+		context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
 	}
 
 	JS_OBJECT_WRAPPER js_viewport;

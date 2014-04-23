@@ -71,6 +71,8 @@ typedef struct timestep_view_t {
 	bool flip_x;
 	bool flip_y;
 
+	int composite_operation;
+
 	struct rgba_t background_color;
 	bool __first_render;
 	int z_index;

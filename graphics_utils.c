@@ -48,6 +48,10 @@ void apply_composite_operation(int composite_op) {
 			break;
 
 		case lighter:
+			sfactor = GL_ONE;
+			dfactor = GL_ONE;
+			break;
+
 		case x_or:
 		case copy:
 		default:

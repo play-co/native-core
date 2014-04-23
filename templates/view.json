@@ -118,7 +118,8 @@
 	],
 	"properties": [
 		"width",
-		"height"
+		"height",
+		"compositeOperation"
 	],
 	"methods": [
 		{
