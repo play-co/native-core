@@ -294,13 +294,17 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 
 void texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
 					int width, int height, int original_width, int original_height,
-					int num_channels, int scale, bool is_text) {
+					int num_channels, int scale, bool is_text, long size, int compression_type) {
 	//add the amount of bytes being used by this texture to the amount of texture bytes being used
 	//scale = 1, texture stays at its regular size
 	//scale = 2, texture is being halfsized as is needed for lower memory footprint
 	//scale > 2, not currently used
-	//currently all images are png's and forced 4 channels, this may be different in the future
-	long used = width * height * num_channels;
+	long used = size;
+	// If no texture size was given then compute the number of bytes using the number of channels
+	// and the dimensions of the image
+	if (!used) {
+		used = width * height * num_channels;
+	}
 	if (scale > 1) {
 		used /= 4;
 	}
@@ -593,8 +597,9 @@ void texture_manager_background_texture_loader(void *dummy) {
 }
 
 CEXPORT void image_cache_load_callback(struct image_data *data) {
-		int num_channels, width, height, originalWidth, originalHeight, scale;
-		unsigned char *bytes  = texture_2d_load_texture_raw(data->url, data->bytes, data->size, &num_channels, &width, &height, &originalWidth, &originalHeight, &scale);
+		int num_channels, width, height, originalWidth, originalHeight, scale, compression_type;
+		long size;
+		unsigned char *bytes  = texture_2d_load_texture_raw(data->url, data->bytes, data->size, &num_channels, &width, &height, &originalWidth, &originalHeight, &scale, &size, &compression_type);
 		bool failed = (bytes == NULL);
 
 		TEXLOG("image_cache_background_loader loaded %s, status: %i", data->url, failed);
@@ -612,6 +617,8 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
 			tex->scale = scale;
 			tex->failed = failed;
 			tex->pixel_data = bytes;
+			tex->compression_type = compression_type;
+			tex->used_texture_bytes = size;
 			LIST_ADD(&tex_load_list, tex);
 		}
 
@@ -858,27 +865,29 @@ void texture_manager_tick(texture_manager *manager) {
 			int width = cur_tex->width >> (cur_tex->scale - 1);
 			int height = cur_tex->height >> (cur_tex->scale - 1);
 
-			// Select the right internal and input format based on the number of channels
-			GLint format;
-			switch (channels) {
-				case 1:
-					format = GL_LUMINANCE;
-					break;
-				case 3:
-					format = GL_RGB;
-					break;
-				default:
-				case 4:
-					format = GL_RGBA;
-					break;
+			if (cur_tex->compression_type) {
+				glCompressedTexImage2D(GL_TEXTURE_2D, 0, cur_tex->compression_type, width, height, 0, cur_tex->used_texture_bytes, cur_tex->pixel_data);
+			} else {
+				// Select the right internal and input format based on the number of channels
+				GLint format;
+				switch (channels) {
+					case 1:
+						format = GL_LUMINANCE;
+						break;
+					case 3:
+						format = GL_RGB;
+						break;
+					default:
+					case 4:
+						format = GL_RGBA;
+						break;
+				}
+				GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
 			}
-
-			GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
-
 			core_check_gl_error();
 			texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
 							cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
-							cur_tex->num_channels, cur_tex->scale, false);
+							cur_tex->num_channels, cur_tex->scale, false, cur_tex->used_texture_bytes, cur_tex->compression_type);
 		}
 
 		char *event_str;

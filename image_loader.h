@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 unsigned char *load_image_from_base64(const char *base64image, int *width, int *height, int *channels);
-unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels);
+unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels, long *size, int *compression_type);
 unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels);
 unsigned char *load_jpg_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels);
 //png helper func

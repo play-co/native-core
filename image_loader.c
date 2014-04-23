@@ -127,24 +127,49 @@ static int ReadBase64(const char *encoded_buffer, int encoded_bytes, void *decod
 	return jj;
 }
 
+unsigned short readShort(unsigned char *bits) {
+	return (bits[0] << 8) + bits[1];
+}
 
-//// Loader
+unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels, long *size, int *compression_type) {
+	unsigned char *data = NULL;
+	*size = 0;
+	*compression_type = 0;
 
-unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int *width, int *height, int *channels) {
 	// must have at least 8 bytes be read
 	if (bits_length >= 8) {
 		/* Test if it is a png first */
 		unsigned char header[8];
 		memcpy(header, bits, 8);
 		int is_png = !png_sig_cmp(header, 0, 8);
+		int is_pkm = !is_png && !strncmp("PKM 10", (char*) header, 6);
 
 		if (is_png) {
-			return load_png_from_memory(bits, bits_length, width, height, channels);
+			data = load_png_from_memory(bits, bits_length, width, height, channels);
+			*size = (*channels) * (*width) * (*height);
+		} else if (is_pkm) {
+			// ETC HEADER LAYOUT -> 16 bytes total
+			// tag -> "PKM 10" 6 bytes
+			// format -> 2 bytes
+			// texWidth -> 2 bytes
+			// texHeight -> 2 bytes
+			// originalWidth -> 2 bytes
+			// originalHeight -> 2 bytes
+			if (bits_length > sizeof(unsigned char) * 16) {
+				*compression_type = 36196;// Opengl Constant for GL_ETC1_RGB8_OES (ETC1 compression)
+				*channels = 3;
+				*width = readShort(bits + 8);
+				*height = readShort(bits + 10);
+				*size = sizeof(unsigned char) * (bits_length - 16);
+				data = (unsigned char*) malloc(*size);
+				memcpy(data, bits + 16, *size);
+			}
 		} else {
-			return load_jpg_from_memory(bits, bits_length, width, height, channels);
+			data = load_jpg_from_memory(bits, bits_length, width, height, channels);
+			*size = (*channels) * (*width) * (*height);
 		}
 	}
-	return NULL;
+	return data;
 }
 
 unsigned char *load_image_from_base64(const char *base64image, int *width, int *height, int *channels) {
@@ -156,7 +181,9 @@ unsigned char *load_image_from_base64(const char *base64image, int *width, int *
 	int read_bytes = ReadBase64(base64image, len, decoded_buffer, decoded_bytes);
 
 	// Load PNG/JPEG image
-	unsigned char *image = load_image_from_memory((unsigned char *)decoded_buffer, read_bytes, width, height, channels);
+	long size;
+	int compression_type;
+	unsigned char *image = load_image_from_memory((unsigned char *)decoded_buffer, read_bytes, width, height, channels, &size, &compression_type);
 
 	free(decoded_buffer);
 
