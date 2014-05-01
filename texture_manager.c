@@ -457,7 +457,9 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
 			texture_manager_free_texture(manager, to_be_destroyed);
 		}
 
+#if !defined(RELEASE)
 		LOG("{tex} Unloaded %d stale textures. Now: Texture count = %d. Bytes used = %d -> %d / %d", (int)(old_tex_count - manager->tex_count), (int)manager->tex_count, (int)old_bytes_used, (int)manager->texture_bytes_used, (int)adjusted_max_texture_bytes);
+#endif
 
 #if defined(TEXMAN_EXTRA_VERBOSE)
 		{
