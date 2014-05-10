@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -30,11 +30,11 @@
  * @retval	NONE
  */
 void core_dispatch_event(const char *event) {
-	//NO useful events are generated before js is ready
-	//therefore only push events when js is ready
-	if (js_ready) {
-		js_dispatch_event(event);
-	}
+    //NO useful events are generated before js is ready
+    //therefore only push events when js is ready
+    if (js_ready) {
+        js_dispatch_event(event);
+    }
 }
 
 /**
@@ -47,9 +47,9 @@ void core_dispatch_event(const char *event) {
  * @retval	NONE
  */
 void core_dispatch_input_event(int id, int type, int x, int y) {
-	//NO useful events are generated before js is ready
-	//therefore only push events when js is ready
-	if (js_ready) {
-		timestep_events_push(id, type, x, y);
-	}
+    //NO useful events are generated before js is ready
+    //therefore only push events when js is ready
+    if (js_ready) {
+        timestep_events_push(id, type, x, y);
+    }
 }

@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -35,7 +35,7 @@ static tealeaf_canvas canvas;
  * @retval	tealeaf_canvas* -
  */
 tealeaf_canvas *tealeaf_canvas_get() {
-	return &canvas;
+    return &canvas;
 }
 
 /**
@@ -45,22 +45,22 @@ tealeaf_canvas *tealeaf_canvas_get() {
  * @retval	NONE
  */
 void tealeaf_canvas_init(int framebuffer_name) {
-	LOG("{canvas} Initializing Canvas");
+    LOG("{canvas} Initializing Canvas");
 
-	int width = config_get_screen_width();
-	int height = config_get_screen_height();
-	GLuint offscreen_buffer_name;
-	GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
-	canvas.offscreen_framebuffer = offscreen_buffer_name;
-	canvas.view_framebuffer = framebuffer_name;
-	canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
-	canvas.onscreen_ctx->width = width;
-	canvas.onscreen_ctx->height = height;
-	canvas.active_ctx = 0;
+    int width = config_get_screen_width();
+    int height = config_get_screen_height();
+    GLuint offscreen_buffer_name;
+    GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
+    canvas.offscreen_framebuffer = offscreen_buffer_name;
+    canvas.view_framebuffer = framebuffer_name;
+    canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
+    canvas.onscreen_ctx->width = width;
+    canvas.onscreen_ctx->height = height;
+    canvas.active_ctx = 0;
 
-	// TODO: should_resize is not respected on iOS
-	
-	tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
+    // TODO: should_resize is not respected on iOS
+
+    tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
 }
 
 /**
@@ -70,19 +70,19 @@ void tealeaf_canvas_init(int framebuffer_name) {
  * @retval	NONE
  */
 void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
-	texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
+    texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
 
-	if (!tex) {
-		return;
-	}
+    if (!tex) {
+        return;
+    }
 
-	GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
-	GLTRACE(glFinish());
-	GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
-	GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0));
-	canvas.framebuffer_width = tex->originalWidth;
-	canvas.framebuffer_height = tex->originalHeight;
-	canvas.framebuffer_offset_bottom = tex->height - tex->originalHeight;
+    GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+    GLTRACE(glFinish());
+    GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
+    GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0));
+    canvas.framebuffer_width = tex->originalWidth;
+    canvas.framebuffer_height = tex->originalHeight;
+    canvas.framebuffer_offset_bottom = tex->height - tex->originalHeight;
 }
 
 /**
@@ -92,10 +92,10 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
  * @retval	NONE
  */
 void tealeaf_canvas_bind_render_buffer(context_2d *ctx) {
-	GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.view_framebuffer));
-	canvas.framebuffer_width = ctx->width;
-	canvas.framebuffer_height = ctx->height;
-	canvas.framebuffer_offset_bottom = 0;
+    GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.view_framebuffer));
+    canvas.framebuffer_width = ctx->width;
+    canvas.framebuffer_height = ctx->height;
+    canvas.framebuffer_offset_bottom = 0;
 }
 
 /**
@@ -105,28 +105,28 @@ void tealeaf_canvas_bind_render_buffer(context_2d *ctx) {
  * @retval	bool - whether the bind failed or succeeded
  */
 bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
-	if (canvas.active_ctx != ctx) {
-		draw_textures_flush();
+    if (canvas.active_ctx != ctx) {
+        draw_textures_flush();
 
-		// Update active context after flushing
-		canvas.active_ctx = ctx;
+        // Update active context after flushing
+        canvas.active_ctx = ctx;
 
-		if (ctx->on_screen) {
-			tealeaf_canvas_bind_render_buffer(ctx);
-		} else {
-			tealeaf_canvas_bind_texture_buffer(ctx);
-		}
+        if (ctx->on_screen) {
+            tealeaf_canvas_bind_render_buffer(ctx);
+        } else {
+            tealeaf_canvas_bind_texture_buffer(ctx);
+        }
 
-		tealeaf_context_update_viewport(ctx, false);
+        tealeaf_context_update_viewport(ctx, false);
 
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-		}
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        }
 
-		return true;
-	} else {
-		return false;
-	}
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -137,21 +137,21 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
  * @retval	NONE
  */
 void tealeaf_canvas_resize(int w, int h) {
-	LOG("{canvas} Resizing screen to (%d, %d)", w, h);
+    LOG("{canvas} Resizing screen to (%d, %d)", w, h);
 
-	context_2d *ctx = canvas.onscreen_ctx;
-	tealeaf_context_resize(ctx, w, h);
+    context_2d *ctx = canvas.onscreen_ctx;
+    tealeaf_context_resize(ctx, w, h);
 
-	if (canvas.active_ctx == canvas.onscreen_ctx) {
-		tealeaf_canvas_bind_render_buffer(ctx);
-		tealeaf_context_update_viewport(ctx, true);
-		context_2d_clear(ctx);
-	}
+    if (canvas.active_ctx == canvas.onscreen_ctx) {
+        tealeaf_canvas_bind_render_buffer(ctx);
+        tealeaf_context_update_viewport(ctx, true);
+        context_2d_clear(ctx);
+    }
 
-	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	GLTRACE(glEnable(GL_BLEND));
-	config_set_screen_width(w);
-	config_set_screen_height(h);
-	canvas.should_resize = true;
+    GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    GLTRACE(glEnable(GL_BLEND));
+    config_set_screen_width(w);
+    config_set_screen_height(h);
+    canvas.should_resize = true;
 }
 

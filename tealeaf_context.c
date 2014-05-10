@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -43,16 +43,16 @@ static rect_2d last_scissor_rect;
  * @retval	NONE
  */
 void tealeaf_context_set_proj_matrix(context_2d *ctx) {
-	int width = ctx->backing_width;
-	int height = ctx->backing_height;
+    int width = ctx->backing_width;
+    int height = ctx->backing_height;
 
-	if (!ctx->on_screen) {
-		matrix_3x3_ortho(&ctx->proj_matrix, 0, width, height, 0);
-	} else {
-		matrix_3x3_ortho(&ctx->proj_matrix, 0, width, 0, height);
-	}
+    if (!ctx->on_screen) {
+        matrix_3x3_ortho(&ctx->proj_matrix, 0, width, height, 0);
+    } else {
+        matrix_3x3_ortho(&ctx->proj_matrix, 0, width, 0, height);
+    }
 
-	matrix_3x3_transpose(&ctx->proj_matrix);
+    matrix_3x3_transpose(&ctx->proj_matrix);
 }
 
 /**
@@ -64,13 +64,13 @@ void tealeaf_context_set_proj_matrix(context_2d *ctx) {
  * @retval	NONE
  */
 void tealeaf_context_resize(context_2d *ctx, int width, int height) {
-	if (ctx->on_screen) {
-		ctx->backing_width = width;
-		ctx->backing_height = height;
-		ctx->width = width;
-		ctx->height = height;
-		tealeaf_context_set_proj_matrix(ctx);
-	}
+    if (ctx->on_screen) {
+        ctx->backing_width = width;
+        ctx->backing_height = height;
+        ctx->width = width;
+        ctx->height = height;
+        tealeaf_context_set_proj_matrix(ctx);
+    }
 }
 
 /**
@@ -81,11 +81,11 @@ void tealeaf_context_resize(context_2d *ctx, int width, int height) {
  * @retval	NONE
  */
 void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
-	tealeaf_context_update_shader(ctx, DRAWING_SHADER, force);
-	tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
-	tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
-	tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
-	GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
+    tealeaf_context_update_shader(ctx, DRAWING_SHADER, force);
+    tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
+    tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
+    tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
+    GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
 }
 
 
@@ -99,11 +99,11 @@ void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
  * @retval	NONE
  */
 void print_model_view(context_2d *ctx, int i) {
-	matrix_3x3 m __attribute__((unused)) = ctx->modelView[i];
-	LOG("%f %f %f \n %f %f %f\n %f %f %f\n",
-	    m.m00, m.m01, m.m02,
-	    m.m10, m.m11, m.m12,
-	    m.m20, m.m21, m.m22);
+    matrix_3x3 m __attribute__((unused)) = ctx->modelView[i];
+    LOG("%f %f %f \n %f %f %f\n %f %f %f\n",
+        m.m00, m.m01, m.m02,
+        m.m10, m.m11, m.m12,
+        m.m20, m.m21, m.m22);
 }
 
 /**
@@ -113,10 +113,10 @@ void print_model_view(context_2d *ctx, int i) {
  * @retval	NONE
  */
 void disable_scissor(context_2d *ctx) {
-	draw_textures_flush();
-	last_scissor_rect.x = last_scissor_rect.y = 0;
-	last_scissor_rect.width = last_scissor_rect.height = -1;
-	GLTRACE(glDisable(GL_SCISSOR_TEST));
+    draw_textures_flush();
+    last_scissor_rect.x = last_scissor_rect.y = 0;
+    last_scissor_rect.width = last_scissor_rect.height = -1;
+    GLTRACE(glDisable(GL_SCISSOR_TEST));
 }
 
 /**
@@ -126,19 +126,19 @@ void disable_scissor(context_2d *ctx) {
  * @retval	NONE
  */
 void enable_scissor(context_2d *ctx) {
-	rect_2d *bounds = GET_CLIPPING_BOUNDS(ctx);
+    rect_2d *bounds = GET_CLIPPING_BOUNDS(ctx);
 
-	if (rect_2d_equals(&last_scissor_rect, bounds)) {
-		return;
-	}
+    if (rect_2d_equals(&last_scissor_rect, bounds)) {
+        return;
+    }
 
-	draw_textures_flush();
-	last_scissor_rect.x = bounds->x;
-	last_scissor_rect.y = bounds->y;
-	last_scissor_rect.width = bounds->width;
-	last_scissor_rect.height = bounds->height;
-	GLTRACE(glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height));
-	GLTRACE(glEnable(GL_SCISSOR_TEST));
+    draw_textures_flush();
+    last_scissor_rect.x = bounds->x;
+    last_scissor_rect.y = bounds->y;
+    last_scissor_rect.width = bounds->width;
+    last_scissor_rect.height = bounds->height;
+    GLTRACE(glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height));
+    GLTRACE(glEnable(GL_SCISSOR_TEST));
 }
 
 /**
@@ -151,45 +151,45 @@ void enable_scissor(context_2d *ctx) {
  * @retval	context_2d* - pointer to the created context
  */
 context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_tex, bool on_screen) {
-	context_2d *ctx = (context_2d *) malloc(sizeof(context_2d));
-	ctx->mvp = 0;
-	ctx->globalAlpha[0] = 1;
-	ctx->globalCompositeOperation[0] = 0;
-	ctx->destTex = dest_tex;
-	ctx->on_screen = on_screen;
-	ctx->filter_color.r = 0.0;
-	ctx->filter_color.g = 0.0;
-	ctx->filter_color.b = 0.0;
-	ctx->filter_color.a = 0.0;
-	ctx->filter_type = FILTER_NONE;
+    context_2d *ctx = (context_2d *) malloc(sizeof(context_2d));
+    ctx->mvp = 0;
+    ctx->globalAlpha[0] = 1;
+    ctx->globalCompositeOperation[0] = 0;
+    ctx->destTex = dest_tex;
+    ctx->on_screen = on_screen;
+    ctx->filter_color.r = 0.0;
+    ctx->filter_color.g = 0.0;
+    ctx->filter_color.b = 0.0;
+    ctx->filter_color.a = 0.0;
+    ctx->filter_type = FILTER_NONE;
 
-	if (!on_screen) {
-		texture_2d *tex = texture_manager_get_texture(texture_manager_get(), url);
+    if (!on_screen) {
+        texture_2d *tex = texture_manager_get_texture(texture_manager_get(), url);
 
-		if (tex) {
-			ctx->backing_width = tex->width;
-			ctx->backing_height = tex->height;
-			ctx->width = tex->originalWidth;
-			ctx->height = tex->originalHeight;
-			tealeaf_context_set_proj_matrix(ctx);
-			tex->ctx = ctx;
-		}
-	} else {
-		ctx->width = 0;
-		ctx->height = 0;
-	}
+        if (tex) {
+            ctx->backing_width = tex->width;
+            ctx->backing_height = tex->height;
+            ctx->width = tex->originalWidth;
+            ctx->height = tex->originalHeight;
+            tealeaf_context_set_proj_matrix(ctx);
+            tex->ctx = ctx;
+        }
+    } else {
+        ctx->width = 0;
+        ctx->height = 0;
+    }
 
-	ctx->canvas = canvas;
-	int len = strlen(url);
-	ctx->url = (char *)malloc(sizeof(char) * (len + 1));
-	strlcpy(ctx->url, url, len + 1);
-	ctx->clipStack[0].x = 0;
-	ctx->clipStack[0].y = 0;
-	ctx->clipStack[0].width = -1;
-	ctx->clipStack[0].height = -1;
-	matrix_3x3_identity(&ctx->modelView[0]);
-	context_2d_clear(ctx);
-	return ctx;
+    ctx->canvas = canvas;
+    int len = strlen(url);
+    ctx->url = (char *)malloc(sizeof(char) * (len + 1));
+    strlcpy(ctx->url, url, len + 1);
+    ctx->clipStack[0].x = 0;
+    ctx->clipStack[0].y = 0;
+    ctx->clipStack[0].width = -1;
+    ctx->clipStack[0].height = -1;
+    matrix_3x3_identity(&ctx->modelView[0]);
+    context_2d_clear(ctx);
+    return ctx;
 }
 
 /**
@@ -198,8 +198,8 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
  * @retval	context_2d* -
  */
 context_2d *context_2d_get_onscreen() {
-	tealeaf_canvas *canvas = tealeaf_canvas_get();
-	return canvas->onscreen_ctx;
+    tealeaf_canvas *canvas = tealeaf_canvas_get();
+    return canvas->onscreen_ctx;
 }
 
 // TODO: this should return dest_tex and allocate the texture itself...
@@ -212,15 +212,15 @@ context_2d *context_2d_get_onscreen() {
  * @retval	context_2d* - pointer to the created context
  */
 context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int dest_tex) {
-	context_2d *ctx;
+    context_2d *ctx;
 
-	if (!strcmp(url, "onscreen")) {
-		ctx = context_2d_get_onscreen();
-	} else {
-		ctx = context_2d_init(canvas, url, dest_tex, false);
-	}
+    if (!strcmp(url, "onscreen")) {
+        ctx = context_2d_get_onscreen();
+    } else {
+        ctx = context_2d_init(canvas, url, dest_tex, false);
+    }
 
-	return ctx;
+    return ctx;
 }
 
 /**
@@ -231,13 +231,13 @@ context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int dest_tex
    @return 	an unsigned char array containing the bytes of ctx's draw buffer
 **/
 unsigned char *context_2d_read_pixels(context_2d *ctx) {
-	//must flush before reading as canvas may not be ready
-	//to be read from
-	draw_textures_flush();
-	unsigned char *buffer = NULL;
-	buffer = (unsigned char *)malloc(sizeof(unsigned char) * 4 * ctx->width * ctx->height);
-	glReadPixels(0, 0, ctx->width, ctx->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	return buffer;
+    //must flush before reading as canvas may not be ready
+    //to be read from
+    draw_textures_flush();
+    unsigned char *buffer = NULL;
+    buffer = (unsigned char *)malloc(sizeof(unsigned char) * 4 * ctx->width * ctx->height);
+    glReadPixels(0, 0, ctx->width, ctx->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    return buffer;
 }
 
 /**
@@ -249,22 +249,22 @@ unsigned char *context_2d_read_pixels(context_2d *ctx) {
 **/
 char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type) {
 
-	//bind offscreen buffer to gl frame buffer
-	tealeaf_canvas_context_2d_bind(ctx);
-	unsigned char *buffer = (unsigned char*)context_2d_read_pixels(ctx);
-	//opengGL gives this as RGBA, Need to switch to
-	//BGRA which will be interpreted as ARGB in Java
-	//becuase of the endianess difference between Java/C
+    //bind offscreen buffer to gl frame buffer
+    tealeaf_canvas_context_2d_bind(ctx);
+    unsigned char *buffer = (unsigned char*)context_2d_read_pixels(ctx);
+    //opengGL gives this as RGBA, Need to switch to
+    //BGRA which will be interpreted as ARGB in Java
+    //becuase of the endianess difference between Java/C
 //	int i;
 //	for(i = 0; i < ctx->width * ctx->height * 4; i+=4) {
 //		char r = buffer[i];
 //		buffer[i] = buffer[i + 2];
 //		buffer[i + 2] = r;
 //	}
-	char *buf = (char*)write_image_to_base64(image_type, buffer, ctx->width, ctx->height, 4);
-	tealeaf_canvas_context_2d_bind(context_2d_get_onscreen());
-	free(buffer);
-	return buf;
+    char *buf = (char*)write_image_to_base64(image_type, buffer, ctx->width, ctx->height, 4);
+    tealeaf_canvas_context_2d_bind(context_2d_get_onscreen());
+    free(buffer);
+    return buf;
 }
 /**
  * @name	context_2d_delete
@@ -273,14 +273,14 @@ char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type) 
  * @retval	NONE
  */
 void context_2d_delete(context_2d *ctx) {
-	texture_2d *tex = texture_manager_get_texture(texture_manager_get(), (char *)ctx->url);
+    texture_2d *tex = texture_manager_get_texture(texture_manager_get(), (char *)ctx->url);
 
-	if (tex) {
-		texture_manager_free_texture(texture_manager_get(), tex);
-	}
+    if (tex) {
+        texture_manager_free_texture(texture_manager_get(), tex);
+    }
 
-	free(ctx->url);
-	free(ctx);
+    free(ctx->url);
+    free(ctx);
 }
 
 /**
@@ -291,7 +291,7 @@ void context_2d_delete(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_setGlobalAlpha(context_2d *ctx, float alpha) {
-	ctx->globalAlpha[ctx->mvp] = alpha;
+    ctx->globalAlpha[ctx->mvp] = alpha;
 }
 /**
  * @name	context_2d_getGlobalAlpha
@@ -300,7 +300,7 @@ void context_2d_setGlobalAlpha(context_2d *ctx, float alpha) {
  * @retval	float - the global alpha gotten from the context
  */
 float context_2d_getGlobalAlpha(context_2d *ctx) {
-	return ctx->globalAlpha[ctx->mvp];
+    return ctx->globalAlpha[ctx->mvp];
 }
 
 /**
@@ -310,21 +310,21 @@ float context_2d_getGlobalAlpha(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_bind(context_2d *ctx) {
-	if (tealeaf_canvas_context_2d_bind(ctx)) {
-		if (IS_SCISSOR_ENABLED(ctx)) {
-			enable_scissor(ctx);
-		} else {
-			disable_scissor(ctx);
-		}
-	}
+    if (tealeaf_canvas_context_2d_bind(ctx)) {
+        if (IS_SCISSOR_ENABLED(ctx)) {
+            enable_scissor(ctx);
+        } else {
+            disable_scissor(ctx);
+        }
+    }
 }
 
 void context_2d_setGlobalCompositeOperation(context_2d *ctx, int composite_mode) {
-	ctx->globalCompositeOperation[ctx->mvp] = composite_mode;
+    ctx->globalCompositeOperation[ctx->mvp] = composite_mode;
 }
 
 int context_2d_getGlobalCompositeOperation(context_2d *ctx) {
-	return ctx->globalCompositeOperation[ctx->mvp];
+    return ctx->globalCompositeOperation[ctx->mvp];
 }
 
 
@@ -337,10 +337,10 @@ int context_2d_getGlobalCompositeOperation(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_add_filter(context_2d *ctx, rgba *color) {
-	ctx->filter_color.r = color->r;
-	ctx->filter_color.g = color->g;
-	ctx->filter_color.b = color->b;
-	ctx->filter_color.a = color->a;
+    ctx->filter_color.r = color->r;
+    ctx->filter_color.g = color->g;
+    ctx->filter_color.b = color->b;
+    ctx->filter_color.a = color->a;
 }
 
 /**
@@ -350,11 +350,11 @@ void context_2d_add_filter(context_2d *ctx, rgba *color) {
  * @retval	NONE
  */
 void context_2d_clear_filters(context_2d *ctx) {
-	ctx->filter_type = 0;
-	ctx->filter_color.r = 0.0;
-	ctx->filter_color.g = 0.0;
-	ctx->filter_color.b = 0.0;
-	ctx->filter_color.a = 0.0;
+    ctx->filter_type = 0;
+    ctx->filter_color.r = 0.0;
+    ctx->filter_color.g = 0.0;
+    ctx->filter_color.b = 0.0;
+    ctx->filter_color.a = 0.0;
 }
 
 /**
@@ -365,7 +365,7 @@ void context_2d_clear_filters(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_set_filter_type(context_2d *ctx, int filter_type) {
-	ctx->filter_type = filter_type;
+    ctx->filter_type = filter_type;
 }
 
 /**
@@ -376,205 +376,205 @@ void context_2d_set_filter_type(context_2d *ctx, int filter_type) {
  * @retval	NONE
  */
 void context_2d_setClip(context_2d *ctx, rect_2d clip) {
-	matrix_3x3 *modelView = GET_MODEL_VIEW_MATRIX(ctx);
+    matrix_3x3 *modelView = GET_MODEL_VIEW_MATRIX(ctx);
 
 #ifdef MATRIX_3x3_ALLOW_SKEW
-	// TODO: Can this be done more efficiently?
-	float clip_x, clip_y, clip_w, clip_h;
-	float x1, y1, x2, y2, x3, y3, x4, y4;
+    // TODO: Can this be done more efficiently?
+    float clip_x, clip_y, clip_w, clip_h;
+    float x1, y1, x2, y2, x3, y3, x4, y4;
 
-	matrix_3x3_multiply(modelView, clip.x, clip.y, &x1, &y1);
-	matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y + clip.height, &x2, &y2);
-	matrix_3x3_multiply(modelView, clip.x, clip.y + clip.height, &x3, &y3);
-	matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y, &x4, &y4);
+    matrix_3x3_multiply(modelView, clip.x, clip.y, &x1, &y1);
+    matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y + clip.height, &x2, &y2);
+    matrix_3x3_multiply(modelView, clip.x, clip.y + clip.height, &x3, &y3);
+    matrix_3x3_multiply(modelView, clip.x + clip.width, clip.y, &x4, &y4);
 
-	clip_x = x1;
-	if (x2 < clip_x) {
-		clip_x = x2;
-	}
-	if (x3 < clip_x) {
-		clip_x = x3;
-	}
-	if (x4 < clip_x) {
-		clip_x = x4;
-	}
-	
-	clip_y = y1;
-	if (y2 < clip_y) {
-		clip_y = y2;
-	}
-	if (y3 < clip_y) {
-		clip_y = y3;
-	}
-	if (y4 < clip_y) {
-		clip_y = y4;
-	}
-	
-	clip_w = x1;
-	if (x2 > clip_w) {
-		clip_w = x2;
-	}
-	if (x3 > clip_w) {
-		clip_w = x3;
-	}
-	if (x4 > clip_w) {
-		clip_w = x4;
-	}
-	
-	clip_h = y1;
-	if (y2 > clip_h) {
-		clip_h = y2;
-	}
-	if (y3 > clip_h) {
-		clip_h = y3;
-	}
-	if (y4 > clip_h) {
-		clip_h = y4;
-	}
-	
-	clip.x = clip_x;
-	clip.y = clip_y;
-	clip.width = clip_w - clip_x;
-	clip.height = clip_h - clip_y;
+    clip_x = x1;
+    if (x2 < clip_x) {
+        clip_x = x2;
+    }
+    if (x3 < clip_x) {
+        clip_x = x3;
+    }
+    if (x4 < clip_x) {
+        clip_x = x4;
+    }
+
+    clip_y = y1;
+    if (y2 < clip_y) {
+        clip_y = y2;
+    }
+    if (y3 < clip_y) {
+        clip_y = y3;
+    }
+    if (y4 < clip_y) {
+        clip_y = y4;
+    }
+
+    clip_w = x1;
+    if (x2 > clip_w) {
+        clip_w = x2;
+    }
+    if (x3 > clip_w) {
+        clip_w = x3;
+    }
+    if (x4 > clip_w) {
+        clip_w = x4;
+    }
+
+    clip_h = y1;
+    if (y2 > clip_h) {
+        clip_h = y2;
+    }
+    if (y3 > clip_h) {
+        clip_h = y3;
+    }
+    if (y4 > clip_h) {
+        clip_h = y4;
+    }
+
+    clip.x = clip_x;
+    clip.y = clip_y;
+    clip.width = clip_w - clip_x;
+    clip.height = clip_h - clip_y;
 #else
-	float clip0x = clip.x, clip0y = clip.y;
-	float clip1x = clip0x + clip.width, clip1y = clip0y + clip.height;
+    float clip0x = clip.x, clip0y = clip.y;
+    float clip1x = clip0x + clip.width, clip1y = clip0y + clip.height;
 
-	// float x1, y1, x2, y2, x3, y3, x4, y4;
-	// x1 = clip0x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
-	// y1 = clip0x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
-	// x2 = clip1x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
-	// y2 = clip1x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
-	// x3 = clip1x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
-	// y3 = clip1x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
-	// x4 = clip0x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
-	// y4 = clip0x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
+    // float x1, y1, x2, y2, x3, y3, x4, y4;
+    // x1 = clip0x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
+    // y1 = clip0x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
+    // x2 = clip1x * modelView->m00 + clip0y * modelView->m01 + modelView->m02;
+    // y2 = clip1x * modelView->m10 + clip0y * modelView->m11 + modelView->m12;
+    // x3 = clip1x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
+    // y3 = clip1x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
+    // x4 = clip0x * modelView->m00 + clip1y * modelView->m01 + modelView->m02;
+    // y4 = clip0x * modelView->m10 + clip1y * modelView->m11 + modelView->m12;
 
-	float m00 = modelView->m00, m01 = modelView->m01, m10 = modelView->m10, m11 = modelView->m11;
-	float a = clip0x * m00;
-	float b = clip1x * m10;
-	float c = clip0y * m11;
-	float d = clip0y * m01;
-	float e = clip1x * m00;
-	float f = clip1y * m01;
-	float g = clip0x * m10;
-	float h = clip1y * m11;
+    float m00 = modelView->m00, m01 = modelView->m01, m10 = modelView->m10, m11 = modelView->m11;
+    float a = clip0x * m00;
+    float b = clip1x * m10;
+    float c = clip0y * m11;
+    float d = clip0y * m01;
+    float e = clip1x * m00;
+    float f = clip1y * m01;
+    float g = clip0x * m10;
+    float h = clip1y * m11;
 
-	// If x1 < x2,
-	if ((clip0x < clip1x) ^ (m00 < 0)) {
-		// If x2 < x3,
-		if ((clip0y < clip1y) ^ (m01 < 0)) {
-			// (x1, y2) -> (x3, y4)
-			clip.x = a + d;
-			clip.y = b + c;
-			clip.width = e + f;
-			clip.height = g + h;
-		} else {
-			// (x4, y1) -> (x2, y3)
-			clip.x = a + f;
-			clip.y = g + c;
-			clip.width = e + d;
-			clip.height = b + h;
-		}
-	} else {
-		// If x2 < x3,
-		if ((clip0y < clip1y) ^ (m01 < 0)) {
-			// (x2, y3) -> (x4, y1)
-			clip.x = e + d;
-			clip.y = b + h;
-			clip.width = a + f;
-			clip.height = g + c;
-		} else {
-			// (x3, y4) -> (x1, y2)
-			clip.x = e + f;
-			clip.y = g + h;
-			clip.width = a + d;
-			clip.height = b + c;
-		}
-	}
+    // If x1 < x2,
+    if ((clip0x < clip1x) ^ (m00 < 0)) {
+        // If x2 < x3,
+        if ((clip0y < clip1y) ^ (m01 < 0)) {
+            // (x1, y2) -> (x3, y4)
+            clip.x = a + d;
+            clip.y = b + c;
+            clip.width = e + f;
+            clip.height = g + h;
+        } else {
+            // (x4, y1) -> (x2, y3)
+            clip.x = a + f;
+            clip.y = g + c;
+            clip.width = e + d;
+            clip.height = b + h;
+        }
+    } else {
+        // If x2 < x3,
+        if ((clip0y < clip1y) ^ (m01 < 0)) {
+            // (x2, y3) -> (x4, y1)
+            clip.x = e + d;
+            clip.y = b + h;
+            clip.width = a + f;
+            clip.height = g + c;
+        } else {
+            // (x3, y4) -> (x1, y2)
+            clip.x = e + f;
+            clip.y = g + h;
+            clip.width = a + d;
+            clip.height = b + c;
+        }
+    }
 
-	clip.width -= clip.x;
-	clip.height -= clip.y;
-	clip.x += modelView->m02;
-	clip.y += modelView->m12;
+    clip.width -= clip.x;
+    clip.height -= clip.y;
+    clip.x += modelView->m02;
+    clip.y += modelView->m12;
 #endif
 
-	// Clip with screen bounds
-	if (clip.x < 0) {
-		clip.width += clip.x;
-		if (clip.width < 0) {
-			clip.width = 0;
-		}
-		clip.x = 0;
-	}
-	if (clip.y < 0) {
-		clip.height += clip.y;
-		if (clip.height < 0) {
-			clip.height = 0;
-		}
-		clip.y = 0;
-	}
+    // Clip with screen bounds
+    if (clip.x < 0) {
+        clip.width += clip.x;
+        if (clip.width < 0) {
+            clip.width = 0;
+        }
+        clip.x = 0;
+    }
+    if (clip.y < 0) {
+        clip.height += clip.y;
+        if (clip.height < 0) {
+            clip.height = 0;
+        }
+        clip.y = 0;
+    }
 
-	// If entirely clipped,
-	if (clip.width <= 0 || clip.height <= 0) {
-		clip.x = clip.y = clip.width = clip.height = 0;
-	} else {
-		// Lookup parent bounds
-		int i = ctx->mvp - 1;
-		rect_2d ctx_clip;
-		ctx_clip.x = ctx->clipStack[i].x;
-		ctx_clip.y = ctx->clipStack[i].y;
-		ctx_clip.width = ctx->clipStack[i].width;
-		ctx_clip.height = ctx->clipStack[i].height;
+    // If entirely clipped,
+    if (clip.width <= 0 || clip.height <= 0) {
+        clip.x = clip.y = clip.width = clip.height = 0;
+    } else {
+        // Lookup parent bounds
+        int i = ctx->mvp - 1;
+        rect_2d ctx_clip;
+        ctx_clip.x = ctx->clipStack[i].x;
+        ctx_clip.y = ctx->clipStack[i].y;
+        ctx_clip.width = ctx->clipStack[i].width;
+        ctx_clip.height = ctx->clipStack[i].height;
 
-		// If context is on screen,
-		if (ctx->on_screen) {
-			// Flip to frame buffer sense
-			ctx_clip.y = -ctx_clip.y +  ctx->canvas->framebuffer_height + ctx->canvas->framebuffer_offset_bottom - ctx_clip.height;
-		}
+        // If context is on screen,
+        if (ctx->on_screen) {
+            // Flip to frame buffer sense
+            ctx_clip.y = -ctx_clip.y +  ctx->canvas->framebuffer_height + ctx->canvas->framebuffer_offset_bottom - ctx_clip.height;
+        }
 
-		// If parent is clipping,
-		if (ctx_clip.width > -1) {
-			// Calculate (x1, y1) for new and old clip regions
-			float clip1x = clip.x + clip.width, clip1y = clip.y + clip.height;
-			float ctx1x = ctx_clip.x + ctx_clip.width, ctx1y = ctx_clip.y + ctx_clip.height;
+        // If parent is clipping,
+        if (ctx_clip.width > -1) {
+            // Calculate (x1, y1) for new and old clip regions
+            float clip1x = clip.x + clip.width, clip1y = clip.y + clip.height;
+            float ctx1x = ctx_clip.x + ctx_clip.width, ctx1y = ctx_clip.y + ctx_clip.height;
 
-			// If new clip is entirely outside parent,
-			if (clip.x >= ctx1x || clip1x <= ctx_clip.x ||
-				clip.y >= ctx1y || clip1y <= ctx_clip.y) {
-				// Empty clip region
-				clip.x = clip.y = clip.width = clip.height = 0;
-			} else {
-				// Trim new clip with parent
-				clip.x = ctx_clip.x > clip.x ? ctx_clip.x : clip.x;
-				clip.y = ctx_clip.y > clip.y ? ctx_clip.y : clip.y;
-				clip.width = (ctx1x < clip1x ? ctx1x : clip1x) - clip.x;
-				clip.height = (ctx1y < clip1y ? ctx1y : clip1y) - clip.y;
-			}
-		}
+            // If new clip is entirely outside parent,
+            if (clip.x >= ctx1x || clip1x <= ctx_clip.x ||
+                    clip.y >= ctx1y || clip1y <= ctx_clip.y) {
+                // Empty clip region
+                clip.x = clip.y = clip.width = clip.height = 0;
+            } else {
+                // Trim new clip with parent
+                clip.x = ctx_clip.x > clip.x ? ctx_clip.x : clip.x;
+                clip.y = ctx_clip.y > clip.y ? ctx_clip.y : clip.y;
+                clip.width = (ctx1x < clip1x ? ctx1x : clip1x) - clip.x;
+                clip.height = (ctx1y < clip1y ? ctx1y : clip1y) - clip.y;
+            }
+        }
 
-		// scissor is with respect to lower-left corner
-		// activeFrameBufferHeight is the height of the off-screen buffer
-		// activeFrameBufferOffsetBottom -- the viewport actually goes past the bottom of the texture
-		//   to the nearest power of two, so when we convert to y-coordinates from the lower-left viewport
-		//   corner, we need to add the offsetBottom to get to the bottom of the viewable texture
-		if (ctx->on_screen && clip.height > 0) {
-			// Flip from frame buffer sense
-			clip.y = ctx->canvas->framebuffer_height - (clip.height + clip.y) + ctx->canvas->framebuffer_offset_bottom;
-		}
-	}
+        // scissor is with respect to lower-left corner
+        // activeFrameBufferHeight is the height of the off-screen buffer
+        // activeFrameBufferOffsetBottom -- the viewport actually goes past the bottom of the texture
+        //   to the nearest power of two, so when we convert to y-coordinates from the lower-left viewport
+        //   corner, we need to add the offsetBottom to get to the bottom of the viewable texture
+        if (ctx->on_screen && clip.height > 0) {
+            // Flip from frame buffer sense
+            clip.y = ctx->canvas->framebuffer_height - (clip.height + clip.y) + ctx->canvas->framebuffer_offset_bottom;
+        }
+    }
 
-	rect_2d bounds = {
-		clip.x, clip.y,
-		clip.width, clip.height
-	};
+    rect_2d bounds = {
+        clip.x, clip.y,
+        clip.width, clip.height
+    };
 
-	if (rect_2d_equals(GET_CLIPPING_BOUNDS(ctx), &bounds)) {
-		return;
-	}
+    if (rect_2d_equals(GET_CLIPPING_BOUNDS(ctx), &bounds)) {
+        return;
+    }
 
-	*GET_CLIPPING_BOUNDS(ctx) = bounds;
-	enable_scissor(ctx);
+    *GET_CLIPPING_BOUNDS(ctx) = bounds;
+    enable_scissor(ctx);
 }
 
 /**
@@ -584,18 +584,18 @@ void context_2d_setClip(context_2d *ctx, rect_2d clip) {
  * @retval	NONE
  */
 void context_2d_save(context_2d *ctx) {
-	int mvp = ctx->mvp + 1;
-	
-	// If stack size is not exceeded,
-	if (mvp >= MODEL_VIEW_STACK_SIZE) {
-		LOG("{context} WARNING: Stack size exceeded. View hierarchy may not exceed %d levels", MODEL_VIEW_STACK_SIZE);
-	} else {
-		ctx->mvp = mvp;
-		ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
-		ctx->modelView[mvp] = ctx->modelView[mvp - 1];
-		ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
-		ctx->globalCompositeOperation[mvp] = ctx->globalCompositeOperation[mvp - 1];
-	}
+    int mvp = ctx->mvp + 1;
+
+    // If stack size is not exceeded,
+    if (mvp >= MODEL_VIEW_STACK_SIZE) {
+        LOG("{context} WARNING: Stack size exceeded. View hierarchy may not exceed %d levels", MODEL_VIEW_STACK_SIZE);
+    } else {
+        ctx->mvp = mvp;
+        ctx->globalAlpha[mvp] = ctx->globalAlpha[mvp - 1];
+        ctx->modelView[mvp] = ctx->modelView[mvp - 1];
+        ctx->clipStack[mvp] = ctx->clipStack[mvp - 1];
+        ctx->globalCompositeOperation[mvp] = ctx->globalCompositeOperation[mvp - 1];
+    }
 }
 
 /**
@@ -605,20 +605,20 @@ void context_2d_save(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_restore(context_2d *ctx) {
-	int mvp = ctx->mvp - 1;
-	
-	// If stack still has items on it,
-	if (mvp >= 0) {
-		ctx->mvp = mvp;
-		
-		if (!rect_2d_equals(&ctx->clipStack[mvp], &ctx->clipStack[mvp + 1])) {
-			if (ctx->clipStack[mvp].width == -1) {
-				disable_scissor(ctx);
-			} else {
-				enable_scissor(ctx);
-			}
-		}
-	}
+    int mvp = ctx->mvp - 1;
+
+    // If stack still has items on it,
+    if (mvp >= 0) {
+        ctx->mvp = mvp;
+
+        if (!rect_2d_equals(&ctx->clipStack[mvp], &ctx->clipStack[mvp + 1])) {
+            if (ctx->clipStack[mvp].width == -1) {
+                disable_scissor(ctx);
+            } else {
+                enable_scissor(ctx);
+            }
+        }
+    }
 }
 
 //TODO: this should only do a glClear with proper clear color settings
@@ -629,10 +629,10 @@ void context_2d_restore(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_clear(context_2d *ctx) {
-	draw_textures_flush();
-	context_2d_bind(ctx);
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+    draw_textures_flush();
+    context_2d_bind(ctx);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 /**
@@ -642,7 +642,7 @@ void context_2d_clear(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_loadIdentity(context_2d *ctx) {
-	matrix_3x3_identity(GET_MODEL_VIEW_MATRIX(ctx));
+    matrix_3x3_identity(GET_MODEL_VIEW_MATRIX(ctx));
 }
 
 /**
@@ -653,9 +653,9 @@ void context_2d_loadIdentity(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_rotate(context_2d *ctx, float angle) {
-	if (angle != 0) {
-		matrix_3x3_rotate(GET_MODEL_VIEW_MATRIX(ctx), angle);
-	}
+    if (angle != 0) {
+        matrix_3x3_rotate(GET_MODEL_VIEW_MATRIX(ctx), angle);
+    }
 }
 
 /**
@@ -667,9 +667,9 @@ void context_2d_rotate(context_2d *ctx, float angle) {
  * @retval	NONE
  */
 void context_2d_translate(context_2d *ctx, float x, float y) {
-	if (x != 0 || y != 0) {
-		matrix_3x3_translate(GET_MODEL_VIEW_MATRIX(ctx), x, y);
-	}
+    if (x != 0 || y != 0) {
+        matrix_3x3_translate(GET_MODEL_VIEW_MATRIX(ctx), x, y);
+    }
 }
 
 /**
@@ -687,61 +687,61 @@ void context_2d_translate(context_2d *ctx, float x, float y) {
  * @retval	NONE
  */
 void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point_size, float step_size, rgba *color, float x1, float y1, float x2, float y2) {
-	draw_textures_flush();
-	context_2d_bind(ctx);
-	texture_2d *tex = texture_manager_load_texture(texture_manager_get(), url);
+    draw_textures_flush();
+    context_2d_bind(ctx);
+    texture_2d *tex = texture_manager_load_texture(texture_manager_get(), url);
 
-	// If texture is not finished loading,
-	if (!tex || !tex->loaded) {
-		return;
-	}
+    // If texture is not finished loading,
+    if (!tex || !tex->loaded) {
+        return;
+    }
 
-	static GLfloat     *vertex_buffer = NULL;
-	static unsigned int vertex_max = 64;
-	tealeaf_shaders_bind(DRAWING_SHADER);
-	matrix_3x3_multiply_m_f_f_f_f(GET_MODEL_VIEW_MATRIX(ctx), x1, y1, &x1, &y1);
-	matrix_3x3_multiply_m_f_f_f_f(GET_MODEL_VIEW_MATRIX(ctx), x2, y2, &x2, &y2);
+    static GLfloat     *vertex_buffer = NULL;
+    static unsigned int vertex_max = 64;
+    tealeaf_shaders_bind(DRAWING_SHADER);
+    matrix_3x3_multiply_m_f_f_f_f(GET_MODEL_VIEW_MATRIX(ctx), x1, y1, &x1, &y1);
+    matrix_3x3_multiply_m_f_f_f_f(GET_MODEL_VIEW_MATRIX(ctx), x2, y2, &x2, &y2);
 
-	// Allocate vertex array buffer
-	if (vertex_buffer == NULL) {
-		vertex_buffer = malloc(vertex_max * 2 * sizeof(GLfloat));
-	}
+    // Allocate vertex array buffer
+    if (vertex_buffer == NULL) {
+        vertex_buffer = malloc(vertex_max * 2 * sizeof(GLfloat));
+    }
 
-	// Add points to the buffer so there are drawing points every X pixels
-	unsigned int count = ceilf(sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) / step_size);
+    // Add points to the buffer so there are drawing points every X pixels
+    unsigned int count = ceilf(sqrtf((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)) / step_size);
 
-	if (count < 1) {
-		count = 1;
-	}
+    if (count < 1) {
+        count = 1;
+    }
 
-	unsigned int vertex_count = 0;
-	unsigned int i;
+    unsigned int vertex_count = 0;
+    unsigned int i;
 
-	for (i = 0; i < count; ++i) {
-		if (vertex_count == vertex_max) {
-			vertex_max = 2 * vertex_max;
-			vertex_buffer = realloc(vertex_buffer, vertex_max * 2 * sizeof(GLfloat));
-		}
+    for (i = 0; i < count; ++i) {
+        if (vertex_count == vertex_max) {
+            vertex_max = 2 * vertex_max;
+            vertex_buffer = realloc(vertex_buffer, vertex_max * 2 * sizeof(GLfloat));
+        }
 
-		vertex_buffer[2 * vertex_count + 0] = x1 + (x2 - x1) * ((GLfloat)i / (GLfloat)count);
-		vertex_buffer[2 * vertex_count + 1] = y1 + (y2 - y1) * ((GLfloat)i / (GLfloat)count);
-		vertex_count += 1;
-	}
+        vertex_buffer[2 * vertex_count + 0] = x1 + (x2 - x1) * ((GLfloat)i / (GLfloat)count);
+        vertex_buffer[2 * vertex_count + 1] = y1 + (y2 - y1) * ((GLfloat)i / (GLfloat)count);
+        vertex_count += 1;
+    }
 
-	GLTRACE(glActiveTexture(GL_TEXTURE0));
-	GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
-	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	// Render the vertex array
-	GLTRACE(glUniform1f(global_shaders[DRAWING_SHADER].point_size, point_size));
-	GLTRACE(glVertexAttribPointer(global_shaders[DRAWING_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, (float *) vertex_buffer));
-	float alpha = color->a * ctx->globalAlpha[ctx->mvp];
-	GLTRACE(glUniform4f(global_shaders[DRAWING_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
-	GLTRACE(glDrawArrays(GL_POINTS, 0, vertex_count));
-	tealeaf_shaders_bind(PRIMARY_SHADER);
+    GLTRACE(glActiveTexture(GL_TEXTURE0));
+    GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+    GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    // Render the vertex array
+    GLTRACE(glUniform1f(global_shaders[DRAWING_SHADER].point_size, point_size));
+    GLTRACE(glVertexAttribPointer(global_shaders[DRAWING_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, (float *) vertex_buffer));
+    float alpha = color->a * ctx->globalAlpha[ctx->mvp];
+    GLTRACE(glUniform4f(global_shaders[DRAWING_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
+    GLTRACE(glDrawArrays(GL_POINTS, 0, vertex_count));
+    tealeaf_shaders_bind(PRIMARY_SHADER);
 }
 
 /**
@@ -753,7 +753,7 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
  * @retval	NONE
  */
 void context_2d_scale(context_2d *ctx, float x, float y) {
-	matrix_3x3_scale(GET_MODEL_VIEW_MATRIX(ctx), x, y);
+    matrix_3x3_scale(GET_MODEL_VIEW_MATRIX(ctx), x, y);
 }
 
 /**
@@ -764,24 +764,24 @@ void context_2d_scale(context_2d *ctx, float x, float y) {
  * @retval	NONE
  */
 void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
-	draw_textures_flush();
-	context_2d_bind(ctx);
-	tealeaf_shaders_bind(PRIMARY_SHADER);
+    draw_textures_flush();
+    context_2d_bind(ctx);
+    tealeaf_shaders_bind(PRIMARY_SHADER);
 
-	// Draw a rectangle using triangle strip:
-	//    (0,1)-(2,3)-(4,5) and (2,3)-(4,5)-(6,7)
-	//
-	// With coordinates:
-	//    4,5  -  6,7
-	//     |   \   |
-	//    0,1  -  2,3
-	GLfloat v[8];
-	matrix_3x3_multiply(GET_MODEL_VIEW_MATRIX(ctx), rect, (float *)&v[4], (float *)&v[5], (float *)&v[6], (float *)&v[7], (float *)&v[2], (float *)&v[3], (float *)&v[0], (float *)&v[1]);
-	GLTRACE(glBlendFunc(GL_ONE, GL_ZERO));
-	GLTRACE(glUniform4f(global_shaders[PRIMARY_SHADER].draw_color, 0, 0, 0, 0)); // set color to 0
-	GLTRACE(glVertexAttribPointer(global_shaders[PRIMARY_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, v));
-	GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
-	GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    // Draw a rectangle using triangle strip:
+    //    (0,1)-(2,3)-(4,5) and (2,3)-(4,5)-(6,7)
+    //
+    // With coordinates:
+    //    4,5  -  6,7
+    //     |   \   |
+    //    0,1  -  2,3
+    GLfloat v[8];
+    matrix_3x3_multiply(GET_MODEL_VIEW_MATRIX(ctx), rect, (float *)&v[4], (float *)&v[5], (float *)&v[6], (float *)&v[7], (float *)&v[2], (float *)&v[3], (float *)&v[0], (float *)&v[1]);
+    GLTRACE(glBlendFunc(GL_ONE, GL_ZERO));
+    GLTRACE(glUniform4f(global_shaders[PRIMARY_SHADER].draw_color, 0, 0, 0, 0)); // set color to 0
+    GLTRACE(glVertexAttribPointer(global_shaders[PRIMARY_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, v));
+    GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+    GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 }
 
 /**
@@ -794,27 +794,39 @@ void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
  */
 
 void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bool force) {
-	int width = ctx->backing_width;
-	int height = ctx->backing_height;
-	tealeaf_shader *shader = &global_shaders[shader_type];
-	matrix_4x4 m;
-	matrix_3x3 *proj;
+    int width = ctx->backing_width;
+    int height = ctx->backing_height;
+    tealeaf_shader *shader = &global_shaders[shader_type];
+    matrix_4x4 m;
+    matrix_3x3 *proj;
 
-	if (shader->last_width != width || shader->last_height != height || force) {
-		//Need to copy the 3x3 projection matrix into a 4x4 matrix since that
-		//is the form used in the shader. Note that in the future the shaders
-		//could be changed to use 3x3 matrices rather than 4x4
-		proj = &ctx->proj_matrix;
-		m.m00 = proj->m00;m.m01 = proj->m01;m.m02 = 0;m.m03 = proj->m02;
-		m.m10 = proj->m10;m.m11 = proj->m11;m.m12 = 0;m.m13 = proj->m12;
-		m.m20 = 0;        m.m21 = 0;        m.m22 = 1;m.m23 = 0;
-		m.m30 = proj->m20;m.m31 = proj->m21;m.m32 = 0;m.m33 = proj->m22;
-		GLTRACE(glUseProgram(shader->program));
-		GLTRACE(glUniformMatrix4fv(shader->proj_matrix, 1, false, (float *) &m));
-		shader->last_width = width;
-		shader->last_height = height;
-		GLTRACE(glUseProgram(global_shaders[current_shader].program));
-	}
+    if (shader->last_width != width || shader->last_height != height || force) {
+        //Need to copy the 3x3 projection matrix into a 4x4 matrix since that
+        //is the form used in the shader. Note that in the future the shaders
+        //could be changed to use 3x3 matrices rather than 4x4
+        proj = &ctx->proj_matrix;
+        m.m00 = proj->m00;
+        m.m01 = proj->m01;
+        m.m02 = 0;
+        m.m03 = proj->m02;
+        m.m10 = proj->m10;
+        m.m11 = proj->m11;
+        m.m12 = 0;
+        m.m13 = proj->m12;
+        m.m20 = 0;
+        m.m21 = 0;
+        m.m22 = 1;
+        m.m23 = 0;
+        m.m30 = proj->m20;
+        m.m31 = proj->m21;
+        m.m32 = 0;
+        m.m33 = proj->m22;
+        GLTRACE(glUseProgram(shader->program));
+        GLTRACE(glUniformMatrix4fv(shader->proj_matrix, 1, false, (float *) &m));
+        shader->last_width = width;
+        shader->last_height = height;
+        GLTRACE(glUseProgram(global_shaders[current_shader].program));
+    }
 }
 
 
@@ -828,23 +840,23 @@ void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bo
  * @retval	NONE
  */
 void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color) {
-	if (use_single_shader) {
-		return;
-	}
+    if (use_single_shader) {
+        return;
+    }
 
-	draw_textures_flush();
-	context_2d_bind(ctx);
-	tealeaf_shaders_bind(FILL_RECT_SHADER);
-	apply_composite_operation(ctx->globalCompositeOperation[ctx->mvp]);
-	rect_2d_vertices in, out;
-	rect_2d_to_rect_2d_vertices(rect, &in);
-	matrix_3x3_multiply_m_r_r(GET_MODEL_VIEW_MATRIX(ctx), &in, &out);
-	float alpha = color->a * ctx->globalAlpha[ctx->mvp];
-	// TODO: will pre-multiplied alpha cause a loss-of-precision in color for filling rectangles?
-	GLTRACE(glUniform4f(global_shaders[FILL_RECT_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
-	GLTRACE(glVertexAttribPointer(global_shaders[FILL_RECT_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, &out));
-	GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
-	tealeaf_shaders_bind(PRIMARY_SHADER);
+    draw_textures_flush();
+    context_2d_bind(ctx);
+    tealeaf_shaders_bind(FILL_RECT_SHADER);
+    apply_composite_operation(ctx->globalCompositeOperation[ctx->mvp]);
+    rect_2d_vertices in, out;
+    rect_2d_to_rect_2d_vertices(rect, &in);
+    matrix_3x3_multiply_m_r_r(GET_MODEL_VIEW_MATRIX(ctx), &in, &out);
+    float alpha = color->a * ctx->globalAlpha[ctx->mvp];
+    // TODO: will pre-multiplied alpha cause a loss-of-precision in color for filling rectangles?
+    GLTRACE(glUniform4f(global_shaders[FILL_RECT_SHADER].draw_color, alpha * color->r, alpha * color->g, alpha * color->b, alpha));
+    GLTRACE(glVertexAttribPointer(global_shaders[FILL_RECT_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, &out));
+    GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+    tealeaf_shaders_bind(PRIMARY_SHADER);
 }
 
 /**
@@ -859,11 +871,11 @@ void context_2d_fillRect(context_2d *ctx, const rect_2d *rect, const rgba *color
  * @retval	NONE
  */
 void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRect, const rect_2d *destRect, float alpha) {
-	context_2d_bind(ctx);
+    context_2d_bind(ctx);
 
-	if (img && img->loaded) {
-		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
-	}
+    if (img && img->loaded) {
+        draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), img->name, img->width, img->height, img->originalWidth, img->originalHeight, *srcRect, *destRect, *GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp] * alpha, ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
+    }
 }
 
 /**
@@ -873,7 +885,7 @@ void context_2d_fillText(context_2d *ctx, texture_2d *img, const rect_2d *srcRec
  * @retval	NONE
  */
 void context_2d_flush(context_2d *ctx) {
-	draw_textures_flush();
+    draw_textures_flush();
 }
 
 /**
@@ -888,10 +900,10 @@ void context_2d_flush(context_2d *ctx) {
  * @retval	NONE
  */
 void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const rect_2d *srcRect, const rect_2d *destRect) {
-	context_2d_bind(ctx);
-	texture_2d *tex = texture_manager_load_texture(texture_manager_get(), url);
+    context_2d_bind(ctx);
+    texture_2d *tex = texture_manager_load_texture(texture_manager_get(), url);
 
-	if (tex && tex->loaded) {
-		draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), tex->name, tex->width, tex->height, tex->originalWidth, tex->originalHeight, *srcRect, *destRect, * GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp], ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
-	}
+    if (tex && tex->loaded) {
+        draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), tex->name, tex->width, tex->height, tex->originalWidth, tex->originalHeight, *srcRect, *destRect, * GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp], ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
+    }
 }
