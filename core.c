@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -51,19 +51,19 @@ static int m_framebuffer_name = -1;
  * @retval	bool - (true | false) depending on whether running the file was successful
  */
 static inline bool run_file(const char *filename) {
-	char *contents = core_load_url(filename);
+    char *contents = core_load_url(filename);
 
-	if (contents) {
-		eval_str(contents);
+    if (contents) {
+        eval_str(contents);
 
-		LOG("{core} Evaluated JavaScript from %s", filename);
+        LOG("{core} Evaluated JavaScript from %s", filename);
 
-		free(contents);
-		return true;
-	} else {
-		LOG("{core} WARNING: Error reading JavaScript from %s", filename);
-		return false;
-	}
+        free(contents);
+        return true;
+    } else {
+        LOG("{core} WARNING: Error reading JavaScript from %s", filename);
+        return false;
+    }
 }
 
 /**
@@ -93,36 +93,36 @@ void core_init(const char *entry_point,
                int height,
                bool remote_loading,
                const char *splash,
-			   const char *simulate_id) {
-	config_set_remote_loading(remote_loading);
-	config_set_entry_point(entry_point);
-	config_set_tcp_host(tcp_host);
-	config_set_code_host(code_host);
-	config_set_tcp_port(tcp_port);
-	config_set_code_port(code_port);
-	config_set_screen_width(width);
-	config_set_screen_height(height);
-	config_set_splash(splash);
-	config_set_simulate_id(simulate_id);
-	// http_init();
-	// register default HTML color names
-	rgba_init();
-	//make checks for halfsized images
-	resource_loader_initialize(source_dir);
-	//default halfsized textures to false
-	use_halfsized_textures = false;
+               const char *simulate_id) {
+    config_set_remote_loading(remote_loading);
+    config_set_entry_point(entry_point);
+    config_set_tcp_host(tcp_host);
+    config_set_code_host(code_host);
+    config_set_tcp_port(tcp_port);
+    config_set_code_port(code_port);
+    config_set_screen_width(width);
+    config_set_screen_height(height);
+    config_set_splash(splash);
+    config_set_simulate_id(simulate_id);
+    // http_init();
+    // register default HTML color names
+    rgba_init();
+    //make checks for halfsized images
+    resource_loader_initialize(source_dir);
+    //default halfsized textures to false
+    use_halfsized_textures = false;
 
-	if (width <= MIN_SIZE_TO_HALFSIZE || height <= MIN_SIZE_TO_HALFSIZE) {
-		use_halfsized_textures = true;
-		//set halfsized textures setting to true here or else java will overwrite with
-		//a potentially wrong value
-		set_halfsized_textures(true);
-	}
+    if (width <= MIN_SIZE_TO_HALFSIZE || height <= MIN_SIZE_TO_HALFSIZE) {
+        use_halfsized_textures = true;
+        //set halfsized textures setting to true here or else java will overwrite with
+        //a potentially wrong value
+        set_halfsized_textures(true);
+    }
 
-	texture_manager_set_use_halfsized_textures();
-	texture_manager_load_texture(texture_manager_get(), config_get_splash());
+    texture_manager_set_use_halfsized_textures();
+    texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
-	LOG("{core} Initialization complete");
+    LOG("{core} Initialization complete");
 }
 
 /**
@@ -132,18 +132,18 @@ void core_init(const char *entry_point,
  * @retval	NONE
  */
 void core_init_gl(int framebuffer_name) {
-	LOG("{core} Initializing OpenGL");
+    LOG("{core} Initializing OpenGL");
 
-	tealeaf_shaders_init();
-	m_framebuffer_name = framebuffer_name;
+    tealeaf_shaders_init();
+    m_framebuffer_name = framebuffer_name;
 
-	// If frame buffer id was invalid,
-	if (m_framebuffer_name < 0) {
-		LOG("{core} WARNING: Framebuffer used to init GL was invalid");
-	}
+    // If frame buffer id was invalid,
+    if (m_framebuffer_name < 0) {
+        LOG("{core} WARNING: Framebuffer used to init GL was invalid");
+    }
 
-	// Canvas must be initialized after shaders
-	tealeaf_canvas_init(m_framebuffer_name);
+    // Canvas must be initialized after shaders
+    tealeaf_canvas_init(m_framebuffer_name);
 }
 
 /**
@@ -154,10 +154,10 @@ void core_init_gl(int framebuffer_name) {
  * @retval	bool - (true | false) depending on whether running the javascript source was successful
  */
 bool core_init_js(const char *uri, const char *version) {
-	core_timer_clear_all();
+    core_timer_clear_all();
 
-	init_js(uri, version);
-	return run_file("native.js");
+    init_js(uri, version);
+    return run_file("native.js");
 }
 
 /**
@@ -166,9 +166,9 @@ bool core_init_js(const char *uri, const char *version) {
  * @retval	NONE
  */
 void core_run() {
-	char buf[64];
-	snprintf(buf, sizeof(buf), "jsio('import %s;')", config_get_entry_point());
-	eval_str(buf);
+    char buf[64];
+    snprintf(buf, sizeof(buf), "jsio('import %s;')", config_get_entry_point());
+    eval_str(buf);
 }
 
 /*GLOBAL*/
@@ -187,28 +187,28 @@ static rect_2d size;
  * @retval	NONE
  */
 void calculate_size(texture_2d *tex, bool rotate) {
-	tealeaf_canvas *canvas = tealeaf_canvas_get();
-	int scale = tex->scale;
-	int width = canvas->framebuffer_width;
-	int height = canvas->framebuffer_height;
-	if (rotate) {
-		int t = width;
-		width = height;
-		height = t;
-	}
-	float vertical = height * 1.0f / tex->originalHeight;
-	float horizontal = width * 1.0f / tex->originalWidth;
-	float ratio = (vertical > horizontal ? vertical : horizontal);
-	float offsetX = (width - ratio * tex->originalWidth) / 2;
-	float offsetY = (height - ratio * tex->originalHeight) / 2;
-	tex_size.x = 0;
-	tex_size.y = 0;
-	tex_size.width = tex->originalWidth * scale;
-	tex_size.height = tex->originalHeight * scale;
-	size.x = offsetX;
-	size.y = offsetY;
-	size.width = ratio * tex->originalWidth * scale;
-	size.height = ratio * tex->originalHeight * scale;
+    tealeaf_canvas *canvas = tealeaf_canvas_get();
+    int scale = tex->scale;
+    int width = canvas->framebuffer_width;
+    int height = canvas->framebuffer_height;
+    if (rotate) {
+        int t = width;
+        width = height;
+        height = t;
+    }
+    float vertical = height * 1.0f / tex->originalHeight;
+    float horizontal = width * 1.0f / tex->originalWidth;
+    float ratio = (vertical > horizontal ? vertical : horizontal);
+    float offsetX = (width - ratio * tex->originalWidth) / 2;
+    float offsetY = (height - ratio * tex->originalHeight) / 2;
+    tex_size.x = 0;
+    tex_size.y = 0;
+    tex_size.width = tex->originalWidth * scale;
+    tex_size.height = tex->originalHeight * scale;
+    size.x = offsetX;
+    size.y = offsetY;
+    size.width = ratio * tex->originalWidth * scale;
+    size.height = ratio * tex->originalHeight * scale;
 }
 
 /**
@@ -219,70 +219,70 @@ void calculate_size(texture_2d *tex, bool rotate) {
  * @retval	NONE
  */
 void core_tick(int dt) {
-	if (js_ready) {
-		core_timer_tick(dt);
-		js_tick(dt);
-	}
+    if (js_ready) {
+        core_timer_tick(dt);
+        js_tick(dt);
+    }
 
-	// Tick the texture manager (load pending textures)
-	texture_manager_tick(texture_manager_get());
-	/*
-	 * we need to wait 2 frames before removing the preloader after we get the
-	 * core_hide_preloader call from JS.  Only on the second frame after the
-	 * callback are the images that were preloaded actually drawn.
-	 */
+    // Tick the texture manager (load pending textures)
+    texture_manager_tick(texture_manager_get());
+    /*
+     * we need to wait 2 frames before removing the preloader after we get the
+     * core_hide_preloader call from JS.  Only on the second frame after the
+     * callback are the images that were preloaded actually drawn.
+     */
 
-	if (show_preload || preload_hide_frame_count < 2) {
-		//if we've gotten the core_hide_preloader cb, start counting frames
-		if (!show_preload) {
-			preload_hide_frame_count++;
+    if (show_preload || preload_hide_frame_count < 2) {
+        //if we've gotten the core_hide_preloader cb, start counting frames
+        if (!show_preload) {
+            preload_hide_frame_count++;
 
-			// May have never loaded the splash image, so hide splash here too
-			device_hide_splash();
-		}
+            // May have never loaded the splash image, so hide splash here too
+            device_hide_splash();
+        }
 
-		// If splash is defined,
-		const char *splash = config_get_splash();
-		if (splash) {
-			texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
-			if (!tex) {
-				tex = texture_manager_load_texture(texture_manager_get(), splash);
-			}
+        // If splash is defined,
+        const char *splash = config_get_splash();
+        if (splash) {
+            texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
+            if (!tex) {
+                tex = texture_manager_load_texture(texture_manager_get(), splash);
+            }
 
-			if (tex && tex->loaded) {
-				if (do_sizing) {
-					// Calculate rotation
-					tealeaf_canvas *canvas = tealeaf_canvas_get();
-					int canvas_width = canvas->framebuffer_width;
-					int canvas_height = canvas->framebuffer_height;
-					rotate = canvas_width > canvas_height;
-					rotate ^= tex->originalWidth > tex->originalHeight;
+            if (tex && tex->loaded) {
+                if (do_sizing) {
+                    // Calculate rotation
+                    tealeaf_canvas *canvas = tealeaf_canvas_get();
+                    int canvas_width = canvas->framebuffer_width;
+                    int canvas_height = canvas->framebuffer_height;
+                    rotate = canvas_width > canvas_height;
+                    rotate ^= tex->originalWidth > tex->originalHeight;
 
-					calculate_size(tex, rotate);
-					do_sizing = false;
-				}
+                    calculate_size(tex, rotate);
+                    do_sizing = false;
+                }
 
-				context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
-				context_2d_loadIdentity(ctx);
-				context_2d_clear(ctx);
-				if (rotate) {
-					context_2d_save(ctx);
-					context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
-					context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
-					context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
-				}
-				context_2d_setGlobalCompositeOperation(ctx, source_over);
-				context_2d_drawImage(ctx, 0, splash, &tex_size, &size);
-				if (rotate) {
-					context_2d_restore(ctx);
-				}
-				// we're the first, last, and only thing to draw, so flush the buffer
-				context_2d_flush(ctx);
+                context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
+                context_2d_loadIdentity(ctx);
+                context_2d_clear(ctx);
+                if (rotate) {
+                    context_2d_save(ctx);
+                    context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
+                    context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
+                    context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
+                }
+                context_2d_setGlobalCompositeOperation(ctx, source_over);
+                context_2d_drawImage(ctx, 0, splash, &tex_size, &size);
+                if (rotate) {
+                    context_2d_restore(ctx);
+                }
+                // we're the first, last, and only thing to draw, so flush the buffer
+                context_2d_flush(ctx);
 
-				device_hide_splash();
-			}
-		}
-	}
+                device_hide_splash();
+            }
+        }
+    }
 
     // check the gl error and send it to java to be logged
     if (js_ready) {
@@ -296,7 +296,7 @@ void core_tick(int dt) {
  * @retval	NONE
  */
 void core_hide_preloader() {
-	show_preload = false;
+    show_preload = false;
 }
 
 /**
@@ -307,7 +307,7 @@ void core_hide_preloader() {
  * @retval	NONE
  */
 void core_on_screen_resize(int width, int height) {
-	tealeaf_canvas_resize(width, height);
+    tealeaf_canvas_resize(width, height);
 }
 
 /**
@@ -316,9 +316,9 @@ void core_on_screen_resize(int width, int height) {
  * @retval	NONE
  */
 void core_destroy() {
-	destroy_js();
-	texture_manager_destroy(texture_manager_get());
-	sound_manager_halt();
+    destroy_js();
+    texture_manager_destroy(texture_manager_get());
+    sound_manager_halt();
 }
 
 /**
@@ -327,10 +327,10 @@ void core_destroy() {
  * @retval	NONE
  */
 void core_reset() {
-	core_destroy();
-	do_sizing = true;
-	show_preload = true;
-	preload_hide_frame_count = 0;
+    core_destroy();
+    do_sizing = true;
+    show_preload = true;
+    preload_hide_frame_count = 0;
 }
 
 /**
@@ -339,26 +339,26 @@ void core_reset() {
  * @retval	NONE
  */
 void core_check_gl_error() {
-	// check the gl error and send it to java to be logged
-	int error_code = glGetError();
+    // check the gl error and send it to java to be logged
+    int error_code = glGetError();
 
-	if (error_code != 0) {
-		LOG("{core} WARNING: OpenGL error %d", error_code);
+    if (error_code != 0) {
+        LOG("{core} WARNING: OpenGL error %d", error_code);
 
-		//check if we should report the error, return early if not.
-		if (error_code == GL_ERROR_OUT_OF_MEMORY) {
-			//does not matter if it is already in the hash, report as unrecoverable and respond
-			report_gl_error(error_code, &gl_errors_hash, true);
-			//use halfsized textures for lower memory footprint
-			set_halfsized_textures(true);
-		} else {
-			//check if error is in the hash, if it is, leave
-			gl_error *error = NULL;
-			HASH_FIND_INT(gl_errors_hash, &error_code, error);
+        //check if we should report the error, return early if not.
+        if (error_code == GL_ERROR_OUT_OF_MEMORY) {
+            //does not matter if it is already in the hash, report as unrecoverable and respond
+            report_gl_error(error_code, &gl_errors_hash, true);
+            //use halfsized textures for lower memory footprint
+            set_halfsized_textures(true);
+        } else {
+            //check if error is in the hash, if it is, leave
+            gl_error *error = NULL;
+            HASH_FIND_INT(gl_errors_hash, &error_code, error);
 
-			if (!error) {
-				report_gl_error(error_code, &gl_errors_hash, false);
-			}
-		}
-	}
+            if (!error) {
+                report_gl_error(error_code, &gl_errors_hash, false);
+            }
+        }
+    }
 }

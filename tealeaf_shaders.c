@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -137,26 +137,30 @@ unsigned int current_shader;
  * @retval	int -
  */
 int load_shader(int type, const char *code, const char *description) {
-	// create a vertex shader type (GLES20.GL_VERTEX_SHADER)
-	// or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
-	int shader = glCreateShader(type);
-	// add the source code to the shader and compile it
-	GLTRACE(glShaderSource(shader, 1, &code, NULL));
-	GLTRACE(glCompileShader(shader));
-	int bDidCompile;
-	GLTRACE(glGetShaderiv(shader, GL_COMPILE_STATUS, &bDidCompile));
+    // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
+    // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
+    int shader = glCreateShader(type);
+    // add the source code to the shader and compile it
+    GLTRACE(glShaderSource(shader, 1, &code, NULL));
+    GLTRACE(glCompileShader(shader));
+    int bDidCompile;
+    GLTRACE(glGetShaderiv(shader, GL_COMPILE_STATUS, &bDidCompile));
 
-	if (!bDidCompile) {
-		// Display shader program compile failure
-		const char *stype = "unknown";
-		switch (type) {
-			case GL_VERTEX_SHADER: stype = "vertex"; break;
-			case GL_FRAGMENT_SHADER: stype = "fragment"; break;
-		}
-		LOG("{shaders} WARNING: COMPILE FAILED for %s shader program '%s'", stype, description);
-	}
+    if (!bDidCompile) {
+        // Display shader program compile failure
+        const char *stype = "unknown";
+        switch (type) {
+        case GL_VERTEX_SHADER:
+            stype = "vertex";
+            break;
+        case GL_FRAGMENT_SHADER:
+            stype = "fragment";
+            break;
+        }
+        LOG("{shaders} WARNING: COMPILE FAILED for %s shader program '%s'", stype, description);
+    }
 
-	return shader;
+    return shader;
 }
 
 /**
@@ -168,31 +172,31 @@ int load_shader(int type, const char *code, const char *description) {
  * @retval	int - gl int of the shader program
  */
 int tealeaf_shaders_load(char *vertex_shader_code, char *fragment_shader_code, const char *description) {
-	int vertex_shader = load_shader(GL_VERTEX_SHADER, vertex_shader_code, description);
-	int fragment_shader = load_shader(GL_FRAGMENT_SHADER, fragment_shader_code, description);
-	int program = glCreateProgram();             // create empty OpenGL Program
-	GLTRACE(glAttachShader(program, vertex_shader));   // add the vertex shader to program
-	GLTRACE(glAttachShader(program, fragment_shader)); // add the fragment shader to program
-	GLTRACE(glLinkProgram(program));                  // creates OpenGL program executables
-	int linked;
-	GLTRACE(glGetProgramiv(program, GL_LINK_STATUS, &linked));
+    int vertex_shader = load_shader(GL_VERTEX_SHADER, vertex_shader_code, description);
+    int fragment_shader = load_shader(GL_FRAGMENT_SHADER, fragment_shader_code, description);
+    int program = glCreateProgram();             // create empty OpenGL Program
+    GLTRACE(glAttachShader(program, vertex_shader));   // add the vertex shader to program
+    GLTRACE(glAttachShader(program, fragment_shader)); // add the fragment shader to program
+    GLTRACE(glLinkProgram(program));                  // creates OpenGL program executables
+    int linked;
+    GLTRACE(glGetProgramiv(program, GL_LINK_STATUS, &linked));
 
-	if (!linked) {
-		LOG("{shaders} ERROR: LINK FAILED for shader program '%s'", description);
+    if (!linked) {
+        LOG("{shaders} ERROR: LINK FAILED for shader program '%s'", description);
 
-		int maxLength;
-		GLTRACE(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength));
-		maxLength = maxLength + 1;
-		// TODO: this might be unicode?
-		GLchar info_log[maxLength];
-		GLTRACE(glGetProgramInfoLog(program, maxLength, &maxLength, info_log));
-		LOG("%s", info_log);
-		exit(1);
-	} else {
-		LOG("{shaders} Compiled and linked shader program '%s'", description);
-	}
+        int maxLength;
+        GLTRACE(glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength));
+        maxLength = maxLength + 1;
+        // TODO: this might be unicode?
+        GLchar info_log[maxLength];
+        GLTRACE(glGetProgramInfoLog(program, maxLength, &maxLength, info_log));
+        LOG("%s", info_log);
+        exit(1);
+    } else {
+        LOG("{shaders} Compiled and linked shader program '%s'", description);
+    }
 
-	return program;
+    return program;
 }
 
 /**
@@ -201,18 +205,18 @@ int tealeaf_shaders_load(char *vertex_shader_code, char *fragment_shader_code, c
  * @retval	NONE
  */
 void tealeaf_shaders_primary_init() {
-	tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
-	shader->program = tealeaf_shaders_load(vertex_shader_code, fragment_shader_code, "primary");
-	GLTRACE(glUseProgram(shader->program));
-	// texture binding -- always use texture 0
-	shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
-	GLTRACE(glUniform1i(shader->tex_sampler, 0));
-	// shader binding for projection matrix
-	shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
-	// shader binding for vertex/texture coordinates
-	shader->tex_coords = glGetAttribLocation(shader->program, "attr_tex_coord");
-	shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
-	shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
+    tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
+    shader->program = tealeaf_shaders_load(vertex_shader_code, fragment_shader_code, "primary");
+    GLTRACE(glUseProgram(shader->program));
+    // texture binding -- always use texture 0
+    shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
+    GLTRACE(glUniform1i(shader->tex_sampler, 0));
+    // shader binding for projection matrix
+    shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
+    // shader binding for vertex/texture coordinates
+    shader->tex_coords = glGetAttribLocation(shader->program, "attr_tex_coord");
+    shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
+    shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
 }
 
 /**
@@ -221,19 +225,19 @@ void tealeaf_shaders_primary_init() {
  * @retval	NONE
  */
 void tealeaf_shaders_linear_add_init() {
-	tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
-	shader->program = tealeaf_shaders_load(linear_add_vertex_shader_code, linear_add_fragment_shader_code, "linear add");
-	GLTRACE(glUseProgram(shader->program));
-	// texture binding -- always use texture 0
-	shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
-	GLTRACE(glUniform1i(shader->tex_sampler, 0));
-	// shader binding for projection matrix
-	shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
-	// shader binding for vertex/texture coordinates
-	shader->tex_coords = glGetAttribLocation(shader->program, "attr_tex_coord");
-	shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
-	shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
-	shader->add_color = glGetUniformLocation(shader->program, "add_color");
+    tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
+    shader->program = tealeaf_shaders_load(linear_add_vertex_shader_code, linear_add_fragment_shader_code, "linear add");
+    GLTRACE(glUseProgram(shader->program));
+    // texture binding -- always use texture 0
+    shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
+    GLTRACE(glUniform1i(shader->tex_sampler, 0));
+    // shader binding for projection matrix
+    shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
+    // shader binding for vertex/texture coordinates
+    shader->tex_coords = glGetAttribLocation(shader->program, "attr_tex_coord");
+    shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
+    shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
+    shader->add_color = glGetUniformLocation(shader->program, "add_color");
 }
 
 /**
@@ -242,17 +246,17 @@ void tealeaf_shaders_linear_add_init() {
  * @retval	NONE
  */
 void tealeaf_shaders_drawing_init() {
-	tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
-	shader->program = tealeaf_shaders_load(drawing_vertex_shader_code, drawing_fragment_shader_code, "drawing");
-	GLTRACE(glUseProgram(shader->program));
-	shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
-	GLTRACE(glUniform1i(shader->tex_sampler, 0));
-	// shader binding for projection matrix
-	shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
-	// shader binding for vertex/texture coordinates
-	shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
-	shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
-	shader->point_size = glGetUniformLocation(shader->program, "point_size");
+    tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
+    shader->program = tealeaf_shaders_load(drawing_vertex_shader_code, drawing_fragment_shader_code, "drawing");
+    GLTRACE(glUseProgram(shader->program));
+    shader->tex_sampler = glGetUniformLocation(shader->program, "tex_sampler");
+    GLTRACE(glUniform1i(shader->tex_sampler, 0));
+    // shader binding for projection matrix
+    shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
+    // shader binding for vertex/texture coordinates
+    shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
+    shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
+    shader->point_size = glGetUniformLocation(shader->program, "point_size");
 }
 
 /**
@@ -261,14 +265,14 @@ void tealeaf_shaders_drawing_init() {
  * @retval	NONE
  */
 void tealeaf_shaders_fill_rect_init() {
-	tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
-	shader->program = tealeaf_shaders_load(vertex_shader_code, fill_rect_fragment_shader_code, "fill rect");
-	GLTRACE(glUseProgram(shader->program));
-	// shader binding for projection matrix
-	shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
-	// shader binding for vertex/texture coordinates
-	shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
-	shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
+    tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
+    shader->program = tealeaf_shaders_load(vertex_shader_code, fill_rect_fragment_shader_code, "fill rect");
+    GLTRACE(glUseProgram(shader->program));
+    // shader binding for projection matrix
+    shader->proj_matrix = glGetUniformLocation(shader->program, "proj_matrix");
+    // shader binding for vertex/texture coordinates
+    shader->vertex_coords = glGetAttribLocation(shader->program, "attr_vertex_coord");
+    shader->draw_color = glGetUniformLocation(shader->program, "draw_color");
 }
 
 /**
@@ -277,10 +281,10 @@ void tealeaf_shaders_fill_rect_init() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_primary_bind() {
-	tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
-	GLTRACE(glUseProgram(shader->program));
-	GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
-	GLTRACE(glEnableVertexAttribArray(shader->tex_coords));
+    tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
+    GLTRACE(glUseProgram(shader->program));
+    GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
+    GLTRACE(glEnableVertexAttribArray(shader->tex_coords));
 }
 
 /**
@@ -289,9 +293,9 @@ static void inline tealeaf_shaders_primary_bind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_primary_unbind() {
-	tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
-	GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
-	GLTRACE(glDisableVertexAttribArray(shader->tex_coords));
+    tealeaf_shader *shader = &global_shaders[PRIMARY_SHADER];
+    GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
+    GLTRACE(glDisableVertexAttribArray(shader->tex_coords));
 }
 
 /**
@@ -300,9 +304,9 @@ static void inline tealeaf_shaders_primary_unbind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_fill_rect_bind() {
-	tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
-	GLTRACE(glUseProgram(shader->program));
-	GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
+    tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
+    GLTRACE(glUseProgram(shader->program));
+    GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
 }
 
 /**
@@ -311,8 +315,8 @@ static void inline tealeaf_shaders_fill_rect_bind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_fill_rect_unbind() {
-	tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
-	GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
+    tealeaf_shader *shader = &global_shaders[FILL_RECT_SHADER];
+    GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
 }
 
 /**
@@ -321,9 +325,9 @@ static void inline tealeaf_shaders_fill_rect_unbind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_drawing_bind() {
-	tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
-	GLTRACE(glUseProgram(shader->program));
-	GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
+    tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
+    GLTRACE(glUseProgram(shader->program));
+    GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
 }
 
 /**
@@ -332,8 +336,8 @@ static void inline tealeaf_shaders_drawing_bind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_drawing_unbind() {
-	tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
-	GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
+    tealeaf_shader *shader = &global_shaders[DRAWING_SHADER];
+    GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
 }
 
 /**
@@ -342,10 +346,10 @@ static void inline tealeaf_shaders_drawing_unbind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_linear_add_bind() {
-	tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
-	GLTRACE(glUseProgram(shader->program));
-	GLTRACE(glEnableVertexAttribArray(shader->tex_coords));
-	GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
+    tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
+    GLTRACE(glUseProgram(shader->program));
+    GLTRACE(glEnableVertexAttribArray(shader->tex_coords));
+    GLTRACE(glEnableVertexAttribArray(shader->vertex_coords));
 }
 
 /**
@@ -354,9 +358,9 @@ static void inline tealeaf_shaders_linear_add_bind() {
  * @retval	NONE
  */
 static void inline tealeaf_shaders_linear_add_unbind() {
-	tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
-	GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
-	GLTRACE(glDisableVertexAttribArray(shader->tex_coords));
+    tealeaf_shader *shader = &global_shaders[LINEAR_ADD_SHADER];
+    GLTRACE(glDisableVertexAttribArray(shader->vertex_coords));
+    GLTRACE(glDisableVertexAttribArray(shader->tex_coords));
 }
 
 /**
@@ -366,35 +370,35 @@ static void inline tealeaf_shaders_linear_add_unbind() {
  * @retval	NONE
  */
 void tealeaf_shaders_bind(unsigned int shader_type) {
-	if (current_shader == shader_type) {
-		return;
-	}
+    if (current_shader == shader_type) {
+        return;
+    }
 
-	// unbind old shader
-	if (current_shader == PRIMARY_SHADER) {
-		tealeaf_shaders_primary_unbind();
-	} else if (current_shader == DRAWING_SHADER) {
-		tealeaf_shaders_drawing_unbind();
-	} else if (current_shader == FILL_RECT_SHADER) {
-		tealeaf_shaders_fill_rect_unbind();
-	} else if (current_shader == LINEAR_ADD_SHADER) {
-		tealeaf_shaders_linear_add_unbind();
-	}
+    // unbind old shader
+    if (current_shader == PRIMARY_SHADER) {
+        tealeaf_shaders_primary_unbind();
+    } else if (current_shader == DRAWING_SHADER) {
+        tealeaf_shaders_drawing_unbind();
+    } else if (current_shader == FILL_RECT_SHADER) {
+        tealeaf_shaders_fill_rect_unbind();
+    } else if (current_shader == LINEAR_ADD_SHADER) {
+        tealeaf_shaders_linear_add_unbind();
+    }
 
-	// bind new shader
-	if (shader_type == PRIMARY_SHADER) {
-		tealeaf_shaders_primary_bind();
-	} else if (shader_type == DRAWING_SHADER) {
-		tealeaf_shaders_drawing_bind();
-	} else if (shader_type == FILL_RECT_SHADER) {
-		tealeaf_shaders_fill_rect_bind();
-	} else if (shader_type == LINEAR_ADD_SHADER) {
-		tealeaf_shaders_linear_add_bind();
-	}
+    // bind new shader
+    if (shader_type == PRIMARY_SHADER) {
+        tealeaf_shaders_primary_bind();
+    } else if (shader_type == DRAWING_SHADER) {
+        tealeaf_shaders_drawing_bind();
+    } else if (shader_type == FILL_RECT_SHADER) {
+        tealeaf_shaders_fill_rect_bind();
+    } else if (shader_type == LINEAR_ADD_SHADER) {
+        tealeaf_shaders_linear_add_bind();
+    }
 
-	current_shader = shader_type;
+    current_shader = shader_type;
 
-	tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, false);
+    tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, false);
 }
 
 /**
@@ -403,10 +407,10 @@ void tealeaf_shaders_bind(unsigned int shader_type) {
  * @retval	NONE
  */
 void tealeaf_shaders_init() {
-	use_single_shader = false;
-	tealeaf_shaders_primary_init();
-	tealeaf_shaders_drawing_init();
-	tealeaf_shaders_fill_rect_init();
-	tealeaf_shaders_linear_add_init();
-	tealeaf_shaders_primary_bind();
+    use_single_shader = false;
+    tealeaf_shaders_primary_init();
+    tealeaf_shaders_drawing_init();
+    tealeaf_shaders_fill_rect_init();
+    tealeaf_shaders_linear_add_init();
+    tealeaf_shaders_primary_bind();
 }

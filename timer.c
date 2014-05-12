@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -30,62 +30,62 @@ static int timer_id = 0;
 #define MAX_TIMERS_PER_TICK 400
 
 static void queue_insert(core_timer *timer) {
-	timer->prev = 0;
-	timer->next = m_insert_head;
-	m_insert_head = timer;
+    timer->prev = 0;
+    timer->next = m_insert_head;
+    m_insert_head = timer;
 }
 
 static void insert_timer(core_timer *timer) {
-	if (!timer_head) {
-		timer_head = timer;
-		timer->prev = 0;
-		timer->next = 0;
-	} else {
-		core_timer *current = timer_head;
+    if (!timer_head) {
+        timer_head = timer;
+        timer->prev = 0;
+        timer->next = 0;
+    } else {
+        core_timer *current = timer_head;
 
-		while (current->next && current->time_left <= timer->time_left) {
-			current = current->next;
-		}
+        while (current->next && current->time_left <= timer->time_left) {
+            current = current->next;
+        }
 
-		if (current->prev) {
-			current->prev->next = timer;
-		} else {
-			timer_head = timer; //it must be the head
-		}
+        if (current->prev) {
+            current->prev->next = timer;
+        } else {
+            timer_head = timer; //it must be the head
+        }
 
-		timer->prev = current->prev;
-		current->prev = timer;
-		timer->next = current;
-	}
+        timer->prev = current->prev;
+        current->prev = timer;
+        timer->next = current;
+    }
 }
 
 static void insert_queued_timers() {
-	core_timer *timer = m_insert_head;
-	core_timer *next;
+    core_timer *timer = m_insert_head;
+    core_timer *next;
 
-	for (; timer; timer = next) {
-		next = timer->next;
-		insert_timer(timer);
-	}
+    for (; timer; timer = next) {
+        next = timer->next;
+        insert_timer(timer);
+    }
 
-	m_insert_head = NULL;
+    m_insert_head = NULL;
 }
 
 // Return non-zero if timer was cleared
 static int unschedule_queued_timer(int id) {
-	core_timer *timer = m_insert_head;
-	core_timer *next;
+    core_timer *timer = m_insert_head;
+    core_timer *next;
 
-	for (; timer; timer = next) {
-		next = timer->next;
+    for (; timer; timer = next) {
+        next = timer->next;
 
-		if (timer->id == id) {
-			timer->cleared = true;
-			return 1;
-		}
-	}
+        if (timer->id == id) {
+            timer->cleared = true;
+            return 1;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -95,7 +95,7 @@ static int unschedule_queued_timer(int id) {
  * @retval	NONE
  */
 CEXPORT void core_timer_schedule(core_timer *timer) {
-	queue_insert(timer);
+    queue_insert(timer);
 }
 
 /**
@@ -105,7 +105,7 @@ CEXPORT void core_timer_schedule(core_timer *timer) {
  * @retval	NONE
  */
 CEXPORT static void timer_unschedule(core_timer *timer) {
-	timer->cleared = true;
+    timer->cleared = true;
 }
 
 /**
@@ -115,23 +115,23 @@ CEXPORT static void timer_unschedule(core_timer *timer) {
  * @retval	NONE
  */
 CEXPORT void timer_unlink(core_timer *timer) {
-	if (timer->prev) {
-		timer->prev->next = timer->next;
-	} else {
-		timer_head = timer->next;
-	}
+    if (timer->prev) {
+        timer->prev->next = timer->next;
+    } else {
+        timer_head = timer->next;
+    }
 
-	if (timer->next) {
-		timer->next->prev = timer->prev;
-	}
+    if (timer->next) {
+        timer->next->prev = timer->prev;
+    }
 
-	if (timer == timer_head) {
-		timer_head = NULL;
-	}
+    if (timer == timer_head) {
+        timer_head = NULL;
+    }
 
-	js_timer_unlink(timer);
-	free(timer->js_data);
-	free(timer);
+    js_timer_unlink(timer);
+    free(timer->js_data);
+    free(timer);
 }
 
 /**
@@ -141,13 +141,13 @@ CEXPORT void timer_unlink(core_timer *timer) {
  * @retval	NONE
  */
 CEXPORT static void timer_fire(core_timer *timer) {
-	js_timer_fire(timer);
+    js_timer_fire(timer);
 
-	if (!timer->repeat) {
-		timer_unschedule(timer);
-	} else {
-		timer->time_left = timer->duration;
-	}
+    if (!timer->repeat) {
+        timer_unschedule(timer);
+    } else {
+        timer->time_left = timer->duration;
+    }
 }
 
 /**
@@ -159,16 +159,16 @@ CEXPORT static void timer_fire(core_timer *timer) {
  * @retval	core_timer* - pointer to the created timer
  */
 CEXPORT core_timer *core_get_timer(void *js_data, int time, bool repeat) {
-	core_timer *timer = (core_timer *)malloc(sizeof(core_timer));
-	timer->time_left = time;
-	timer->duration = time;
-	timer->id = timer_id++;
-	timer->next = NULL;
-	timer->prev = NULL;
-	timer->repeat = repeat;
-	timer->cleared = false;
-	timer->js_data = js_data;
-	return timer;
+    core_timer *timer = (core_timer *)malloc(sizeof(core_timer));
+    timer->time_left = time;
+    timer->duration = time;
+    timer->id = timer_id++;
+    timer->next = NULL;
+    timer->prev = NULL;
+    timer->repeat = repeat;
+    timer->cleared = false;
+    timer->js_data = js_data;
+    return timer;
 }
 
 /**
@@ -178,23 +178,23 @@ CEXPORT core_timer *core_get_timer(void *js_data, int time, bool repeat) {
  * @retval	NONE
  */
 CEXPORT void core_timer_clear(int id) {
-	core_timer *timer = timer_head;
+    core_timer *timer = timer_head;
 
-	while (timer) {
-		if (timer->id == id) {
-			timer_unschedule(timer);
-			return;
-		}
+    while (timer) {
+        if (timer->id == id) {
+            timer_unschedule(timer);
+            return;
+        }
 
-		timer = timer->next;
-	}
+        timer = timer->next;
+    }
 
-	// It may be in the queue still
-	if (unschedule_queued_timer(id)) {
-		return;
-	}
+    // It may be in the queue still
+    if (unschedule_queued_timer(id)) {
+        return;
+    }
 
-	LOG("{timer} Tried to clear timer %i when it didn't exist", id);
+    LOG("{timer} Tried to clear timer %i when it didn't exist", id);
 }
 
 /**
@@ -203,17 +203,17 @@ CEXPORT void core_timer_clear(int id) {
  * @retval	NONE
  */
 CEXPORT void core_timer_clear_all() {
-	core_timer *timer = timer_head;
+    core_timer *timer = timer_head;
 
-	LOG("{CAT} CLEARING ALL TIMERS");
+    LOG("{CAT} CLEARING ALL TIMERS");
 
-	while (timer) {
-		core_timer *next = timer->next;
-		timer_unlink(timer);
-		timer = next;
-	}
+    while (timer) {
+        core_timer *next = timer->next;
+        timer_unlink(timer);
+        timer = next;
+    }
 
-	timer_head = NULL;
+    timer_head = NULL;
 }
 
 /**
@@ -223,42 +223,42 @@ CEXPORT void core_timer_clear_all() {
  * @retval	NONE
  */
 CEXPORT void core_timer_tick(int dt) {
-	insert_queued_timers();
+    insert_queued_timers();
 
-	if (dt < 0) {
-		return;
-	}
+    if (dt < 0) {
+        return;
+    }
 
-	core_timer *timer = timer_head;
-	core_timer *last;
-	int max_ticks = MAX_TIMERS_PER_TICK;
+    core_timer *timer = timer_head;
+    core_timer *last;
+    int max_ticks = MAX_TIMERS_PER_TICK;
 
-	while (timer) {
-		last = timer;
+    while (timer) {
+        last = timer;
 
-		if (--max_ticks <= 0) {
-			LOG("{timer} WARNING: More than %d timer callbacks in one tick.  Waiting for next tick", MAX_TIMERS_PER_TICK);
-			break;
-		}
+        if (--max_ticks <= 0) {
+            LOG("{timer} WARNING: More than %d timer callbacks in one tick.  Waiting for next tick", MAX_TIMERS_PER_TICK);
+            break;
+        }
 
-		core_timer *next = timer->next;
+        core_timer *next = timer->next;
 
-		if (!timer->cleared) {
-			timer->time_left -= dt;
+        if (!timer->cleared) {
+            timer->time_left -= dt;
 
-			if (timer->time_left <= 0) {
-				timer_fire(timer);
-			}
-		} else {
-			timer_unlink(timer);
-		}
+            if (timer->time_left <= 0) {
+                timer_fire(timer);
+            }
+        } else {
+            timer_unlink(timer);
+        }
 
-		timer = next;
-		if (timer == last) {
-			LOG("{timer} WARNING: Infinite loop detected.  Dumping all timers!");
-			core_timer_clear_all();
-			break;
-		}
-	}
+        timer = next;
+        if (timer == last) {
+            LOG("{timer} WARNING: Infinite loop detected.  Dumping all timers!");
+            core_timer_clear_all();
+            break;
+        }
+    }
 }
 

@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -34,31 +34,31 @@
 #define DEF_SPLASH "loading.png"
 
 typedef struct config_t {
-	const char *code_path;      // Code path
-	const char *code_host;      // Code remote hostname
-	int code_port;              // Code port
-	const char *tcp_host;       // TCP remote hostname
-	int tcp_port;               // TCP port
-	const char *entry_point;    // Code entry point
-	int width;                  // Screen width
-	int height;                 // Screen height
-	bool remote_loading;        // Textures and other resources loaded from Java?
-	const char *simulate_id;    // Simulate id
-	const char *splash;			// Splash path
+    const char *code_path;      // Code path
+    const char *code_host;      // Code remote hostname
+    int code_port;              // Code port
+    const char *tcp_host;       // TCP remote hostname
+    int tcp_port;               // TCP port
+    const char *entry_point;    // Code entry point
+    int width;                  // Screen width
+    int height;                 // Screen height
+    bool remote_loading;        // Textures and other resources loaded from Java?
+    const char *simulate_id;    // Simulate id
+    const char *splash;			// Splash path
 } config;
 
 static config cfg = {
-	DEF_CODE_PATH,
-	DEF_CODE_HOST,
-	DEF_CODE_PORT,
-	DEF_TCP_HOST,
-	DEF_TCP_PORT,
-	DEF_ENTRY_POINT,
-	DEF_WIDTH,
-	DEF_HEIGHT,
-	DEF_REMOTE_LOADING,
-	DEF_SIMULATE_ID,
-	DEF_SPLASH
+    DEF_CODE_PATH,
+    DEF_CODE_HOST,
+    DEF_CODE_PORT,
+    DEF_TCP_HOST,
+    DEF_TCP_PORT,
+    DEF_ENTRY_POINT,
+    DEF_WIDTH,
+    DEF_HEIGHT,
+    DEF_REMOTE_LOADING,
+    DEF_SIMULATE_ID,
+    DEF_SPLASH
 };
 
 #define RESET_STR(X, DEF) { \
@@ -85,7 +85,7 @@ static config cfg = {
  * @retval	NONE
  */
 void config_set_simulate_id(const char *simulate_id) {
-	SET_STR(cfg.simulate_id, simulate_id, DEF_SIMULATE_ID);
+    SET_STR(cfg.simulate_id, simulate_id, DEF_SIMULATE_ID);
 }
 
 /**
@@ -95,7 +95,7 @@ void config_set_simulate_id(const char *simulate_id) {
  * @retval	NONE
  */
 void config_set_remote_loading(bool remote_loading) {
-	cfg.remote_loading = remote_loading;
+    cfg.remote_loading = remote_loading;
 }
 
 /**
@@ -105,7 +105,7 @@ void config_set_remote_loading(bool remote_loading) {
  * @retval	NONE
  */
 void config_set_code_host(const char *code_host) {
-	SET_STR(cfg.code_host, code_host, DEF_CODE_HOST);
+    SET_STR(cfg.code_host, code_host, DEF_CODE_HOST);
 }
 
 /**
@@ -115,7 +115,7 @@ void config_set_code_host(const char *code_host) {
  * @retval	NONE
  */
 void config_set_entry_point(const char *entry_point) {
-	SET_STR(cfg.entry_point, entry_point, DEF_ENTRY_POINT);
+    SET_STR(cfg.entry_point, entry_point, DEF_ENTRY_POINT);
 }
 
 /**
@@ -125,7 +125,7 @@ void config_set_entry_point(const char *entry_point) {
  * @retval	NONE
  */
 void config_set_tcp_host(const char *tcp_host) {
-	SET_STR(cfg.tcp_host, tcp_host, DEF_TCP_HOST);
+    SET_STR(cfg.tcp_host, tcp_host, DEF_TCP_HOST);
 }
 
 /**
@@ -135,7 +135,7 @@ void config_set_tcp_host(const char *tcp_host) {
  * @retval	NONE
  */
 void config_set_code_path(const char *code_path) {
-	SET_STR(cfg.code_path, code_path, DEF_CODE_PATH);
+    SET_STR(cfg.code_path, code_path, DEF_CODE_PATH);
 }
 
 /**
@@ -145,7 +145,7 @@ void config_set_code_path(const char *code_path) {
  * @retval	NONE
  */
 void config_set_tcp_port(int port) {
-	cfg.tcp_port = port;
+    cfg.tcp_port = port;
 }
 
 /**
@@ -155,7 +155,7 @@ void config_set_tcp_port(int port) {
  * @retval	NONE
  */
 void config_set_code_port(int port) {
-	cfg.code_port = port;
+    cfg.code_port = port;
 }
 
 /**
@@ -165,7 +165,7 @@ void config_set_code_port(int port) {
  * @retval	NONE
  */
 void config_set_screen_width(int width) {
-	cfg.width = width;
+    cfg.width = width;
 }
 
 /**
@@ -175,7 +175,7 @@ void config_set_screen_width(int width) {
  * @retval	NONE
  */
 void config_set_screen_height(int height) {
-	cfg.height = height;
+    cfg.height = height;
 }
 
 /**
@@ -185,7 +185,7 @@ void config_set_screen_height(int height) {
  * @retval	NONE
  */
 void config_set_splash(const char *splash) {
-	SET_STR(cfg.splash, splash, DEF_SPLASH);
+    SET_STR(cfg.splash, splash, DEF_SPLASH);
 }
 
 
@@ -196,7 +196,7 @@ void config_set_splash(const char *splash) {
  * @retval	char* - the simulate id
  */
 const char *config_get_simulate_id() {
-	return cfg.simulate_id;
+    return cfg.simulate_id;
 }
 
 /**
@@ -205,7 +205,7 @@ const char *config_get_simulate_id() {
  * @retval	bool - true or false depending on if remote loading is on
  */
 bool config_get_remote_loading() {
-	return cfg.remote_loading;
+    return cfg.remote_loading;
 }
 
 /**
@@ -214,7 +214,7 @@ bool config_get_remote_loading() {
  * @retval	char* - the code host
  */
 const char *config_get_code_host() {
-	return cfg.code_host;
+    return cfg.code_host;
 }
 
 /**
@@ -223,7 +223,7 @@ const char *config_get_code_host() {
  * @retval	char* - the code path
  */
 const char *config_get_code_path() {
-	return cfg.code_path;
+    return cfg.code_path;
 }
 
 /**
@@ -232,7 +232,7 @@ const char *config_get_code_path() {
  * @retval	char* - tcp host
  */
 const char *config_get_tcp_host() {
-	return cfg.tcp_host;
+    return cfg.tcp_host;
 }
 
 /**
@@ -241,7 +241,7 @@ const char *config_get_tcp_host() {
  * @retval	char* - entry point
  */
 const char *config_get_entry_point() {
-	return cfg.entry_point;
+    return cfg.entry_point;
 }
 
 /**
@@ -250,7 +250,7 @@ const char *config_get_entry_point() {
  * @retval	int - code port
  */
 int config_get_code_port() {
-	return cfg.code_port;
+    return cfg.code_port;
 }
 
 /**
@@ -259,7 +259,7 @@ int config_get_code_port() {
  * @retval	int - tcp port
  */
 int config_get_tcp_port() {
-	return cfg.tcp_port;
+    return cfg.tcp_port;
 }
 
 /**
@@ -268,7 +268,7 @@ int config_get_tcp_port() {
  * @retval	int - screen width
  */
 int config_get_screen_width() {
-	return cfg.width;
+    return cfg.width;
 }
 
 /**
@@ -277,7 +277,7 @@ int config_get_screen_width() {
  * @retval	int - screen height
  */
 int config_get_screen_height() {
-	return cfg.height;
+    return cfg.height;
 }
 
 /**
@@ -286,7 +286,7 @@ int config_get_screen_height() {
  * @retval	const char * - splash path
  */
 const char *config_get_splash() {
-	return cfg.splash;
+    return cfg.splash;
 }
 
 
@@ -296,17 +296,17 @@ const char *config_get_splash() {
  * @retval	NONE
  */
 void config_clear() {
-	RESET_STR(cfg.code_host, DEF_CODE_HOST);
-	RESET_STR(cfg.tcp_host, DEF_TCP_HOST);
-	RESET_STR(cfg.entry_point, DEF_ENTRY_POINT);
-	RESET_STR(cfg.simulate_id, DEF_SIMULATE_ID);
-	RESET_STR(cfg.code_path, DEF_CODE_PATH);
-	cfg.code_port = DEF_CODE_PORT;
-	cfg.tcp_port = DEF_TCP_PORT;
-	cfg.width = DEF_WIDTH;
-	cfg.height = DEF_HEIGHT;
-	cfg.remote_loading = DEF_REMOTE_LOADING;
-	RESET_STR(cfg.splash, DEF_SPLASH);
+    RESET_STR(cfg.code_host, DEF_CODE_HOST);
+    RESET_STR(cfg.tcp_host, DEF_TCP_HOST);
+    RESET_STR(cfg.entry_point, DEF_ENTRY_POINT);
+    RESET_STR(cfg.simulate_id, DEF_SIMULATE_ID);
+    RESET_STR(cfg.code_path, DEF_CODE_PATH);
+    cfg.code_port = DEF_CODE_PORT;
+    cfg.tcp_port = DEF_TCP_PORT;
+    cfg.width = DEF_WIDTH;
+    cfg.height = DEF_HEIGHT;
+    cfg.remote_loading = DEF_REMOTE_LOADING;
+    RESET_STR(cfg.splash, DEF_SPLASH);
 }
 
 #undef SET_STR
