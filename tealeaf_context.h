@@ -111,6 +111,7 @@ void context_2d_set_filter_type(context_2d *ctx, int filter_type);
 void disable_scissor(context_2d *ctx);
 void enable_scissor(context_2d *ctx);
 
+void context_2d_setTransform(context_2d *ctx, double m11, double m12, double m21, double m22, double dx, double dy);
 #ifdef __cplusplus
 }
 #endif

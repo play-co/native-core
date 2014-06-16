@@ -907,3 +907,15 @@ void context_2d_drawImage(context_2d *ctx, int srcTex, const char *url, const re
         draw_textures_item(ctx, GET_MODEL_VIEW_MATRIX(ctx), tex->name, tex->width, tex->height, tex->originalWidth, tex->originalHeight, *srcRect, *destRect, * GET_CLIPPING_BOUNDS(ctx), ctx->globalAlpha[ctx->mvp], ctx->globalCompositeOperation[ctx->mvp], &ctx->filter_color, ctx->filter_type);
     }
 }
+
+void context_2d_setTransform(context_2d *ctx, double m11, double m12, double m21, double m22, double dx, double dy) {
+    context_2d_bind(ctx);
+    matrix_3x3 *m = GET_MODEL_VIEW_MATRIX(ctx);
+    m->m00 = m11;
+    m->m01 = m21;
+    m->m10 = m12;
+    m->m11 = m22;
+    m->m02 = dx;
+    m->m12 = dy;
+
+}
