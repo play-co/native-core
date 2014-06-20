@@ -16,7 +16,6 @@
 #ifndef RESOURCE_LOADER_H
 #define RESOURCE_LOADER_H
 
-#include "platform/platform.h"
 #include "util/detect.h"
 #include "texture_2d.h"
 #include <pthread.h>
