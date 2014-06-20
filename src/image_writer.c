@@ -2,7 +2,7 @@
 
 #include "turbojpeg/turbojpeg.h"
 
-#include "platform/log.h"
+#include "log.h"
 
 #include <stdlib.h>
 
