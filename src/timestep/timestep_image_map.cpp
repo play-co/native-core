@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 #include "timestep_image_map.h"
-#include "core/log.h"
+#include "log.h"
 
 timestep_image_map *timestep_image_map_init() {
     timestep_image_map *map = (timestep_image_map *) malloc(sizeof(timestep_image_map));

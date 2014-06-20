@@ -13,11 +13,11 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-#include "core/image_loader.h"
+#include "image_loader.h"
 #include "log.h"
 #include <stdlib.h>
 
-#include "core/deps/turbojpeg/turbojpeg.h"
+#include "deps/turbojpeg/turbojpeg.h"
 
 #define TEXTURE_LOAD_ERROR 0
 

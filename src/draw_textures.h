@@ -17,7 +17,7 @@
 #define DRAW_TEXTURES_H
 
 #include "geometry.h"
-#include "core/tealeaf_context.h"
+#include "tealeaf_context.h"
 #include "rgba.h"
 
 #ifdef __cplusplus

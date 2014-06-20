@@ -20,10 +20,10 @@
 
 #include <float.h>
 
-#include "core/util/detect.h"
+#include "util/detect.h"
 #include "js/js.h"
-#include "core/rgba.h"
-#include "core/tealeaf_context.h"
+#include "rgba.h"
+#include "tealeaf_context.h"
 
 
 struct view_animation_t;

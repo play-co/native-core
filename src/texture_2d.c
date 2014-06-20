@@ -17,15 +17,15 @@
  * @file	 texture_2d.c
  * @brief
  */
-#include "core/texture_2d.h"
+#include "texture_2d.h"
 #include "platform/gl.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "core/tealeaf_canvas.h"
-#include "core/tealeaf_context.h"
-#include "core/log.h"
-#include "core/image_loader.h"
-#include "core/core.h"
+#include "tealeaf_canvas.h"
+#include "tealeaf_context.h"
+#include "log.h"
+#include "image_loader.h"
+#include "core.h"
 
 // Enable this to print out the texture loader scaling and resizing operations
 //#define VERBOSE_LOAD_TEX

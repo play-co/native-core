@@ -1,5 +1,5 @@
-#include "core/graphics_utils.h"
-#include "core/geometry.h"
+#include "graphics_utils.h"
+#include "geometry.h"
 #include "log.h"
 #include <stdlib.h>
 

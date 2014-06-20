@@ -17,8 +17,8 @@
 #define RESOURCE_LOADER_H
 
 #include "platform/platform.h"
-#include "core/util/detect.h"
-#include "core/texture_2d.h"
+#include "util/detect.h"
+#include "texture_2d.h"
 #include <pthread.h>
 
 typedef struct resource_t {

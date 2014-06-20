@@ -13,23 +13,23 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-#include "core/texture_manager.h"
-#include "core/texture_2d.h"
-#include "core/deps/uthash/uthash.h"
-#include "core/core.h"
-#include "core/log.h"
+#include "texture_manager.h"
+#include "texture_2d.h"
+#include "deps/uthash/uthash.h"
+#include "core.h"
+#include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "core/image-cache/include/image_cache.h"
-#include "core/config.h"
+#include "image-cache/include/image_cache.h"
+#include "config.h"
 #include "platform/resource_loader.h"
-#include "core/list.h"
+#include "list.h"
 #include "platform/gl.h"
-#include "core/events.h"
+#include "events.h"
 #include "platform/native.h"
-#include "core/deps/jansson/jansson.h"
-#include "core/platform/threads.h"
+#include "deps/jansson/jansson.h"
+#include "platform/threads.h"
 
 #define DEFAULT_SHEET_DIMENSION 64
 

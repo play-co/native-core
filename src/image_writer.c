@@ -1,6 +1,6 @@
-#include "core/image_writer.h"
+#include "image_writer.h"
 
-#include "core/deps/turbojpeg/turbojpeg.h"
+#include "deps/turbojpeg/turbojpeg.h"
 
 #include "platform/log.h"
 

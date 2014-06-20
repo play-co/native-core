@@ -16,8 +16,8 @@
 #ifndef TEXTURE_2D_H
 #define TEXTURE_2D_H
 
-#include "core/types.h"
-#include "core/deps/uthash/uthash.h"
+#include "types.h"
+#include "deps/uthash/uthash.h"
 
 #include <time.h> // for last_accessed
 

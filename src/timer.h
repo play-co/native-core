@@ -16,7 +16,7 @@
 #ifndef CORE_TIMER_H
 #define CORE_TIMER_H
 
-#include "core/types.h"
+#include "types.h"
 #include "util/detect.h"
 
 typedef struct core_timer_t {

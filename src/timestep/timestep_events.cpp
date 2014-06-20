@@ -16,7 +16,7 @@
  */
 
 #include "timestep_events.h"
-#include "core/log.h"
+#include "log.h"
 
 #define OPT_MERGE_EVENTS
 

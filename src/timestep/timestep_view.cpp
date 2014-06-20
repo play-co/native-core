@@ -16,13 +16,13 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/timestep/timestep_view.h"
-#include "core/timestep/timestep_image_map.h"
-#include "core/list.h"
+#include "timestep/timestep_view.h"
+#include "timestep/timestep_image_map.h"
+#include "list.h"
 #include "js/js_timestep_view.h"
 #include "js/js.h"
-#include "core/log.h"
-#include "core/tealeaf_context.h"
+#include "log.h"
+#include "tealeaf_context.h"
 
 static unsigned int UID = 0;
 static int add_order = 0;

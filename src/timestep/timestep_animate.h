@@ -16,10 +16,10 @@
 #ifndef TIMESTEP_ANIMATE_H
 #define TIMESTEP_ANIMATE_H
 
-#include "core/timestep/timestep.h"
+#include "timestep/timestep.h"
 
-#include "core/object_pool.h"
-#include "core/list.h"
+#include "object_pool.h"
+#include "list.h"
 
  //get a new animation frame. Don't free this object, call release
 anim_frame *anim_frame_get();

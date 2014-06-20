@@ -17,13 +17,13 @@
  * @file	 rgba.c
  * @brief
  */
-#include "core/rgba.h"
-#include "core/log.h"
+#include "rgba.h"
+#include "log.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include "core/deps/uthash/uthash.h"
+#include "deps/uthash/uthash.h"
 
 typedef struct html_color_t {
     const char *name;

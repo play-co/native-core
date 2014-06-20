@@ -16,7 +16,7 @@
 #ifndef HTTP_H
 #define HTTP_H
 
-#include "core/util/detect.h"
+#include "util/detect.h"
 
 CEXPORT void http_init();
 CEXPORT void http_cleanup();

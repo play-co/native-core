@@ -63,8 +63,8 @@ void threads_join_thread(ThreadsThread *thread) {
     pthread_join(*thread, 0);
 }
 #else
-#include "core/log.h"
-#include "core/platform/threads.h"
+#include "log.h"
+#include "platform/threads.h"
 #endif // IMGCACHE_STANDALONE
 
 #define MAX_REQUESTS 4 /* max parallel requests */

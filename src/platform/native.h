@@ -16,8 +16,8 @@
 #ifndef NATIVE_H
 #define NATIVE_H
 
-#include "core/util/detect.h"
-#include "core/deps/uthash/uthash.h"
+#include "util/detect.h"
+#include "deps/uthash/uthash.h"
 
 typedef struct gl_error_t {
 	int error_code;

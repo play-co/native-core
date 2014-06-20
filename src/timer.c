@@ -17,9 +17,9 @@
  * @file	 timer.c
  * @brief
  */
-#include "core/timer.h"
+#include "timer.h"
 #include <stdlib.h>
-#include "core/log.h"
+#include "log.h"
 #include "util/detect.h"
 
 static core_timer *timer_head = NULL;

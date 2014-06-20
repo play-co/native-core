@@ -16,8 +16,8 @@
 #ifndef TEXT_MANAGER_H
 #define TEXT_MANAGER_H
 
-#include "core/texture_2d.h"
-#include "core/rgba.h"
+#include "texture_2d.h"
+#include "rgba.h"
 
 enum TEXT_STYLE {
 	TEXT_STYLE_FILL,

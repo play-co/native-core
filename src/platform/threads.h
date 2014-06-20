@@ -16,7 +16,7 @@
 #ifndef CORE_THREADS_H
 #define CORE_THREADS_H
 
-#include "core/util/detect.h"
+#include "util/detect.h"
 
 // Prototype for a thread procedure
 typedef void (*ThreadsThreadProc)(void *);

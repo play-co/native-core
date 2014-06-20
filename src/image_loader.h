@@ -19,8 +19,8 @@
 #ifdef UNITY
 #include "Unity/png.h"
 #else
-#include "core/deps/png/png.h"
-#include "core/deps/png/pngstruct.h"
+#include "deps/png/png.h"
+#include "deps/png/pngstruct.h"
 #endif
 
 #ifdef __cplusplus

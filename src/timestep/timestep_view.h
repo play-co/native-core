@@ -16,7 +16,7 @@
 #ifndef TIMESTEP_VIEW_H
 #define TIMESTEP_VIEW_H
 
-#include "core/timestep/timestep.h"
+#include "timestep/timestep.h"
 
 timestep_view *timestep_view_init();
 void timestep_view_delete(timestep_view *v);

@@ -4,12 +4,12 @@
 #ifdef UNITY
 #include "Unity/png.h"
 #else
-#include "core/deps/png/png.h"
-#include "core/deps/png/pngstruct.h"
+#include "deps/png/png.h"
+#include "deps/png/pngstruct.h"
 #endif
 
-#include "core/log.h"
-#include "core/types.h"
+#include "log.h"
+#include "types.h"
 
 enum IMAGE_TYPES {IMAGE_TYPE_JPEG, IMAGE_TYPE_PNG};
 

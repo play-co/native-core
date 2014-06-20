@@ -17,7 +17,7 @@
 #define TEALEAF_CANVAS_H
 
 #include "platform/gl.h"
-#include "core/types.h"
+#include "types.h"
 
 typedef struct context_2d_t *context_2d_p;
 

@@ -16,7 +16,7 @@
 #ifndef TIMESTEP_INPUT_EVENT_H
 #define TIMESTEP_INPUT_EVENT_H
 
-#include "core/util/detect.h"
+#include "util/detect.h"
 
 typedef struct input_event_t {
 	int id;

@@ -20,7 +20,7 @@
 #include "tealeaf_shaders.h"
 #include "tealeaf_context.h"
 #include "platform/gl.h"
-#include "core/log.h"
+#include "log.h"
 #include <stdlib.h>
 
 static char *linear_add_vertex_shader_code = "														\

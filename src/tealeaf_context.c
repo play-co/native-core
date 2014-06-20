@@ -17,15 +17,15 @@
  * @file	 tealeaf_context.c
  * @brief
  */
-#include "core/tealeaf_context.h"
-#include "core/tealeaf_shaders.h"
-#include "core/log.h"
-#include "core/draw_textures.h"
-#include "core/texture_2d.h"
-#include "core/texture_manager.h"
-#include "core/geometry.h"
-#include "core/image_writer.h"
-#include "core/graphics_utils.h"
+#include "tealeaf_context.h"
+#include "tealeaf_shaders.h"
+#include "log.h"
+#include "draw_textures.h"
+#include "texture_2d.h"
+#include "texture_manager.h"
+#include "geometry.h"
+#include "image_writer.h"
+#include "graphics_utils.h"
 #include <math.h>
 #include <stdlib.h>
 

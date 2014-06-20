@@ -16,8 +16,8 @@
 #ifndef CORE_JS_H
 #define CORE_JS_H
 
-#include "core/util/detect.h"
-#include "core/types.h"
+#include "util/detect.h"
+#include "types.h"
 
 /****************************************************
  * This file exports all functions that tealeaf

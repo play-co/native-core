@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-#include "core/types.h"
+#include "types.h"
 
 	typedef struct rgba_t {
 		float r, g, b, a;
