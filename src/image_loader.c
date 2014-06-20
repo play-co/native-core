@@ -17,7 +17,7 @@
 #include "log.h"
 #include <stdlib.h>
 
-#include "deps/turbojpeg/turbojpeg.h"
+#include "turbojpeg/turbojpeg.h"
 
 #define TEXTURE_LOAD_ERROR 0
 

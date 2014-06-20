@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "deps/uthash/uthash.h"
+#include "uthash/uthash.h"
 
 typedef struct html_color_t {
     const char *name;

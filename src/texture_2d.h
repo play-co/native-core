@@ -17,7 +17,7 @@
 #define TEXTURE_2D_H
 
 #include "types.h"
-#include "deps/uthash/uthash.h"
+#include "uthash/uthash.h"
 
 #include <time.h> // for last_accessed
 

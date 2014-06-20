@@ -16,7 +16,7 @@
 #ifndef XHR_H
 #define XHR_H
 
-#include "deps/uthash/uthash.h"
+#include "uthash/uthash.h"
 
 typedef struct request_header_t {
 	char *header;

@@ -15,7 +15,7 @@
 
 #include "texture_manager.h"
 #include "texture_2d.h"
-#include "deps/uthash/uthash.h"
+#include "uthash/uthash.h"
 #include "core.h"
 #include "log.h"
 #include <stdlib.h>
@@ -28,7 +28,7 @@
 #include "platform/gl.h"
 #include "events.h"
 #include "platform/native.h"
-#include "deps/jansson/jansson.h"
+#include "jansson/jansson.h"
 #include "platform/threads.h"
 
 #define DEFAULT_SHEET_DIMENSION 64

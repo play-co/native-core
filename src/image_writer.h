@@ -4,8 +4,8 @@
 #ifdef UNITY
 #include "Unity/png.h"
 #else
-#include "deps/png/png.h"
-#include "deps/png/pngstruct.h"
+#include "png/png.h"
+#include "png/pngstruct.h"
 #endif
 
 #include "log.h"
