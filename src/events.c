@@ -18,7 +18,7 @@
  * @brief
  */
 #include "events.h"
-#include "js/js_events.h"
+//#include "js/js_events.h"
 #include "timestep/timestep_events.h"
 #include "types.h"
 #include "core_js.h"
@@ -33,7 +33,7 @@ void core_dispatch_event(const char *event) {
     //NO useful events are generated before js is ready
     //therefore only push events when js is ready
     if (js_ready) {
-        js_dispatch_event(event);
+ //       js_dispatch_event(event);
     }
 }
 

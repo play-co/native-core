@@ -21,10 +21,11 @@
 #include <float.h>
 
 #include "util/detect.h"
-#include "js/js.h"
+//#include "js/js.h"
 #include "rgba.h"
 #include "tealeaf_context.h"
 
+#define JS_OBJECT_WRAPPER void*
 
 struct view_animation_t;
 

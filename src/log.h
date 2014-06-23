@@ -14,4 +14,8 @@
  */
 
 //no ifdefs because this just wraps platform/log.h, which has them
-#include "platform/log.h"
+//#include "platform/log.h"
+//
+#include <stdio.h>
+#define LOG(...) printf(__VA_ARGS__);
+#define LOGFN LOG
