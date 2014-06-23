@@ -32,7 +32,7 @@ static double now() {
     gettimeofday(&n, NULL);
     LOG("exit now");
     double ret = (n.tv_sec * 1000 * 1000) + n.tv_usec;
-    LOG("returning %f from %li %li", ret, n.tv_sec, n.tv_usec);
+    LOG("returning %f from %li %i", ret, n.tv_sec, n.tv_usec);
     return ret;
 }
 
