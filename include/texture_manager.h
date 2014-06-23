@@ -17,7 +17,7 @@
 #define TEXTURE_MANAGER_H
 
 #include "texture_2d.h"
-#include "image-cache/include/image_cache.h"
+#include "image-cache/image_cache.h"
 
 #include <pthread.h>
 #define MAX_TEXTURE_COUNT 256

@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "image-cache/include/image_cache.h"
 #include "config.h"
 #include "platform/resource_loader.h"
 #include "list.h"
