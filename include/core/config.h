@@ -1,5 +1,4 @@
-/* @license
- * This file is part of the Game Closure SDK.
+/* @license * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
@@ -16,7 +15,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "types.h"
+#include "core/types.h"
 
 #if defined(__cplusplus)
 extern "C" {

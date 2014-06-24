@@ -17,7 +17,7 @@
  * @file	 geometry.c
  * @brief
  */
-#include "geometry.h"
+#include "core/geometry.h"
 
 #include <stdlib.h>
 #include <math.h>

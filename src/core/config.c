@@ -17,7 +17,7 @@
  * @file	 config.c
  * @brief
  */
-#include "config.h"
+#include "core/config.h"
 #include <string.h>
 #include <stdlib.h>
 

@@ -16,8 +16,8 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include "list.h"
-#include "texture_2d.h"
+#include "core/list.h"
+#include "core/texture_2d.h"
 
 #ifdef __cplusplus
 extern "C" {

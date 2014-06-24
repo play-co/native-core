@@ -16,10 +16,10 @@
 #ifndef TEALEAF_CONTEXT_H
 #define TEALEAF_CONTEXT_H
 
-#include "geometry.h"
-#include "rgba.h"
-#include "tealeaf_canvas.h"
-#include "texture_2d.h"
+#include "core/geometry.h"
+#include "core/rgba.h"
+#include "core/tealeaf_canvas.h"
+#include "core/texture_2d.h"
 
 #ifdef __cplusplus
 extern "C" {

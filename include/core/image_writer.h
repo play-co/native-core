@@ -8,8 +8,8 @@
 #include "png/pngstruct.h"
 #endif
 
-#include "log.h"
-#include "types.h"
+#include "core/log.h"
+#include "core/types.h"
 
 enum IMAGE_TYPES {IMAGE_TYPE_JPEG, IMAGE_TYPE_PNG};
 

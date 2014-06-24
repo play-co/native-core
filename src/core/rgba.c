@@ -17,8 +17,8 @@
  * @file	 rgba.c
  * @brief
  */
-#include "rgba.h"
-#include "log.h"
+#include "core/rgba.h"
+#include "core/log.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

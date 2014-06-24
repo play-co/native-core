@@ -17,10 +17,10 @@
  * @file	 timer.c
  * @brief
  */
-#include "timer.h"
-#include <stdlib.h>
-#include "log.h"
+#include "core/timer.h"
+#include "core/log.h"
 #include "util/detect.h"
+#include <stdlib.h>
 
 static core_timer *timer_head = NULL;
 static core_timer *m_insert_head = NULL;

@@ -17,10 +17,10 @@
  * @file	 tealeaf_shaders.c
  * @brief
  */
-#include "tealeaf_shaders.h"
-#include "tealeaf_context.h"
+#include "core/tealeaf_shaders.h"
+#include "core/tealeaf_context.h"
+#include "core/log.h"
 #include "platform/gl.h"
-#include "log.h"
 #include <stdlib.h>
 
 static char *linear_add_vertex_shader_code = "														\

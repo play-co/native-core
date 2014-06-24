@@ -15,7 +15,7 @@
 
 #ifndef TEALEAF_SHADER_H
 #define TEALEAF_SHADER_H
-#include "types.h"
+#include "core/types.h"
 
 enum SHADERS { PRIMARY_SHADER, DRAWING_SHADER, FILL_RECT_SHADER, LINEAR_ADD_SHADER, NUM_SHADERS };
 bool use_single_shader;

@@ -16,7 +16,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "types.h"
+#include "core/types.h"
 
 typedef struct matrix_t {
 	float m00, m01, m02, m03,

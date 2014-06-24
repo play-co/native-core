@@ -15,8 +15,8 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timestep_events.h"
-#include "log.h"
+#include "timestep/timestep_events.h"
+#include "core/log.h"
 
 #define OPT_MERGE_EVENTS
 

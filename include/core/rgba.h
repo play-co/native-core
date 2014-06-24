@@ -18,11 +18,11 @@
 
 #define RGBA_MAX_STR_LEN 60
 
+#include "core/types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "types.h"
 
 	typedef struct rgba_t {
 		float r, g, b, a;

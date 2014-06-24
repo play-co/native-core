@@ -17,13 +17,13 @@
  * @file	 draw_textures.c
  * @brief
  */
-#include "draw_textures.h"
-#include <sys/time.h>
-#include "tealeaf_context.h"
-#include "tealeaf_shaders.h"
-#include "log.h"
-#include "graphics_utils.h"
+#include "core/draw_textures.h"
+#include "core/tealeaf_context.h"
+#include "core/tealeaf_shaders.h"
+#include "core/log.h"
+#include "core/graphics_utils.h"
 #include "platform/gl.h"
+#include <sys/time.h>
 #include <math.h>
 
 #define DRAW_TEXTURES_PROFILE 0

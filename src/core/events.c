@@ -17,11 +17,11 @@
  * @file	 events.c
  * @brief
  */
-#include "events.h"
+#include "core/events.h"
 //#include "js/js_events.h"
 #include "timestep/timestep_events.h"
-#include "types.h"
-#include "core_js.h"
+#include "core/types.h"
+#include "core/core_js.h"
 
 /**
  * @name	core_dispatch_event

@@ -15,7 +15,7 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "timestep_text_data.h"
+#include "timestep/timestep_text_data.h"
 #include <stdlib.h>
 
 

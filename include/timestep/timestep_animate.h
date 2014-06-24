@@ -18,8 +18,8 @@
 
 #include "timestep/timestep.h"
 
-#include "object_pool.h"
-#include "list.h"
+#include "core/object_pool.h"
+#include "core/list.h"
 
  //get a new animation frame. Don't free this object, call release
 anim_frame *anim_frame_get();

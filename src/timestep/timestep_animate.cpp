@@ -19,9 +19,9 @@
 
 #include "timestep/timestep_animate.h"
 #include "timestep/timestep_view.h"
-#include "js/js.h"
-#include "js/js_animate.h"
-#include "log.h"
+//#include "js/js.h"
+//#include "js/js_animate.h"
+#include "core/log.h"
 
 /*
  * make some object pools for our different objects

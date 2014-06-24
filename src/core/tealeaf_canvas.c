@@ -17,15 +17,14 @@
  * @file	 tealeaf_canvas.c
  * @brief
  */
-#include "tealeaf_canvas.h"
-
-#include "texture_2d.h"
-#include "texture_manager.h"
-#include "tealeaf_context.h"
-#include "draw_textures.h"
-#include "config.h"
-#include "log.h"
-#include "geometry.h"
+#include "core/tealeaf_canvas.h"
+#include "core/texture_2d.h"
+#include "core/texture_manager.h"
+#include "core/tealeaf_context.h"
+#include "core/draw_textures.h"
+#include "core/config.h"
+#include "core/log.h"
+#include "core/geometry.h"
 
 static tealeaf_canvas canvas;
 

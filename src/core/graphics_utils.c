@@ -1,6 +1,6 @@
-#include "graphics_utils.h"
-#include "geometry.h"
-#include "log.h"
+#include "core/graphics_utils.h"
+#include "core/geometry.h"
+#include "core/log.h"
 #include <stdlib.h>
 
 void apply_composite_operation(int composite_op) {

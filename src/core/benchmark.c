@@ -17,8 +17,8 @@
  * @file	 benchmark.c
  * @brief
  */
-#include "benchmark.h"
-#include "log.h"
+#include "core/benchmark.h"
+#include "core/log.h"
 #include <sys/time.h>
 
 /**

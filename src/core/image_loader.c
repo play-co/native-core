@@ -13,8 +13,8 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-#include "image_loader.h"
-#include "log.h"
+#include "core/image_loader.h"
+#include "core/log.h"
 #include <stdlib.h>
 
 #include "turbojpeg/turbojpeg.h"

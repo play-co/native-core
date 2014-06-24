@@ -16,7 +16,7 @@
 #ifndef TEXTURE_MANAGER_H
 #define TEXTURE_MANAGER_H
 
-#include "texture_2d.h"
+#include "core/texture_2d.h"
 #include "image-cache/image_cache.h"
 
 #include <pthread.h>

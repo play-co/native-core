@@ -17,7 +17,6 @@
 #define TYPES_H
 
 #ifdef __cplusplus
-
 #include <cstddef>
 
 #else

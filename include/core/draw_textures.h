@@ -13,31 +13,20 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-#ifndef CORE_JS_H
-#define CORE_JS_H
+#ifndef DRAW_TEXTURES_H
+#define DRAW_TEXTURES_H
 
-#include "util/detect.h"
-#include "types.h"
-
-/****************************************************
- * This file exports all functions that tealeaf
- * core needs to know about.
- ****************************************************/
+#include "core/geometry.h"
+#include "core/tealeaf_context.h"
+#include "core/rgba.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// JS Ready flag: Indicates that the JavaScript engine is running
-extern bool js_ready;
-
-bool init_js(const char *uri, const char *version);
-bool destroy_js();
-void eval_str(const char *str);
-void js_tick(long dt);
-void js_dispatch_event(const char *evt);
-void js_on_pause();
-void js_on_resume();
+void draw_textures_flush();
+void draw_textures_item(context_2d *ctx, const matrix_3x3 *model_view, int name, int src_width, int src_height, int orig_width, int orig_height, rect_2d src, rect_2d dest, rect_2d clip, float opacity, int composite_op, rgba *filter_color, int filter_type);
+void draw_textures_init();
 
 #ifdef __cplusplus
 }

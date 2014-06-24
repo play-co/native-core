@@ -17,11 +17,11 @@
  * @file	 object_pool.c
  * @brief
  */
-#include "object_pool.h"
+#include "core/object_pool.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "log.h"
+#include "core/log.h"
 
 /**
  * @name	object_pool_init

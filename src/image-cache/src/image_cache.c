@@ -35,7 +35,7 @@
 #include "curl/curl.h"
 
 #include "../include/murmur.h"
-#include "../include/image_cache.h"
+#include "image-cache/image_cache.h"
 
 
 //#define IMGCACHE_VERBOSE
@@ -63,7 +63,7 @@ void threads_join_thread(ThreadsThread *thread) {
     pthread_join(*thread, 0);
 }
 #else
-#include "log.h"
+#include "core/log.h"
 #include "platform/threads.h"
 #endif // IMGCACHE_STANDALONE
 

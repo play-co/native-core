@@ -15,8 +15,8 @@
 
 #ifndef TIMESTEP_TEXT_DATA_H
 #define TIMESTEP_TEXT_DATA_H
-#include "types.h"
-#include "rgba.h"
+#include "core/types.h"
+#include "core/rgba.h"
 
 typedef struct timestep_text_data_t {
 	rgba color;
