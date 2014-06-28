@@ -80,8 +80,6 @@ timestep_view *timestep_view_init() {
     v->y = 0;
     v->width = UNDEFINED_DIMENSION;
     v->height = UNDEFINED_DIMENSION;
-    v->width_percent = 0;
-    v->height_percent = 0;
     v->r = 0;
     v->anchor_x = 0;
     v->anchor_y = 0;
@@ -100,8 +98,6 @@ timestep_view *timestep_view_init() {
     v->opacity = 1;
     v->timestep_view_render = default_view_render;
     v->timestep_view_tick = default_view_tick;
-    v->first_render = true;
-    v->__first_render = false;
 
     v->composite_operation = 0;
 
@@ -152,10 +148,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
     LOGFN("timestep_view_wrap_render");
     if (!v->visible || !v->opacity) {
         return;
-    }
-
-    if (!v->__first_render) {
-        def_timestep_view_needs_reflow(v->js_view, true);
     }
 
     if (v->dirty_z_index) {
