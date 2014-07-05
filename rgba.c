@@ -307,6 +307,8 @@ void rgba_parse(rgba *color, const char *src) {
             b = c->color.b;
             g = c->color.g;
             a = c->color.a;
+        } else {
+            a = 0;
         }
     }
 
