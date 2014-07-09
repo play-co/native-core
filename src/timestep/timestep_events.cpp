@@ -67,7 +67,7 @@ CEXPORT input_event_list timestep_events_get() {
 
     return (input_event_list_t) {
         m_events,
-        current_count
+        static_cast<unsigned int>(current_count)
     };
 }
 

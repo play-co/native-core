@@ -16,12 +16,8 @@
 #ifndef IMAGE_LOADER_H
 #define IMAGE_LOADER_H
 
-#ifdef UNITY
-#include "Unity/png.h"
-#else
-#include "png/png.h"
-#include "png/pngstruct.h"
-#endif
+#include "core/deps/png/png.h"
+#include "core/deps/png/pngstruct.h"
 
 #ifdef __cplusplus
 extern "C" {

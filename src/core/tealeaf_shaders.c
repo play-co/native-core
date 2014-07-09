@@ -371,7 +371,7 @@ static void inline tealeaf_shaders_linear_add_unbind() {
  */
 void tealeaf_shaders_bind(unsigned int shader_type) {
     if (current_shader == shader_type) {
-        return;
+        //return;
     }
 
     // unbind old shader
@@ -398,7 +398,7 @@ void tealeaf_shaders_bind(unsigned int shader_type) {
 
     current_shader = shader_type;
 
-    tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, false);
+    tealeaf_context_update_shader(tealeaf_canvas_get()->active_ctx, shader_type, true);
 }
 
 /**

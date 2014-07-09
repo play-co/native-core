@@ -1,12 +1,8 @@
 #ifndef IMAGE_WRITER_H
 #define IMAGE_WRITER_H
 
-#ifdef UNITY
-#include "Unity/png.h"
-#else
-#include "png/png.h"
-#include "png/pngstruct.h"
-#endif
+#include "core/deps/png/png.h"
+#include "core/deps/png/pngstruct.h"
 
 #include "core/log.h"
 #include "core/types.h"

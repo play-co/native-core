@@ -56,6 +56,24 @@ void tealeaf_context_set_proj_matrix(context_2d *ctx) {
 }
 
 /**
+ * @name	tealeaf_context_resize
+ * @brief	resizes the given context to the given width / height
+ * @param	ctx - (context_2d *) context to resize
+ * @param	width - (int) width to resize to
+ * @param	height - (int) height to resize to
+ * @retval	NONE
+ */
+void tealeaf_context_resize(context_2d *ctx, int width, int height) {
+    if (true || ctx->on_screen) {
+        ctx->backing_width = width;
+        ctx->backing_height = height;
+        ctx->width = width;
+        ctx->height = height;
+        tealeaf_context_set_proj_matrix(ctx);
+    }
+}
+
+/**
  * @name	tealeaf_context_update_viewport
  * @brief	updates the gl viewport using the context's properties
  * @param	ctx - (context_2d *) context to update the viewport by
@@ -67,6 +85,7 @@ void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
     tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
     tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
     tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
+    LOG("BACKING WIDTHxHEIGHT %ix%i", ctx->backing_width, ctx->backing_height);
     GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
 }
 

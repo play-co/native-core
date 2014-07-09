@@ -661,8 +661,9 @@ void texture_manager_destroy(texture_manager *manager) {
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
         texture_2d_destroy(tex);
+        HASH_DELETE(url_hash, manager->url_to_tex, tex);
     }
-    HASH_CLEAR(url_hash, manager->url_to_tex);
+    //HASH_CLEAR(url_hash, manager->url_to_tex);
     free(manager);
     // Clear the texture load list
     tex_load_list = NULL;
