@@ -371,10 +371,10 @@ static void inline tealeaf_shaders_linear_add_unbind() {
  */
 void tealeaf_shaders_bind(unsigned int shader_type) {
     if (current_shader == shader_type) {
-        //return;
+        return;
     }
-
     // unbind old shader
+    
     if (current_shader == PRIMARY_SHADER) {
         tealeaf_shaders_primary_unbind();
     } else if (current_shader == DRAWING_SHADER) {

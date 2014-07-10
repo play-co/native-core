@@ -85,7 +85,6 @@ void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
     tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
     tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
     tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
-    LOG("BACKING WIDTHxHEIGHT %ix%i", ctx->backing_width, ctx->backing_height);
     GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
 }
 
@@ -173,8 +172,11 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
             tex->ctx = ctx;
         }
     } else {
-        ctx->width = 0;
-        ctx->height = 0;
+        ctx->width = canvas->framebuffer_width;
+        ctx->height = canvas->framebuffer_height;
+        ctx->backing_width = canvas->framebuffer_width;
+        ctx->backing_height = canvas->framebuffer_height;
+        LOG("%ix%i", ctx->width, ctx->height);
     }
 
     ctx->canvas = canvas;

@@ -125,9 +125,8 @@ void core_init(const char *entry_point,
  * @param	framebuffer_name - (int) gl id of the onscreen framebuffer
  * @retval	NONE
  */
-void core_init_gl(int framebuffer_name) {
+void core_init_gl(int framebuffer_name, int tex_name) {
     LOG("{core} Initializing OpenGL");
-
     tealeaf_shaders_init();
     m_framebuffer_name = framebuffer_name;
 
@@ -136,8 +135,9 @@ void core_init_gl(int framebuffer_name) {
         LOG("{core} WARNING: Framebuffer used to init GL was invalid");
     }
 
+    
     // Canvas must be initialized after shaders
-    tealeaf_canvas_init(m_framebuffer_name);
+    tealeaf_canvas_init(m_framebuffer_name, tex_name);
 }
 
 /**
@@ -282,6 +282,9 @@ void core_tick(long dt) {
     if (js_ready) {
         core_check_gl_error();
     }
+    //draw_textures_flush();
+    current_shader = -1;
+    tealeaf_canvas_get()->active_ctx = NULL;
 }
 
 /**

@@ -39,7 +39,7 @@ void core_init(const char *entry_point,
 bool core_init_js(const char *uri, const char *version);
 void core_report_gl_error(int error_code);
 bool core_check_gl_error();
-void core_init_gl(int framebuffer_name);
+void core_init_gl(int framebuffer_name, int tex_name);
 void core_hide_preloader();
 void core_on_screen_resize(int width, int height);
 void core_run();

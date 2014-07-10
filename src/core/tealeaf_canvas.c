@@ -43,7 +43,7 @@ tealeaf_canvas *tealeaf_canvas_get() {
  * @param	framebuffer_name - (int) gl id of the onscreen framebuffer
  * @retval	NONE
  */
-void tealeaf_canvas_init(int framebuffer_name) {
+void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
     LOG("{canvas} Initializing Canvas");
 
     int width = config_get_screen_width();
@@ -51,15 +51,17 @@ void tealeaf_canvas_init(int framebuffer_name) {
     GLuint offscreen_buffer_name;
     GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
     canvas.offscreen_framebuffer = offscreen_buffer_name;
-    canvas.view_framebuffer = framebuffer_name;
-    canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
+    canvas.view_framebuffer = offscreen_buffer_name;
+    canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", tex_name, true);
     canvas.onscreen_ctx->width = width;
     canvas.onscreen_ctx->height = height;
+    canvas.onscreen_ctx->backing_width = width;
+    canvas.onscreen_ctx->backing_height = height;
     canvas.active_ctx = 0;
 
     // TODO: should_resize is not respected on iOS
 
-    tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
+   // tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
 }
 
 /**
@@ -69,19 +71,21 @@ void tealeaf_canvas_init(int framebuffer_name) {
  * @retval	NONE
  */
 void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
-    texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
+   /* texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
 
     if (!tex) {
         return;
     }
+    */
 
-    GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+    GLTRACE(glBindTexture(GL_TEXTURE_2D, ctx->destTex));
     GLTRACE(glFinish());
     GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
-    GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0));
-    canvas.framebuffer_width = tex->originalWidth;
-    canvas.framebuffer_height = tex->originalHeight;
-    canvas.framebuffer_offset_bottom = tex->height - tex->originalHeight;
+    GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx->destTex, 0));
+    canvas.framebuffer_width = ctx->width;//tex->originalWidth;
+    canvas.framebuffer_height = ctx->height;//tex->originalHeight;
+    canvas.framebuffer_offset_bottom = 0;//tex->height - tex->originalHeight;
+ 
 }
 
 /**
@@ -111,12 +115,18 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
         canvas.active_ctx = ctx;
 
         if (ctx->on_screen) {
-            tealeaf_canvas_bind_render_buffer(ctx);
-        } else {
             tealeaf_canvas_bind_texture_buffer(ctx);
+//            tealeaf_canvas_bind_render_buffer(ctx);
+
+        } else {
+           // tealeaf_canvas_bind_texture_buffer(ctx);
+            tealeaf_canvas_bind_texture_buffer(ctx);
+
+           // tealeaf_canvas_bind_render_buffer(ctx);
+
         }
 
-        tealeaf_context_update_viewport(ctx, false);
+        tealeaf_context_update_viewport(ctx, true);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
