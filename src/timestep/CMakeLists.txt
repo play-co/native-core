@@ -4,6 +4,7 @@ project (timestep)
 set (PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 include_directories("${PROJECT_INCLUDE_DIR}")
+include_directories("${V8-JS_SOURCE_DIR}/include")
 
 set (TIMESTEP_SRCS ${PROJECT_SOURCE_DIR}/timestep_events.cpp
 ${PROJECT_SOURCE_DIR}/timestep_text_data.cpp
