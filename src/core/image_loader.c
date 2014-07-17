@@ -195,6 +195,10 @@ struct bounded_buffer {
 
 //helper function for load_png_from_memory
 void png_image_bytes_read(png_structp png_ptr, png_bytep data, png_size_t length) {
+    if (png_ptr->io_ptr == NULL) {
+        LOG("Error reading png :-(");
+        return;
+    }
     struct bounded_buffer *buff = (struct bounded_buffer*) png_ptr->io_ptr;
     unsigned char *next_pos = buff->pos + length;
     if (next_pos <= buff->end) {
