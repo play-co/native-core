@@ -141,6 +141,12 @@ int load_shader(int type, const char *code, const char *description) {
     GLTRACE(glGetShaderiv(shader, GL_COMPILE_STATUS, &bDidCompile));
 
     if (!bDidCompile) {
+        char buf[1024] = {0};
+        int len;
+        glGetShaderInfoLog(shader, 1024, &len, &buf);
+        LOG("Shader info log");
+        LOG("%i %s", len, buf);
+
         // Display shader program compile failure
         const char *stype = "unknown";
         switch (type) {
