@@ -22,10 +22,27 @@
 
 #include "util/detect.h"
 //#include "js/js.h"
-#include "rgba.h"
-#include "tealeaf_context.h"
+#include "core/rgba.h"
+#include "core/tealeaf_context.h"
 
-#define JS_OBJECT_WRAPPER void*
+#include "js/types.h"
+#include "js/js_animate.h"
+
+#ifndef JS_OBJECT_WRAPPER
+//#define JS_OBJECT_WRAPPER void*
+//#define PERSISTENT_JS_OBJECT_WRAPPER void*
+#endif
+
+/*extern void (*def_animate_cb)(JS_OBJECT_WRAPPER, JS_OBJECT_WRAPPER, int, int);
+extern void (*def_animate_finish)(JS_OBJECT_WRAPPER);
+extern void (*js_object_wrapper_init)(JS_OBJECT_WRAPPER*);
+extern void (*js_object_wrapper_delete)(JS_OBJECT_WRAPPER*);
+extern void (*def_timestep_view_needs_reflow)(JS_OBJECT_WRAPPER, bool);
+extern void (*def_timestep_view_tick)(JS_OBJECT_WRAPPER, int);
+extern JS_OBJECT_WRAPPER (*def_get_viewport)(JS_OBJECT_WRAPPER);
+extern void (*def_timestep_view_render)(JS_OBJECT_WRAPPER, JS_OBJECT_WRAPPER, JS_OBJECT_WRAPPER);
+extern void (*def_restore_viewport)(JS_OBJECT_WRAPPER, JS_OBJECT_WRAPPER);
+*/
 
 struct view_animation_t;
 

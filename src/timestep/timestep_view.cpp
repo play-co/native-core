@@ -18,7 +18,7 @@
 
 #include "timestep/timestep_view.h"
 #include "timestep/timestep_image_map.h"
-//#include "js/js_timestep_view.h"
+#include "js/js_timestep_view.h"
 //#include "js/js.h"
 #include "core/list.h"
 #include "core/log.h"

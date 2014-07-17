@@ -54,12 +54,12 @@
 // Inlined from my core implementation:
 #define ThreadsThread pthread_t
 typedef void (*ThreadsThreadProc)(void *);
-pthread_t threads_create_thread(ThreadsThreadProc proc, void *arg) {
+extern "C" pthread_t threads_create_thread(ThreadsThreadProc proc, void *arg) {
     pthread_t thread = {0};
     pthread_create(&thread, 0, proc, arg);
     return thread;
 }
-void threads_join_thread(ThreadsThread *thread) {
+extern "C" void threads_join_thread(ThreadsThread *thread) {
     pthread_join(*thread, 0);
 }
 #else
