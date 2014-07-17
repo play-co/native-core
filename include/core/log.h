@@ -17,5 +17,5 @@
 //#include "platform/log.h"
 //
 #include <stdio.h>
-#define LOG(...) printf(__VA_ARGS__);
-#define LOGFN
+#define LOG(...) printf(__VA_ARGS__);printf("\n");
+#define LOGFN(...)
