@@ -46,11 +46,10 @@ static char *linear_add_vertex_shader_code = "														\
  * alpha value.
  */
 static char *linear_add_fragment_shader_code = "													\
-	precision mediump float;															\
 																						\
 	varying vec2 v_tex_coord;															\
-	uniform lowp vec4 draw_color;														\
-	uniform lowp vec4 add_color;														\
+	uniform vec4 draw_color;														\
+	uniform vec4 add_color;														\
 																						\
 	uniform sampler2D tex_sampler;														\
 																						\
@@ -76,11 +75,10 @@ static char *vertex_shader_code = "														\
 ";
 
 static char *fragment_shader_code = "													\
-	precision mediump float;															\
 																						\
 	varying vec2 v_tex_coord;															\
-	uniform lowp vec4 draw_color;														\
-	uniform lowp vec4 add_color;														\
+	uniform vec4 draw_color;														\
+	uniform vec4 add_color;														\
 																						\
 	uniform sampler2D tex_sampler;														\
 																						\
@@ -89,9 +87,8 @@ static char *fragment_shader_code = "													\
 	}";
 
 static char *fill_rect_fragment_shader_code = "											\
-	precision mediump float;															\
 																						\
-	uniform lowp vec4 draw_color;														\
+	uniform vec4 draw_color;														\
 																						\
 	void main(void) {																	\
 		gl_FragColor = draw_color;														\
@@ -99,7 +96,6 @@ static char *fill_rect_fragment_shader_code = "											\
 
 
 static char *drawing_vertex_shader_code = "												\
-																						\
 	attribute vec2 attr_vertex_coord;													\
 																						\
 	uniform mat4 proj_matrix;															\
@@ -112,16 +108,14 @@ static char *drawing_vertex_shader_code = "												\
 ";
 
 static char *drawing_fragment_shader_code = "											\
-	precision mediump float;															\
-																						\
-	uniform lowp vec4 draw_color;														\
-																						\
-	uniform sampler2D tex_sampler;														\
-																						\
-	void main(void) {																	\
-		float alpha = texture2D(tex_sampler, gl_PointCoord).a;							\
-		gl_FragColor = draw_color * alpha;												\
-	}";
+#version 120\n                                                                            \
+                                                                                        \
+    uniform vec4 draw_color;                                                            \
+    uniform sampler2D tex_sampler;                                                      \
+    void main(void) {                                                                   \
+        float alpha = texture2D(tex_sampler, gl_PointCoord).a;                          \
+        gl_FragColor = draw_color * alpha;                                              \
+    }";
 
 
 tealeaf_shader global_shaders[NUM_SHADERS];
