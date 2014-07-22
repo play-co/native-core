@@ -143,7 +143,7 @@ int load_shader(int type, const char *code, const char *description) {
     if (!bDidCompile) {
         char buf[1024] = {0};
         int len;
-        glGetShaderInfoLog(shader, 1024, &len, &buf);
+        glGetShaderInfoLog(shader, 1024, &len, (GLchar*)&buf);
         LOG("Shader info log");
         LOG("%i %s", len, buf);
 
