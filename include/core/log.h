@@ -16,6 +16,16 @@
 //no ifdefs because this just wraps platform/log.h, which has them
 //#include "platform/log.h"
 //
+
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOG_TAG "JS"
+#define DEBUG_TAG "JSDEBUG"
+#define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define LOGFN(...)
+#else
 #include <stdio.h>
 #define LOG(...) printf(__VA_ARGS__);printf("\n");
 #define LOGFN(...)
+#endif
