@@ -114,19 +114,9 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
         // Update active context after flushing
         canvas.active_ctx = ctx;
 
-        if (ctx->on_screen) {
-            tealeaf_canvas_bind_texture_buffer(ctx);
-//            tealeaf_canvas_bind_render_buffer(ctx);
+        tealeaf_canvas_bind_texture_buffer(ctx);
 
-        } else {
-           // tealeaf_canvas_bind_texture_buffer(ctx);
-            tealeaf_canvas_bind_texture_buffer(ctx);
-
-           // tealeaf_canvas_bind_render_buffer(ctx);
-
-        }
-
-        tealeaf_context_update_viewport(ctx, true);
+       tealeaf_context_update_viewport(ctx, true);
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
