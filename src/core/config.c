@@ -23,7 +23,7 @@
 
 #define DEF_SIMULATE_ID "tealeaf"
 #define DEF_CODE_PATH "native.js"
-#define DEF_CODE_HOST "localhost"
+#define DEF_CODE_HOST "http://localhost"
 #define DEF_TCP_HOST "localhost"
 #define DEF_TCP_PORT 4747
 #define DEF_CODE_PORT 9200
