@@ -29,6 +29,7 @@
 #define DRAW_TEXTURES_PROFILE 0
 #define MAX_BUFFER_SIZE 1024
 
+extern int current_shader;
 
 static int lastName = -1;
 static int bufSize = 0;

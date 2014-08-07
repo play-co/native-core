@@ -35,6 +35,7 @@
 
 static rect_2d last_scissor_rect;
 
+extern int current_shader;
 
 /**
  * @name	tealeaf_context_set_proj_matrix
@@ -856,7 +857,9 @@ void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bo
         GLTRACE(glUniformMatrix4fv(shader->proj_matrix, 1, false, (float *) &m));
         shader->last_width = width;
         shader->last_height = height;
-        GLTRACE(glUseProgram(global_shaders[current_shader].program));
+        if (current_shader != -1) {
+            GLTRACE(glUseProgram(global_shaders[current_shader].program));
+        }
     }
 }
 

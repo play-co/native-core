@@ -120,7 +120,7 @@ static char *drawing_fragment_shader_code = "											\
 
 tealeaf_shader global_shaders[NUM_SHADERS];
 
-unsigned int current_shader;
+int current_shader;
 
 /**
  * @name	load_shader

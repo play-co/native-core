@@ -49,7 +49,6 @@ typedef struct shader_t {
 } tealeaf_shader;
 
 tealeaf_shader global_shaders[NUM_SHADERS];
-unsigned int current_shader;
 
 void tealeaf_shaders_init();
 void tealeaf_shaders_bind(unsigned int shader_type);

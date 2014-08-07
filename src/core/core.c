@@ -42,6 +42,7 @@
 gl_error *gl_errors_hash = NULL;
 static int m_framebuffer_name = -1;
 
+extern int current_shader;
 /**
  * @name	run_file
  * @brief	reads and runs javascript found in the given file
