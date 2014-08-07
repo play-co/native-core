@@ -1,8 +1,8 @@
 #ifndef IMAGE_WRITER_H
 #define IMAGE_WRITER_H
 
-#include "core/deps/png/png.h"
-#include "core/deps/png/pngstruct.h"
+#include "png/png.h"
+#include "png/pngstruct.h"
 
 #include "core/log.h"
 #include "core/types.h"

@@ -16,8 +16,8 @@
 #ifndef IMAGE_LOADER_H
 #define IMAGE_LOADER_H
 
-#include "core/deps/png/png.h"
-#include "core/deps/png/pngstruct.h"
+#include "png/png.h"
+#include "png/pngstruct.h"
 
 #ifdef __cplusplus
 extern "C" {
