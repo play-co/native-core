@@ -206,6 +206,7 @@ void calculate_size(texture_2d *tex, bool rotate) {
     size.height = ratio * tex->originalHeight * scale;
 }
 
+void finish_loading_images();
 /**
  * @name	core_tick
  * @brief	moves the game forward by a single tick, defined by a time delta of
@@ -286,6 +287,7 @@ void core_tick(long dt) {
     //draw_textures_flush();
     current_shader = -1;
     tealeaf_canvas_get()->active_ctx = NULL;
+    finish_loading_images();
 }
 
 /**
