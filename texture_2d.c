@@ -298,6 +298,9 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
     *out_originalHeight = h_old;
 
     if (*out_compression_type) {
+        *out_width = w_old;
+        *out_height = h_old;
+        *out_scale = 1;
         return bits;
     } else {
         switch (ch) {
