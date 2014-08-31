@@ -79,7 +79,6 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
     */
 
     GLTRACE(glBindTexture(GL_TEXTURE_2D, ctx->destTex));
-    GLTRACE(glFinish());
     GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
     GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ctx->destTex, 0));
     canvas.framebuffer_width = ctx->width;//tex->originalWidth;
@@ -142,7 +141,7 @@ void tealeaf_canvas_resize(int w, int h) {
     context_2d_resize(ctx, w, h);
 
     if (canvas.active_ctx == canvas.onscreen_ctx) {
-        tealeaf_canvas_bind_render_buffer(ctx);
+        tealeaf_canvas_bind_texture_buffer(ctx);
         tealeaf_context_update_viewport(ctx, true);
         context_2d_clear(ctx);
     }

@@ -232,7 +232,6 @@ void texture_2d_save(texture_2d *tex) {
     tealeaf_canvas_context_2d_bind(tex->ctx);
     GLTRACE(glReadPixels(0, 0, tex->width, tex->height, GL_RGBA, GL_UNSIGNED_BYTE, tex->saved_data));
     context_2d *ctx = context_2d_get_onscreen();
-    tealeaf_canvas_bind_render_buffer(ctx);
 }
 
 /**
