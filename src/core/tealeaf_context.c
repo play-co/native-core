@@ -26,6 +26,7 @@
 #include "core/geometry.h"
 #include "core/image_writer.h"
 #include "core/graphics_utils.h"
+#include "core/tex_parameter_cache.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -763,10 +764,23 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
     GLTRACE(glActiveTexture(GL_TEXTURE0));
     GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
     GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+    tex_parameter_cache_t *param_cache = get_tex_parameter_cache();
+    if (param_cache->min_filter != GL_LINEAR) {
+      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+      param_cache->min_filter = GL_LINEAR;
+    }
+    if (param_cache->mag_filter != GL_LINEAR) {
+      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+      param_cache->mag_filter = GL_LINEAR;
+    }
+    if (param_cache->wrap_s != GL_CLAMP_TO_EDGE) {
+      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+      param_cache->wrap_s = GL_CLAMP_TO_EDGE;
+    }
+    if (param_cache->wrap_t != GL_CLAMP_TO_EDGE) {
+      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+      param_cache->wrap_t = GL_CLAMP_TO_EDGE;
+    }
     // Render the vertex array
     GLTRACE(glUniform1f(global_shaders[DRAWING_SHADER].point_size, point_size));
     GLTRACE(glVertexAttribPointer(global_shaders[DRAWING_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, (float *) vertex_buffer));
