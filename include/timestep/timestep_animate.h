@@ -21,6 +21,13 @@
 #include "core/object_pool.h"
 #include "core/list.h"
 
+struct frame_t;
+typedef struct frame_t anim_frame;
+struct style_prop_t;
+typedef struct style_prop_t style_prop;
+struct view_animation_t;
+typedef struct view_animation_t view_animation;
+
  //get a new animation frame. Don't free this object, call release
 anim_frame *anim_frame_get();
 //release an animation frame.  You should never call free yourself

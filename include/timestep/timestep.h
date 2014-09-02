@@ -27,6 +27,7 @@
 
 #include "js/types.h"
 #include "js/js_animate.h"
+#include "js/js.h"
 
 #ifndef JS_OBJECT_WRAPPER
 //#define JS_OBJECT_WRAPPER void*
