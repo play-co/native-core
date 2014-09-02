@@ -20,7 +20,6 @@
 #include "core/config.h"
 #include "core/list.h"
 #include "core/events.h"
-#include "core/tex_parameter_cache.h"
 #include "platform/gl.h"
 #include "platform/native.h"
 #include "platform/resource_loader.h"
@@ -781,24 +780,10 @@ void texture_manager_tick(texture_manager *manager) {
         if (!cur_tex->failed) {
             GLTRACE(glGenTextures(1, &texture));
             GLTRACE(glBindTexture(GL_TEXTURE_2D, texture));
-
-            tex_parameter_cache_t *param_cache = get_tex_parameter_cache();
-            if (param_cache->min_filter != GL_LINEAR) {
-              GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-              param_cache->min_filter = GL_LINEAR;
-            }
-            if (param_cache->mag_filter != GL_LINEAR) {
-              GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-              param_cache->mag_filter = GL_LINEAR;
-            }
-            if (param_cache->wrap_s != GL_CLAMP_TO_EDGE) {
-              GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-              param_cache->wrap_s = GL_CLAMP_TO_EDGE;
-            }
-            if (param_cache->wrap_t != GL_CLAMP_TO_EDGE) {
-              GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-              param_cache->wrap_t = GL_CLAMP_TO_EDGE;
-            }
+            GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+            GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
             //create the texture
             int channels = cur_tex->num_channels;

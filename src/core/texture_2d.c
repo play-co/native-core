@@ -26,7 +26,6 @@
 #include "core/log.h"
 #include "core/image_loader.h"
 #include "core/core.h"
-#include "core/tex_parameter_cache.h"
 
 // Enable this to print out the texture loader scaling and resizing operations
 //#define VERBOSE_LOAD_TEX
@@ -125,23 +124,10 @@ static inline int get_tex_from_data(int w, int h, const void *data) {
     GLuint name;
     GLTRACE(glGenTextures(1, &name));
     GLTRACE(glBindTexture(GL_TEXTURE_2D, name));
-    tex_parameter_cache_t *param_cache = get_tex_parameter_cache();
-    if (param_cache->min_filter != GL_LINEAR) {
-      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-      param_cache->min_filter = GL_LINEAR;
-    }
-    if (param_cache->mag_filter != GL_LINEAR) {
-      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      param_cache->mag_filter = GL_LINEAR;
-    }
-    if (param_cache->wrap_s != GL_CLAMP_TO_EDGE) {
-      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-      param_cache->wrap_s = GL_CLAMP_TO_EDGE;
-    }
-    if (param_cache->wrap_t != GL_CLAMP_TO_EDGE) {
-      GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-      param_cache->wrap_t = GL_CLAMP_TO_EDGE;
-    }
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
     GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
     return name;
 }

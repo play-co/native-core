@@ -22,7 +22,6 @@
 #include "core/tealeaf_shaders.h"
 #include "core/log.h"
 #include "core/graphics_utils.h"
-#include "core/tex_parameter_cache.h"
 #include "platform/gl.h"
 #include <sys/time.h>
 #include <math.h>
@@ -194,23 +193,10 @@ void draw_textures_flush() {
 
         GLTRACE(glActiveTexture(GL_TEXTURE0));
         GLTRACE(glBindTexture(GL_TEXTURE_2D, lastName));
-        tex_parameter_cache_t *param_cache = get_tex_parameter_cache();
-        if (param_cache->min_filter != GL_LINEAR) {
-          GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-          param_cache->min_filter = GL_LINEAR;
-        }
-        if (param_cache->mag_filter != GL_LINEAR) {
-          GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-          param_cache->mag_filter = GL_LINEAR;
-        }
-        if (param_cache->wrap_s != GL_CLAMP_TO_EDGE) {
-          GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-          param_cache->wrap_s = GL_CLAMP_TO_EDGE;
-        }
-        if (param_cache->wrap_t != GL_CLAMP_TO_EDGE) {
-          GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-          param_cache->wrap_t = GL_CLAMP_TO_EDGE;
-        }
+        GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+        GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
         GLTRACE(glVertexAttribPointer(global_shaders[current_shader].vertex_coords, 2, GL_FLOAT, GL_FALSE, stride, ((float *) buffer) + 2));
         //TexCoord0, XY (Also called ST. Also called UV), FLOAT.
         GLTRACE(glVertexAttribPointer(global_shaders[current_shader].tex_coords, 2, GL_FLOAT, GL_FALSE, stride, buffer));
