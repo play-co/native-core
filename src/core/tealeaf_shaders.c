@@ -46,7 +46,10 @@ static char *linear_add_vertex_shader_code = "														\
  * alpha value.
  */
 static char *linear_add_fragment_shader_code = "													\
-																						\
+\n#ifdef GL_ES\n                              \
+    precision mediump float;                \
+\n#endif\n                                    \
+                                            \
 	varying vec2 v_tex_coord;															\
 	uniform vec4 draw_color;														\
 	uniform vec4 add_color;														\
@@ -75,7 +78,10 @@ static char *vertex_shader_code = "														\
 ";
 
 static char *fragment_shader_code = "													\
-																						\
+\n#ifdef GL_ES\n                           \
+    precision mediump float;                \
+\n#endif\n                                   \
+                                            \
 	varying vec2 v_tex_coord;															\
 	uniform vec4 draw_color;														\
 	uniform vec4 add_color;														\
@@ -87,6 +93,9 @@ static char *fragment_shader_code = "													\
 	}";
 
 static char *fill_rect_fragment_shader_code = "											\
+\n#ifdef GL_ES\n                              \
+    precision mediump float;                \
+\n#endif\n                                    \
 																						\
 	uniform vec4 draw_color;														\
 																						\
@@ -108,7 +117,11 @@ static char *drawing_vertex_shader_code = "												\
 ";
 
 static char *drawing_fragment_shader_code = "											\
-#version 120\n                                                                            \
+\n#ifdef GL_ES\n                             \
+    precision mediump float;                \
+\n#else\n                                     \
+\n#version 120\n                            \
+\n#endif\n                                  \
                                                                                         \
     uniform vec4 draw_color;                                                            \
     uniform sampler2D tex_sampler;                                                      \
