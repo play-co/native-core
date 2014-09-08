@@ -79,10 +79,7 @@ bool is_remote_resource(const char *url) {
     //TODO: until ios implements simulate and stores images from http
     //on disk, need this temporary ifdef
     bool is_remote = false;
-#ifndef ANDROID
     is_remote = config_get_remote_loading();
-#endif
-
     if (!url || strlen(url) == 0) {
         is_remote = false;
     } else if (*url == '@') {
