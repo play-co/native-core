@@ -53,7 +53,8 @@ typedef struct context_2d_t {
 enum filter_mode {
     FILTER_NONE,
     FILTER_LINEAR_ADD,
-    FILTER_MULTIPLY
+    FILTER_MULTIPLY,
+    FILTER_TINT
 };
 
 enum composite_mode {

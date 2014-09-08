@@ -172,9 +172,22 @@ void draw_textures_flush() {
                 GLTRACE(glUniform4f(global_shaders[current_shader].add_color, r, g, b, 0));
                 GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity, lastOpacity, lastOpacity, lastOpacity));
             } else if (last_filter_type == FILTER_MULTIPLY) {
+                float r = 1 + (last_filter_color.r - 1) * last_filter_color.a;
+                float g = 1 + (last_filter_color.g - 1) * last_filter_color.a;
+                float b = 1 + (last_filter_color.b - 1) * last_filter_color.a;
                 tealeaf_shaders_bind(PRIMARY_SHADER);
-                GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, last_filter_color.r * lastOpacity, last_filter_color.g * lastOpacity, last_filter_color.b * lastOpacity, lastOpacity));
+                GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, r * lastOpacity, g * lastOpacity, b * lastOpacity, lastOpacity));
+            } else if (last_filter_type == FILTER_TINT) {
+                float a = last_filter_color.a;
+                float t = 1 - a;
+                float r = last_filter_color.r * a;
+                float g = last_filter_color.g * a;
+                float b = last_filter_color.b * a;
+                tealeaf_shaders_bind(LINEAR_ADD_SHADER);
+                GLTRACE(glUniform4f(global_shaders[current_shader].add_color, r, g, b, 0));
+                GLTRACE(glUniform4f(global_shaders[current_shader].draw_color, lastOpacity * t, lastOpacity * t, lastOpacity * t, lastOpacity));
             }
+
         }
 
         GLTRACE(glActiveTexture(GL_TEXTURE0));
