@@ -32,6 +32,7 @@ texture_2d *text_manager_get_text(const char *font_name, int size, const char *t
 texture_2d *text_manager_get_filled_text(const char *font_name, int size, const char *text, rgba *color, int max_width);
 texture_2d *text_manager_get_stroked_text(const char *font_name, int size, const char *text, rgba *color, int max_width, float stroke_width);
 int text_manager_measure_text(const char *font_name, int size, const char *text);
+    int text_manager_init();
 	
 #ifdef __cplusplus
 }
