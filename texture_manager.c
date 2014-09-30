@@ -45,8 +45,8 @@
 #define DEFAULT_SHEET_DIMENSION 64
 
 // Constants for Android phones and starting-points for iOS
-#define MAX_BYTES_FOR_HALFSIZED_TEXTURES 30000000 	/* 30 MB */
-#define MAX_BYTES_FOR_FULLSIZED_TEXTURES 100000000	/* 100 MB */
+#define MAX_BYTES_FOR_HALFSIZED_TEXTURES 500000000 	/* 30 MB */
+#define MAX_BYTES_FOR_FULLSIZED_TEXTURES 500000000	/* 100 MB */
 
 // Does not use fullsized textures under this memory value
 #define MIN_BYTES_FOR_FULLSIZE_TEXTURES 30000000	/* 30 MB */
