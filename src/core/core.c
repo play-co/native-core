@@ -65,6 +65,10 @@ static inline bool run_file(const char *filename) {
     }
 }
 
+void core_update_texture(int gl_name) {
+    context_2d *ctx = context_2d_get_onscreen();
+    ctx->destTex = gl_name;
+}
 /**
  * @name	core_init
  * @brief	initilizes the config object with given options
