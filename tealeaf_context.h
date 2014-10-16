@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -74,7 +74,6 @@ enum composite_mode {
 int tealeaf_context_load_shader(char *vertex_shader_code, char *fragment_shader_code);
 void tealeaf_context_update_viewport(context_2d *ctx, bool force);
 void tealeaf_context_update_shader(context_2d *ctx, unsigned int shader_type, bool force);
-void tealeaf_context_resize(context_2d *ctx, int w, int h);
 
 context_2d *context_2d_get_onscreen();
 context_2d *context_2d_new(tealeaf_canvas *canvas, const char *url, int destTex);
@@ -84,6 +83,7 @@ unsigned char *context_2d_read_pixels(context_2d *ctx);
 char *context_2d_save_buffer_to_base64(context_2d *ctx, const char *image_type);
 
 void context_2d_delete(context_2d *ctx);
+void context_2d_resize(context_2d *ctx, int w, int h);
 void context_2d_setGlobalAlpha(context_2d *ctx, float alpha);
 float context_2d_getGlobalAlpha(context_2d *ctx);
 void context_2d_setGlobalCompositeOperation(context_2d *ctx, int composite_mode);

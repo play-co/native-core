@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -62,6 +62,8 @@ texture_2d *texture_2d_new_from_dimensions(int width, int height);
 texture_2d *texture_2d_new_from_data(int width, int height, const void *data);
 texture_2d *texture_2d_new_from_image(char *url, int name, int width, int height, int original_width, int original_height);
 void texture_2d_destroy(texture_2d *tex);
+bool texture_2d_can_resize(texture_2d *tex, int width, int height);
+void texture_2d_resize_unsafe(texture_2d *tex, int width, int height);
 
 void texture_2d_save(texture_2d *tex);
 void texture_2d_reload(texture_2d *tex);

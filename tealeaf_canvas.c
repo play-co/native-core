@@ -140,7 +140,7 @@ void tealeaf_canvas_resize(int w, int h) {
     LOG("{canvas} Resizing screen to (%d, %d)", w, h);
 
     context_2d *ctx = canvas.onscreen_ctx;
-    tealeaf_context_resize(ctx, w, h);
+    context_2d_resize(ctx, w, h);
 
     if (canvas.active_ctx == canvas.onscreen_ctx) {
         tealeaf_canvas_bind_render_buffer(ctx);

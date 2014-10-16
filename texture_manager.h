@@ -3,12 +3,12 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
- 
+
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
- 
+
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -48,6 +48,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
 texture_2d *texture_manager_load_texture_with_size(texture_manager *manager, const char *url, int width, int height);
 void texture_manager_reload_canvases(texture_manager *manager);
 void texture_manager_reload(texture_manager *manager);
+texture_2d *texture_manager_resize_texture(texture_manager *manager, texture_2d *tex, int width, int height);
 void texture_manager_save(texture_manager *manager);
 texture_manager *texture_manager_get();
 void texture_manager_destroy(texture_manager *manager);

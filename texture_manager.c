@@ -531,6 +531,22 @@ void texture_manager_reload(texture_manager *manager) {
     pthread_mutex_unlock(&mutex);
 }
 
+/**
+ * @brief tries to resize texture in place without changing gl texture.  returns pointer to original texture if successful, or returns pointer to new texture if change in gl texture occurs
+ */
+texture_2d *texture_manager_resize_texture(texture_manager *manager, texture_2d *tex, int width, int height) {
+    LOGFN("texture_manager_resize_texture");
+    if (texture_2d_can_resize(tex, width, height)) {
+        texture_2d_resize_unsafe(tex, width, height);
+        return tex;
+    } else {
+        texture_2d *new_tex = texture_2d_new_from_dimensions(width, height);
+        texture_manager_free_texture(manager, tex);
+        texture_manager_add_texture(manager, new_tex, true);
+        return new_tex;
+    }
+}
+
 void texture_manager_save(texture_manager *manager) {
     LOGFN("texture_manager_save");
     texture_2d *tex = NULL;
