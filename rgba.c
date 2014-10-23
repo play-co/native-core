@@ -296,7 +296,7 @@ void rgba_parse(rgba *color, const char *src) {
                 }
             }
 
-            a = atof(src + i);
+            a = strtod(src + i, NULL);
         }
     } else {
         html_color *c;
