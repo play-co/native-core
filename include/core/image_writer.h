@@ -2,7 +2,6 @@
 #define IMAGE_WRITER_H
 
 #include "png/png.h"
-#include "png/pngstruct.h"
 
 #include "core/log.h"
 #include "core/types.h"

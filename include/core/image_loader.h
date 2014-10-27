@@ -17,7 +17,6 @@
 #define IMAGE_LOADER_H
 
 #include "png/png.h"
-#include "png/pngstruct.h"
 
 #ifdef __cplusplus
 extern "C" {
