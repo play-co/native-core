@@ -46,22 +46,28 @@ tealeaf_canvas *tealeaf_canvas_get() {
 void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
     LOG("{canvas} Initializing Canvas");
 
-    int width = config_get_screen_width();
-    int height = config_get_screen_height();
-    GLuint offscreen_buffer_name;
-    GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
-    canvas.offscreen_framebuffer = offscreen_buffer_name;
-    canvas.view_framebuffer = offscreen_buffer_name;
-    canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", tex_name, true);
-    canvas.onscreen_ctx->width = width;
-    canvas.onscreen_ctx->height = height;
-    canvas.onscreen_ctx->backing_width = width;
-    canvas.onscreen_ctx->backing_height = height;
-    canvas.active_ctx = 0;
+	int width = config_get_screen_width();
+	int height = config_get_screen_height();
+	if (tex_name) {
+		GLuint offscreen_buffer_name;
+		GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
+		canvas.offscreen_framebuffer = offscreen_buffer_name;
+		canvas.view_framebuffer = offscreen_buffer_name;
+		canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", tex_name, true);
+		canvas.onscreen_ctx->width = width;
+		canvas.onscreen_ctx->height = height;
+		canvas.onscreen_ctx->backing_width = width;
+		canvas.onscreen_ctx->backing_height = height;
+		canvas.active_ctx = 0;
+   	} else {
+		canvas.view_framebuffer = framebuffer_name;
+		canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
+		canvas.onscreen_ctx->width = width;
+		canvas.onscreen_ctx->height = height;
+		canvas.active_ctx = 0;
 
-    // TODO: should_resize is not respected on iOS
-
-   // tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
+		tealeaf_canvas_context_2d_bind(canvas.onscreen_ctx);
+	}
 }
 
 /**
@@ -113,7 +119,11 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
         // Update active context after flushing
         canvas.active_ctx = ctx;
 
-        tealeaf_canvas_bind_texture_buffer(ctx);
+        if (ctx->on_screen) {
+            tealeaf_canvas_bind_render_buffer(ctx);
+        } else {
+            tealeaf_canvas_bind_texture_buffer(ctx);
+        }
 
        tealeaf_context_update_viewport(ctx, true);
 
