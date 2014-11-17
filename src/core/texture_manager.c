@@ -787,7 +787,7 @@ void texture_manager_tick(texture_manager *manager) {
             int width = cur_tex->width >> (cur_tex->scale - 1);
             int height = cur_tex->height >> (cur_tex->scale - 1);
             if (cur_tex->compression_type) {
-                glCompressedTexImage2D(GL_TEXTURE_2D, 0, cur_tex->compression_type, width, height, 0, cur_tex->used_texture_bytes, cur_tex->pixel_data);
+                GLTRACE(glCompressedTexImage2D(GL_TEXTURE_2D, 0, cur_tex->compression_type, width, height, 0, cur_tex->used_texture_bytes, cur_tex->pixel_data));
             } else {
                 // select the right internal and input format based on the number of channels
                 GLint format;

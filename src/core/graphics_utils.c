@@ -60,8 +60,8 @@ void apply_composite_operation(int composite_op) {
         break;
     }
 
-    glEnable(GL_BLEND);
-    glBlendFunc(sfactor, dfactor);
+    GLTRACE(glEnable(GL_BLEND));
+    GLTRACE(glBlendFunc(sfactor, dfactor));
 }
 
 //redraw read pixels

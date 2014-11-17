@@ -289,7 +289,7 @@ void core_tick(long dt) {
     tealeaf_canvas_get()->active_ctx = NULL;
     finish_loading_images();
 
-    GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_name));
 }
 
 /**

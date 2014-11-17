@@ -60,6 +60,9 @@ void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
 		canvas.onscreen_ctx->backing_height = height;
 		canvas.active_ctx = 0;
    	} else {
+		GLuint offscreen_buffer_name;
+		GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
+		canvas.offscreen_framebuffer = offscreen_buffer_name;
 		canvas.view_framebuffer = framebuffer_name;
 		canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
 		canvas.onscreen_ctx->width = width;
@@ -123,13 +126,12 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
             tealeaf_canvas_bind_render_buffer(ctx);
         } else {
             tealeaf_canvas_bind_texture_buffer(ctx);
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+            }
         }
 
-       tealeaf_context_update_viewport(ctx, true);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOG("{canvas} WARNING: Failed to make complete framebuffer %i", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-        }
+        tealeaf_context_update_viewport(ctx, true);
 
         return true;
     } else {

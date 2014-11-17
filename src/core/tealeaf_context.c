@@ -663,8 +663,8 @@ void context_2d_restore(context_2d *ctx) {
 void context_2d_clear(context_2d *ctx) {
     draw_textures_flush();
     context_2d_bind(ctx);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GLTRACE(glClearColor(0, 0, 0, 0));
+    GLTRACE(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 /**
