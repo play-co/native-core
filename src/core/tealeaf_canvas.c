@@ -122,7 +122,7 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
         // Update active context after flushing
         canvas.active_ctx = ctx;
 
-        if (ctx->on_screen) {
+        if (ctx->destTex == -1) {
             tealeaf_canvas_bind_render_buffer(ctx);
         } else {
             tealeaf_canvas_bind_texture_buffer(ctx);
