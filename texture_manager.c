@@ -45,18 +45,22 @@
 #define DEFAULT_SHEET_DIMENSION 64
 
 // Constants for Android phones and starting-points for iOS
-#define MAX_BYTES_FOR_HALFSIZED_TEXTURES 500000000 	/* 30 MB */
-#define MAX_BYTES_FOR_FULLSIZED_TEXTURES 500000000	/* 100 MB */
+#define MAX_BYTES_FOR_HALFSIZED_TEXTURES 500000000  /* 500 MB formerly 30 MB */
+#define MAX_BYTES_FOR_FULLSIZED_TEXTURES 500000000  /* 500 MB formerly 100 MB */
 
 // Does not use fullsized textures under this memory value
-#define MIN_BYTES_FOR_FULLSIZE_TEXTURES 30000000	/* 30 MB */
+#define MIN_BYTES_FOR_FULLSIZE_TEXTURES 30000000    /* 30 MB */
 
-// Does not ratchet below this value
-#define MIN_BYTES_FOR_TEXTURES 15000000             /* 15 MB */
+// Does not ratchet below this value (formerly 15 MB)
+#ifdef ANDROID
+    #define MIN_BYTES_FOR_TEXTURES 25000000         /* 25 MB */
+#else
+    #define MIN_BYTES_FOR_TEXTURES 70000000         /* 70 MB */
+#endif
 
 // Amount to drop below the high water mark for recent frames in reaction to a low memory warning
 // NOTE: This is tuned for the iPad 1 where this sort of issue actually happens consistently
-#define LOW_MEM_DROP_RATE 10000000					/* 10 MB */
+#define LOW_MEM_DROP_RATE 10000000                  /* 10 MB */
 
 #define CONTACTPHOTO_URL_PREFIX "@CONTACTPICTURE"
 #define CONTACTPHOTO_URL_PREFIX_LEN strlen("@CONTACTPICTURE")
