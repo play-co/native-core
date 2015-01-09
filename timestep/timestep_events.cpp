@@ -55,8 +55,9 @@ CEXPORT void timestep_events_push(int id, int type, int x, int y) {
 
 // WARNING: caller must immediately make a copy since the data
 // will be destroyed
+// TODO that seems like a bad api
 CEXPORT input_event_list timestep_events_get() {
-    int current_count = m_count;
+    unsigned current_count = m_count;
 
     LOGFN("timestep_events_get");
 
