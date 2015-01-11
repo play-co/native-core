@@ -881,7 +881,7 @@ void texture_manager_memory_warning() {
  * to avoid depending on low memory warnings.  This fixes issues where we cannot
  * handle the warning fast enough on larger games.
  */
-void texture_manager_set_max_memory(texture_manager *manager, int bytes) {
+void texture_manager_set_max_memory(texture_manager *manager, long bytes) {
     LOGFN("texture_manager_set_max_memory");
 
     if (manager->max_texture_bytes > bytes) {

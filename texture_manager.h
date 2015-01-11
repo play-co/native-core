@@ -65,7 +65,7 @@ bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url
 										int num_channels, int scale, bool is_text, long size, int compression_type);
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);
 void texture_manager_memory_warning();
-void texture_manager_set_max_memory(texture_manager *manager, int bytes); // Will only ratchet down
+void texture_manager_set_max_memory(texture_manager *manager, long bytes); // Will only ratchet down
 void image_cache_load_callback(struct image_data *data);
 texture_manager *texture_manager_acquire();
 void texture_manager_release();
