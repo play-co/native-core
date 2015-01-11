@@ -26,9 +26,9 @@
 typedef struct texture_manager_t {
 	texture_2d *url_to_tex;
 	int textures_to_load;
-	long texture_bytes_used;
-	long approx_bytes_to_load;
-	long max_texture_bytes;
+	size_t texture_bytes_used;
+	size_t approx_bytes_to_load;
+	size_t max_texture_bytes;
 	int tex_count;
 } texture_manager;
 

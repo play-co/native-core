@@ -35,7 +35,7 @@ typedef struct core_timer_t {
 extern "C" {
 #endif
 
-void core_timer_tick(int dt);
+void core_timer_tick(long dt);
 void core_timer_clear_all();
 void core_timer_clear(int timerId);
 void core_timer_schedule(core_timer *timer);

@@ -350,7 +350,7 @@ texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture
     return tex;
 }
 
-static int last_accessed_compare(texture_2d *a, texture_2d *b) {
+static time_t last_accessed_compare(texture_2d *a, texture_2d *b) {
     return a->last_accessed - b->last_accessed;
 }
 

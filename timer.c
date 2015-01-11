@@ -222,7 +222,7 @@ CEXPORT void core_timer_clear_all() {
  * @param	dt - (int) elapsed time since last tick
  * @retval	NONE
  */
-CEXPORT void core_timer_tick(int dt) {
+CEXPORT void core_timer_tick(long dt) {
     insert_queued_timers();
 
     if (dt < 0) {

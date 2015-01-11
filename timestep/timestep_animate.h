@@ -47,7 +47,7 @@ void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int d
 //put a 'wait' duration milliseconds  on the queue
 void view_animation_wait(view_animation *anim, unsigned int duration);
 
-CEXPORT void view_animation_tick_animations(int dt);
+CEXPORT void view_animation_tick_animations(long dt);
 
 // Shutdown subsystem
 CEXPORT void view_animation_shutdown();

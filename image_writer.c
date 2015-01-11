@@ -24,7 +24,7 @@
 	encoded_bytes: Size of output data string (from GetBase64LengthFromBinaryLength)
  */
 
-int GetBase64LengthFromBinaryLength(int bytes) {
+size_t GetBase64LengthFromBinaryLength(size_t bytes) {
     if (bytes <= 0) return 0;
 
     return ((bytes + 2) / 3) * 4;
@@ -32,10 +32,10 @@ int GetBase64LengthFromBinaryLength(int bytes) {
 
 static const char *TO_BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void WriteBase64(const void *buffer, int bytes, char *encoded_buffer) {
+void WriteBase64(const void *buffer, size_t bytes, char *encoded_buffer) {
     const unsigned char *data = (const unsigned char *)buffer;
 
-    int ii, jj, end;
+    size_t ii, jj, end;
     for (ii = 0, jj = 0, end = bytes - 2; ii < end; ii += 3, jj += 4) {
         encoded_buffer[jj] = TO_BASE64[data[ii] >> 2];
         encoded_buffer[jj+1] = TO_BASE64[((data[ii] << 4) | (data[ii+1] >> 4)) & 0x3f];
@@ -166,7 +166,7 @@ png_create_write_struct_failed:
     if (state.buffer == NULL) {
         return NULL;
     } else {
-        const int b64size = GetBase64LengthFromBinaryLength(state.size);
+        const size_t b64size = GetBase64LengthFromBinaryLength(state.size);
         char *base64 = malloc(b64size + 1);
 
         WriteBase64(state.buffer, state.size, base64);
@@ -194,7 +194,7 @@ char *write_jpeg_to_base64(unsigned char * data, int width, int height, int chan
     if (retval != 0 || !buffer) {
         LOG("WARNING: Unable to compress %d x %d base64 JPEG", width, height);
     } else {
-        const int b64size = GetBase64LengthFromBinaryLength(buffer_size);
+        const size_t b64size = GetBase64LengthFromBinaryLength(buffer_size);
         char *base64 = malloc(b64size + 1);
 
         WriteBase64(buffer, buffer_size, base64);
@@ -243,7 +243,7 @@ bool write_jpeg_to_file(const char *path, const char *name, unsigned char *data,
     bool did_write = false;
 
     // append filename to path
-    int full_path_len = strlen(path) + strlen("/") + strlen(name);
+    size_t full_path_len = strlen(path) + strlen("/") + strlen(name);
     char *full_path = (char *)malloc(full_path_len);
     memset(full_path, 0, full_path_len);
     sprintf(full_path, "%s%s%s", path, "/", name);
@@ -288,7 +288,7 @@ bool write_png_to_file(const char *path, const char *name, unsigned char *data, 
     bool did_write = false;
 
     // append path to filename
-    int full_path_len = strlen(path) + strlen("/") + strlen(name);
+    size_t full_path_len = strlen(path) + strlen("/") + strlen(name);
     char *full_path = (char *)malloc(full_path_len);
     memset(full_path, 0, full_path_len);
     sprintf(full_path, "%s%s%s", path, "/", name);
