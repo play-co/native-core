@@ -1,3 +1,4 @@
+
 /* @license
  * This file is part of the Game Closure SDK.
  *
@@ -20,6 +21,7 @@
 #include "core/list.h"
 #include "js/js_timestep_view.h"
 #include "js/js.h"
+#include "js/js_core.h"
 #include "core/log.h"
 #include "core/tealeaf_context.h"
 
@@ -149,7 +151,7 @@ void timestep_view_start_render() {
     abs_scale = 1;
 }
 
-void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAPPER js_ctx, JS_OBJECT_WRAPPER js_opts) {
+void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObject js_ctx, JS::HandleObject js_opts) {
     LOGFN("timestep_view_wrap_render");
     if (!v->visible || !v->opacity) {
         return;
@@ -225,7 +227,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
         context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
     }
 
-    JS_OBJECT_WRAPPER js_viewport;
+    JS::Heap<JSObject*> js_viewport;
     bool should_restore_viewport = false;
     if (v->has_jsrender) {
         should_restore_viewport = true;
@@ -250,7 +252,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
     }
 
     if (should_restore_viewport) {
-        def_restore_viewport(js_opts, js_viewport);
+        def_restore_viewport(js_opts, &js_viewport);
     }
 
     context_2d_restore(ctx);
