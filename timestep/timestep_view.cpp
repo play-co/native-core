@@ -227,11 +227,13 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObje
         context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
     }
 
-    JS::Heap<JSObject*> js_viewport;
+    JSObject* js_viewport;
+    JSContext* cx = get_js_context();
     bool should_restore_viewport = false;
     if (v->has_jsrender) {
         should_restore_viewport = true;
         js_viewport = def_get_viewport(js_opts);
+        JS_AddObjectRoot(cx, &js_viewport);
         def_timestep_view_render(v->js_view, js_ctx, js_opts);
     } else {
         v->timestep_view_render(v, ctx);
@@ -252,7 +254,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObje
     }
 
     if (should_restore_viewport) {
-        def_restore_viewport(js_opts, &js_viewport);
+        def_restore_viewport(js_opts, js_viewport);
+        JS_RemoveObjectRoot(cx, &js_viewport);
     }
 
     context_2d_restore(ctx);
