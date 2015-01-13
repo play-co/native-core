@@ -69,8 +69,8 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-//#define TEXMAN_VERBOSE
-//#define TEXMAN_EXTRA_VERBOSE
+#define TEXMAN_VERBOSE
+#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
 #else
@@ -242,9 +242,18 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
     return tex;
 }
 
-bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
-                                       int width, int height, int original_width, int original_height,
-                                       int num_channels, int scale, bool is_text, long size, int compression_type) {
+void texture_manager_on_texture_loaded(texture_manager *manager,
+                                       const char *url,
+                                       int name,
+                                       int width,
+                                       int height,
+                                       int original_width,
+                                       int original_height,
+                                       int num_channels,
+                                       int scale,
+                                       bool is_text,
+                                       long size,
+                                       int compression_type) {
     //add the amount of bytes being used by this texture to the amount of texture bytes being used
     //scale = 1, texture stays at its regular size
     //scale = 2, texture is being halfsized as is needed for lower memory footprint
