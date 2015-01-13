@@ -39,36 +39,23 @@
 // when the canvas is used
 //#define FREE_CANVASES_NOTIFY_IMMEDIATELY
 
-// 1024 x 1024 with 4 channels
-// this is not necassarily the size of every sheet
-#define MAX_SHEET_BYTES (1024*1024*4)
 #define DEFAULT_SHEET_DIMENSION 64
 
-// Constants for Android phones and starting-points for iOS
-#define MAX_BYTES_FOR_HALFSIZED_TEXTURES 500000000  /* 500 MB formerly 30 MB */
-#define MAX_BYTES_FOR_FULLSIZED_TEXTURES 500000000  /* 500 MB formerly 100 MB */
+// Large number to start texture memory limit
+#define MAX_BYTES_FOR_TEXTURES 500000000    /* 500 MB */
 
-// Does not use fullsized textures under this memory value
-#define MIN_BYTES_FOR_FULLSIZE_TEXTURES 30000000    /* 30 MB */
-
-// Does not ratchet below this value (formerly 15 MB)
-#ifdef ANDROID
-    #define MIN_BYTES_FOR_TEXTURES 25000000         /* 25 MB */
-#else
-    #define MIN_BYTES_FOR_TEXTURES 70000000         /* 70 MB */
-#endif
-
-// Amount to drop below the high water mark for recent frames in reaction to a low memory warning
-// NOTE: This is tuned for the iPad 1 where this sort of issue actually happens consistently
-#define LOW_MEM_DROP_RATE 10000000                  /* 10 MB */
+// Rate used to reduce memory limit on glError or memory warning
+#define MEMORY_DROP_RATE 0.9                /* 90% of current memory */
+#define MEMORY_GAIN_RATE 1.2                /* 120% of current memory */
 
 #define CONTACTPHOTO_URL_PREFIX "@CONTACTPICTURE"
 #define CONTACTPHOTO_URL_PREFIX_LEN strlen("@CONTACTPICTURE")
 #define DEFAULT_CONTACTPHOTO_SIZE 64
 #define DEFAULT_REMOTE_RESOURCE_SIZE 64
 
-// Global halfsized textures flag
-int use_halfsized_textures = 0;
+// Global halfsized textures flags
+int use_halfsized_textures = false;
+bool should_use_halfsized = false;
 
 static bool m_running = false; // Flag indicating that the background texture loader thread should continue
 static texture_manager *m_instance = NULL;
@@ -342,7 +329,6 @@ void texture_manager_on_texture_loaded(texture_manager *manager, const char *url
 }
 
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url) {
-
     pthread_mutex_lock(&mutex);
     texture_2d *tex = texture_manager_get_texture(manager, url);
     if (tex) {
@@ -448,6 +434,9 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
             if ((tex->scale > 1 || tex->is_canvas) && tex->frame_epoch == m_frame_epoch) {
                 // Do not reload this one (and maybe go over the memory limit)
                 continue;
+            } else if (!clear_all && !use_halfsized_textures && tex->frame_epoch == m_frame_epoch) {
+                // if we reach a recently used image and still need memory
+                should_use_halfsized = true;
             }
 
             // we need to keep clearing until we can load the upcoming textures fine
@@ -646,19 +635,11 @@ CEXPORT void image_cache_load_callback(struct image_data *data) {
     pthread_mutex_unlock(&mutex);
 }
 
-void texture_manager_set_use_halfsized_textures() {
-#ifdef LOWER_TEX_LIMIT_ON_HALFSIZE
-    texture_manager *texman = texture_manager_get();
-    long new_limit = use_halfsized_textures ? MAX_BYTES_FOR_HALFSIZED_TEXTURES : MAX_BYTES_FOR_FULLSIZED_TEXTURES;
-
-    // Ratchet it down only
-    if (texman->max_texture_bytes > new_limit) {
-        texman->max_texture_bytes = new_limit;
-    }
-#endif
-
-    if (use_halfsized_textures) {
-        LOG("{tex} Using half-sized textures");
+void texture_manager_set_use_halfsized_textures(bool use_halfsized) {
+    if (use_halfsized_textures != use_halfsized) {
+        LOG("{tex} use_halfsized_textures=%d", use_halfsized);
+        use_halfsized_textures = use_halfsized;
+        texture_manager_clear_textures(m_instance, true);
     }
 }
 
@@ -689,7 +670,7 @@ texture_manager *texture_manager_get() {
             m_instance->textures_to_load = 0;
             m_instance->approx_bytes_to_load = 0;
             //default to fullsized textures
-            m_instance->max_texture_bytes = MAX_BYTES_FOR_FULLSIZED_TEXTURES;
+            m_instance->max_texture_bytes = MAX_BYTES_FOR_TEXTURES;
             // Start the background texture loader thread
             m_running = true;
 
@@ -785,67 +766,46 @@ static long get_epoch_used_max() {
 }
 
 void texture_manager_tick(texture_manager *manager) {
-    LOGFN("texture_manager_tick");
+    LOGFN("{tex} texture_manager_tick");
     pthread_mutex_lock(&mutex);
+
+    if (should_use_halfsized) {
+        should_use_halfsized = false;
+        set_halfsized_textures(true);
+    }
+
+    long highest = get_epoch_used_max();
 
     // If memory warning encountered,
     if (m_memory_warning) {
         m_memory_warning = false;
 
-        // Chip some MB off the high water mark in the last X frames and use that as the new limit
-        long highest = get_epoch_used_max();
-
-        // Only ratchet memory limit downward
         if (highest > manager->max_texture_bytes) {
             highest = manager->max_texture_bytes;
         }
 
-        long new_limit = highest - LOW_MEM_DROP_RATE;
+        // Decrease the max texture bytes limit
+        long old_max_bytes = manager->max_texture_bytes;
+        long new_max_bytes = MEMORY_DROP_RATE * (double)highest;
+        manager->max_texture_bytes = new_max_bytes;
 
-        // If limit drops under half-sizing threshold,
-        if (!use_halfsized_textures) {
-            if (new_limit < MIN_BYTES_FOR_FULLSIZE_TEXTURES) {
-                new_limit = MIN_BYTES_FOR_FULLSIZE_TEXTURES;
-
-                // Start using half-sized textures
-                use_halfsized_textures = true;
-                set_halfsized_textures(true);
-
-                LOG("{tex} WARNING: Detected very low available memory! Reacting by half-sizing textures from here on out");
-            }
-        }
-
-        // Do not allow it to go too low
-        if (new_limit < MIN_BYTES_FOR_TEXTURES) {
-            new_limit = MIN_BYTES_FOR_TEXTURES;
-        }
-
-        // Update the max texture bytes limit
-        manager->max_texture_bytes = new_limit;
-
-        // Zero the epoch used bins since it will never get that high again
+        // Zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
 
-        LOG("{tex} WARNING: Low memory warning! Texture memory limit now %ld", manager->max_texture_bytes);
+        LOG("{tex} WARNING: Low memory! Texture limit was %ld, now %ld", old_max_bytes, new_max_bytes);
+    } else if (highest > manager->max_texture_bytes) {
+        // Increase the max texture bytes limit
+        long old_max_bytes = manager->max_texture_bytes;
+        long new_max_bytes = MEMORY_GAIN_RATE * (double)old_max_bytes;
+        manager->max_texture_bytes = new_max_bytes;
 
-        // And run clear textures now to get back under the new limit:
+        // Zero the epoch used bins
+        memset(m_epoch_used, 0, sizeof(m_epoch_used));
+
+        LOG("{tex} WARNING: Allowing more memory! Texture limit was %ld, now %ld", old_max_bytes, new_max_bytes);
     }
 
-    // If not half-sizing yet,
-    if (!use_halfsized_textures) {
-        long adjusted_max_texture_bytes = manager->max_texture_bytes - manager->approx_bytes_to_load;
-
-        // If bytes used this frame exceed the max,
-        if (m_frame_used_bytes > adjusted_max_texture_bytes) {
-            // Start using half-sized textures
-            use_halfsized_textures = true;
-            set_halfsized_textures(true);
-
-            LOG("{tex} WARNING: Detected a texture load loop condition! Reacting by half-sizing textures from here on out");
-        }
-    }
-
-    //clear uneeded textures and make space for ones about to be loaded
+    // clear uneeded textures and make space for ones about to be loaded
     texture_manager_clear_textures(manager, false);
 
     // Invalidate earlier frame epochs tagged on textures
@@ -985,12 +945,11 @@ void texture_manager_tick(texture_manager *manager) {
  * textures.  The texture load loop may happen, but it will resolve itself
  * quickly by reloading textures half-sized.
  */
-void texture_manager_memory_warning(texture_manager *manager) {
+void texture_manager_memory_warning() {
     LOGFN("texture_manager_memory_warning");
 
     m_memory_warning = true;
 }
-
 
 /*
  * For devices with known low memory limits, we can start with a lower memory limit
@@ -1000,13 +959,7 @@ void texture_manager_memory_warning(texture_manager *manager) {
 void texture_manager_set_max_memory(texture_manager *manager, int bytes) {
     LOGFN("texture_manager_set_max_memory");
 
-    // Do not allow falling below the minimum
-    if (bytes < MIN_BYTES_FOR_TEXTURES) {
-        bytes = MIN_BYTES_FOR_TEXTURES;
-    }
-
     if (manager->max_texture_bytes > bytes) {
         manager->max_texture_bytes = bytes;
     }
 }
-

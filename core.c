@@ -39,8 +39,6 @@
 
 #define MIN_SIZE_TO_HALFSIZE 320
 
-#define GL_ERROR_OUT_OF_MEMORY 1285
-
 gl_error *gl_errors_hash = NULL;
 static int m_framebuffer_name = -1;
 
@@ -107,19 +105,15 @@ void core_init(const char *entry_point,
     // http_init();
     // register default HTML color names
     rgba_init();
-    //make checks for halfsized images
+    // make checks for halfsized images
     resource_loader_initialize(source_dir);
-    //default halfsized textures to false
-    use_halfsized_textures = false;
 
     if (width <= MIN_SIZE_TO_HALFSIZE || height <= MIN_SIZE_TO_HALFSIZE) {
-        use_halfsized_textures = true;
-        //set halfsized textures setting to true here or else java will overwrite with
-        //a potentially wrong value
         set_halfsized_textures(true);
+    } else {
+        set_halfsized_textures(false);
     }
 
-    texture_manager_set_use_halfsized_textures();
     texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
     LOG("{core} Initialization complete");
@@ -341,24 +335,19 @@ void core_reset() {
 void core_check_gl_error() {
     // check the gl error and send it to java to be logged
     int error_code = glGetError();
-
     if (error_code != 0) {
         LOG("{core} WARNING: OpenGL error %d", error_code);
 
-        //check if we should report the error, return early if not.
-        if (error_code == GL_ERROR_OUT_OF_MEMORY) {
-            //does not matter if it is already in the hash, report as unrecoverable and respond
-            report_gl_error(error_code, &gl_errors_hash, true);
-            //use halfsized textures for lower memory footprint
-            set_halfsized_textures(true);
-        } else {
-            //check if error is in the hash, if it is, leave
-            gl_error *error = NULL;
-            HASH_FIND_INT(gl_errors_hash, &error_code, error);
+        // warn the texture manager if necessary
+        if (error_code == GL_OUT_OF_MEMORY) {
+            texture_manager_memory_warning();
+        }
 
-            if (!error) {
-                report_gl_error(error_code, &gl_errors_hash, false);
-            }
+        // check if error is in the hash, report each error only once
+        gl_error *error = NULL;
+        HASH_FIND_INT(gl_errors_hash, &error_code, error);
+        if (!error) {
+            report_gl_error(error_code, &gl_errors_hash, false);
         }
     }
 }
