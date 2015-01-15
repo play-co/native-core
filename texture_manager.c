@@ -60,7 +60,6 @@ static pthread_cond_t cond_var   = PTHREAD_COND_INITIALIZER;
 
 static texture_2d *tex_load_list = NULL;
 static json_t *spritesheet_map_root = NULL;
-static json_t *fontsheet_map_root = NULL;
 static int m_frame_epoch = 1;
 static long m_frame_used_bytes = 0;
 
@@ -176,15 +175,13 @@ texture_2d *texture_manager_get_texture(texture_manager *manager, const char *ur
 
 void texture_manager_get_sheet_size(char *url, int *width, int *height) {
     LOGFN("texture_manager_get_sheet_size");
+
     if (!spritesheet_map_root) {
-        //load map.json
+        // load map.json
         char * map_str = resource_loader_string_from_url("spritesheets/spritesheetSizeMap.json");
-        char * font_str = resource_loader_string_from_url("resources/fonts/fontsheetSizeMap.json");
         json_error_t error;
         spritesheet_map_root = json_loads(map_str, 0, &error);
-        fontsheet_map_root = json_loads(font_str, 0, &error);
         free(map_str);
-        free(font_str);
     }
 
     if (spritesheet_map_root) {
@@ -200,20 +197,6 @@ void texture_manager_get_sheet_size(char *url, int *width, int *height) {
         }
     }
 
-    if (fontsheet_map_root) {
-        json_t *sheet_obj = json_object_get(fontsheet_map_root, url);
-        if (json_is_object(sheet_obj)) {
-            json_t *width_obj = json_object_get(sheet_obj, "w");
-            json_t *height_obj = json_object_get(sheet_obj, "h");
-            if (json_is_integer(width_obj) && json_is_integer(height_obj)) {
-                *width = (int)json_integer_value(width_obj);
-                *height = (int)json_integer_value(height_obj);
-                return;
-            }
-        }
-    }
-
-    //default
     *width = DEFAULT_SHEET_DIMENSION;
     *height = DEFAULT_SHEET_DIMENSION;
 }
