@@ -330,9 +330,9 @@ void core_reset() {
 /**
  * @name	core_check_gl_error
  * @brief	check's for a gl error and reports it to the platform
- * @retval	NONE
+ * @retval	(bool) whether or not there was an error
  */
-void core_check_gl_error() {
+bool core_check_gl_error() {
     // check the gl error and send it to java to be logged
     int error_code = glGetError();
     if (error_code != 0) {
@@ -349,5 +349,9 @@ void core_check_gl_error() {
         if (!error) {
             report_gl_error(error_code, &gl_errors_hash, false);
         }
+
+        return true;
+    } else {
+        return false;
     }
 }
