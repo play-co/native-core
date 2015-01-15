@@ -395,7 +395,7 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
      * Rules for Clearing Textures:
      * 1. the texture must be loaded to be cleared, period
      * 2. throw out all textures if clear_all is true, but respect rule 1
-     * 3. throw out failed or broken textures, forcing them to reload if needed
+     * 3. throw out failed textures, forcing them to reload if needed
      * 4. throw out least-recently-used textures if we exceed our estimated memory limit
      */
     long adjusted_max_texture_bytes = manager->max_texture_bytes - manager->approx_bytes_to_load;
@@ -403,7 +403,6 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
     texture_2d *tex = NULL;
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-        bool failed = tex->failed || !tex->used_texture_bytes;
         bool overLimit = manager->texture_bytes_used > adjusted_max_texture_bytes;
 
         // if we reach a recently used image and still need memory, halfsize everything
@@ -411,8 +410,7 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
             should_use_halfsized = true;
         }
 
-        if (tex->loaded && (clear_all || failed || overLimit)) {
-            LOG("Texture cleared! clear_all:%d, failed:%d, overLimit:%d", (int)clear_all, (int)failed, (int)overLimit);
+        if (tex->loaded && (clear_all || tex->failed || overLimit)) {
             texture_2d *to_be_destroyed = tex;
             texture_manager_free_texture(manager, to_be_destroyed);
         }
@@ -436,7 +434,7 @@ void texture_manager_reload_canvases(texture_manager *manager) {
     texture_2d *tex = NULL;
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-        if (tex->is_canvas || tex->is_text) {
+        if (tex->is_canvas) {
             texture_2d_reload(tex);
         }
     }
@@ -462,7 +460,7 @@ void texture_manager_reload(texture_manager *manager) {
     texture_2d *tmp = NULL;
     texture_2d *canvas_list = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-        if (tex->is_canvas || tex->is_text) {
+        if (tex->is_canvas) {
             LIST_ADD(&canvas_list, tex);
         } else {
             texture_2d *to_be_destroyed = tex;
@@ -511,7 +509,7 @@ void texture_manager_save(texture_manager *manager) {
     texture_2d *tex = NULL;
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-        if (tex->is_canvas || tex->is_text) {
+        if (tex->is_canvas) {
             texture_2d_save(tex);
         }
     }
@@ -730,9 +728,8 @@ void texture_manager_tick(texture_manager *manager) {
         set_halfsized_textures(true);
     }
 
+    // move our estimated max memory limit up or down if necessary
     long highest = get_epoch_used_max();
-
-    // If memory warning encountered,
     if (m_memory_warning) {
         m_memory_warning = false;
 
@@ -740,50 +737,39 @@ void texture_manager_tick(texture_manager *manager) {
             highest = manager->max_texture_bytes;
         }
 
-        // Decrease the max texture bytes limit
-        long old_max_bytes = manager->max_texture_bytes;
+        // decrease the max texture bytes limit
         long new_max_bytes = MEMORY_DROP_RATE * (double)highest;
+        TEXLOG("WARNING: Low memory! Texture limit was %ld, now %ld", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
-        // Zero the epoch used bins
+        // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-
-        LOG("{tex} WARNING: Low memory! Texture limit was %ld, now %ld", old_max_bytes, new_max_bytes);
     } else if (highest > manager->max_texture_bytes) {
-        // Increase the max texture bytes limit
-        long old_max_bytes = manager->max_texture_bytes;
-        long new_max_bytes = MEMORY_GAIN_RATE * (double)old_max_bytes;
+        // increase the max texture bytes limit
+        long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
+        TEXLOG("WARNING: Allowing more memory! Texture limit was %ld, now %ld", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
-        // Zero the epoch used bins
+        // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-
-        LOG("{tex} WARNING: Allowing more memory! Texture limit was %ld, now %ld", old_max_bytes, new_max_bytes);
     }
 
     // clear uneeded textures and make space for ones about to be loaded
     texture_manager_clear_textures(manager, false);
 
-    // Invalidate earlier frame epochs tagged on textures
+    // invalidate earlier frame epochs tagged on textures
     m_frame_epoch++;
     m_frame_used_bytes = 0;
 
-    // Initialize the high water mark for this frame
+    // initialize the high water mark for this frame
     const int epoch = (unsigned)m_frame_epoch & EPOCH_USED_MASK;
     m_epoch_used[epoch] = manager->texture_bytes_used;
 
-#if defined(TEXMAN_VERBOSE)
-    if (epoch == 0) {
-        long highest = get_epoch_used_max();
-        LOG("{tex} Frame texture memory usage for interval = %ld", highest);
-    }
-#endif
-
-    // Load new textures
+    // load new textures
     texture_2d *cur_tex = tex_load_list;
     bool glErrorFound = false;
     while (cur_tex && !glErrorFound) {
-        //skip this if texture is not ready to load
+        // skip this if texture is not ready to load
         if (!cur_tex->failed && (cur_tex->pixel_data == NULL || cur_tex->url == NULL)) {
             LIST_ITERATE(&tex_load_list, cur_tex);
             continue;
@@ -798,15 +784,14 @@ void texture_manager_tick(texture_manager *manager) {
             GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
             GLTRACE(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
-            //create the texture
+            // create the texture
             int channels = cur_tex->num_channels;
             int width = cur_tex->width >> (cur_tex->scale - 1);
             int height = cur_tex->height >> (cur_tex->scale - 1);
-
             if (cur_tex->compression_type) {
                 glCompressedTexImage2D(GL_TEXTURE_2D, 0, cur_tex->compression_type, width, height, 0, cur_tex->used_texture_bytes, cur_tex->pixel_data);
             } else {
-                // Select the right internal and input format based on the number of channels
+                // select the right internal and input format based on the number of channels
                 GLint format;
                 switch (channels) {
                 case 1:
@@ -835,24 +820,19 @@ void texture_manager_tick(texture_manager *manager) {
             cur_tex->loaded = true;
         }
 
+        // generate event string
         char *event_str;
         int event_len;
-
         char *dynamic_str = 0;
         char stack_str[512];
-
-        // Generate event string
-        {
-            int url_len = (int)strlen(cur_tex->url);
-
-            if (url_len > 300) {
-                event_len = url_len + 212;
-                dynamic_str = (char*)malloc(event_len);
-                event_str = dynamic_str;
-            } else {
-                event_len = 512;
-                event_str = stack_str;
-            }
+        int url_len = (int)strlen(cur_tex->url);
+        if (url_len > 300) {
+            event_len = url_len + 212;
+            dynamic_str = (char*)malloc(event_len);
+            event_str = dynamic_str;
+        } else {
+            event_len = 512;
+            event_str = stack_str;
         }
 
         if (cur_tex->failed) {
@@ -860,7 +840,7 @@ void texture_manager_tick(texture_manager *manager) {
                                  "{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}",
                                  cur_tex->url);
         } else {
-            //create json event string
+            // create json event string
             event_len = snprintf(event_str, event_len,
                                  "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
                                  ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
@@ -871,12 +851,12 @@ void texture_manager_tick(texture_manager *manager) {
 
         event_str[event_len] = '\0';
 
-        //dispatch the event
+        // dispatch the event
         pthread_mutex_unlock(&mutex);
-        // TODO: Is this a thread safety problem?  Does the tex_load_list get modified from another thread?
+
+        // TODO: is this a thread safety problem? does the tex_load_list get modified from another thread?
         core_dispatch_event(event_str);
 
-        // If dynamically allocated the string,
         if (dynamic_str) {
             free(dynamic_str);
         }
