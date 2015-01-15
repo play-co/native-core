@@ -110,32 +110,23 @@ texture_2d *texture_manager_new_texture(texture_manager *manager, int width, int
 }
 
 static void notify_canvas_death(const char *url) {
+    // generate event string
     char *event_str;
     int event_len;
-
     char *dynamic_str = 0;
     char stack_str[512];
-
-    // Generate event string
-    {
-        int url_len = (int)strlen(url);
-
-        if (url_len > 300) {
-            event_len = url_len + 212;
-            dynamic_str = (char*)malloc(event_len);
-            event_str = dynamic_str;
-        } else {
-            event_len = 512;
-            event_str = stack_str;
-        }
+    int url_len = (int)strlen(url);
+    if (url_len > 300) {
+        event_len = url_len + 212;
+        dynamic_str = (char*)malloc(event_len);
+        event_str = dynamic_str;
+    } else {
+        event_len = 512;
+        event_str = stack_str;
     }
 
-    event_len = snprintf(event_str, event_len,
-                         "{\"url\":\"%s\",\"name\":\"canvasFreed\",\"priority\":0}",
-                         url);
-
+    event_len = snprintf(event_str, event_len, "{\"url\":\"%s\",\"name\":\"canvasFreed\",\"priority\":0}", url);
     event_str[event_len] = '\0';
-
     core_dispatch_event(event_str);
 
     if (dynamic_str) {
@@ -160,12 +151,13 @@ texture_2d *texture_manager_get_texture(texture_manager *manager, const char *ur
             m_frame_used_bytes += tex->used_texture_bytes;
         }
     } else {
-        // If it was a canvas,
-        if (url[0] == '_' && url[1] == '_' &&
-                url[2] == 'c' && url[3] == 'a' &&
-                url[4] == 'n' && url[5] == 'v' &&
-                url[6] == 'a' && url[7] == 's' &&
-                url[8] == '_' && url[9] == '_') {
+        // if it was a canvas
+        if (url[0] == '_' && url[1] == '_'
+            && url[2] == 'c' && url[3] == 'a'
+            && url[4] == 'n' && url[5] == 'v'
+            && url[6] == 'a' && url[7] == 's'
+            && url[8] == '_' && url[9] == '_')
+        {
             notify_canvas_death(url);
         }
     }
@@ -524,17 +516,31 @@ void texture_manager_background_texture_loader(void *dummy) {
 
         while (cur_tex) {
             texture_2d *old_cur = NULL;
+            const char *url = cur_tex->url;
 
-            if (cur_tex->pixel_data == NULL && cur_tex->url != NULL && !cur_tex->failed) {
-                TEXLOG("Passing to load_image_with_c: %s", cur_tex->url);
-
-                if (!resource_loader_load_image_with_c(cur_tex)) { //if not loading from C remove from list
+            if (url != NULL) {
+                if (url[0] == '_' && url[1] == '_'
+                    && url[2] == 'c' && url[3] == 'a'
+                    && url[4] == 'n' && url[5] == 'v'
+                    && url[6] == 'a' && url[7] == 's'
+                    && url[8] == '_' && url[9] == '_')
+                {
+                    // dispatch the event
+                    pthread_mutex_unlock(&mutex);
+                    notify_canvas_death(url);
+                    pthread_mutex_lock(&mutex);
                     old_cur = cur_tex;
+                } else if (cur_tex->pixel_data == NULL && !cur_tex->failed) {
+                    LOG("Passing to load_image_with_c: %s", url);
+                    if (!resource_loader_load_image_with_c(cur_tex)) {
+                        old_cur = cur_tex;
+                    }
                 }
             }
 
             LIST_ITERATE(&tex_load_list, cur_tex);
 
+            // if not loading from C remove from list
             if (old_cur) {
                 LIST_REMOVE(&tex_load_list, old_cur);
                 old_cur = NULL;
@@ -678,12 +684,13 @@ void texture_manager_touch_texture(texture_manager *manager, const char *url) {
             m_frame_used_bytes += tex->used_texture_bytes;
         }
     } else {
-        // If it was a canvas,
-        if (url[0] == '_' && url[1] == '_' &&
-                url[2] == 'c' && url[3] == 'a' &&
-                url[4] == 'n' && url[5] == 'v' &&
-                url[6] == 'a' && url[7] == 's' &&
-                url[8] == '_' && url[9] == '_') {
+        // if it was a canvas
+        if (url[0] == '_' && url[1] == '_'
+            && url[2] == 'c' && url[3] == 'a'
+            && url[4] == 'n' && url[5] == 'v'
+            && url[6] == 'a' && url[7] == 's'
+            && url[8] == '_' && url[9] == '_')
+        {
             notify_canvas_death(url);
         }
     }
@@ -819,25 +826,18 @@ void texture_manager_tick(texture_manager *manager) {
         }
 
         if (cur_tex->failed) {
-            event_len = snprintf(event_str, event_len,
-                                 "{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}",
-                                 cur_tex->url);
+            event_len = snprintf(event_str, event_len, "{\"url\":\"%s\",\"name\":\"imageError\",\"priority\":0}", cur_tex->url);
         } else {
             // create json event string
-            event_len = snprintf(event_str, event_len,
-                                 "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
-                                 ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}",
-                                 cur_tex->url, (int)cur_tex->height,
-                                 (int)cur_tex->originalHeight, (int)cur_tex->originalWidth,
-                                 (int)texture, (int)cur_tex->width);
+            event_len = snprintf(event_str, event_len, "{\"url\":\"%s\",\"height\":%d,\"originalHeight\":%d,\"originalWidth\":%d" \
+                ",\"glName\":%d,\"width\":%d,\"name\":\"imageLoaded\",\"priority\":0}", cur_tex->url, (int)cur_tex->height,
+                (int)cur_tex->originalHeight, (int)cur_tex->originalWidth, (int)texture, (int)cur_tex->width);
         }
 
         event_str[event_len] = '\0';
 
         // dispatch the event
         pthread_mutex_unlock(&mutex);
-
-        // TODO: is this a thread safety problem? does the tex_load_list get modified from another thread?
         core_dispatch_event(event_str);
 
         if (dynamic_str) {
