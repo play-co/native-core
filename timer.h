@@ -20,14 +20,14 @@
 #include "util/detect.h"
 
 typedef struct core_timer_t {
-	int time_left;
-	int duration;
-	int id;
-	struct core_timer_t *next;
-	struct core_timer_t *prev;
-	bool repeat;
-	bool cleared;
-	void *js_data;
+    int time_left;
+    int duration;
+    int id;
+    struct core_timer_t *next;
+    struct core_timer_t *prev;
+    bool repeat;
+    bool cleared;
+    void *js_data;
 } core_timer;
 
 
