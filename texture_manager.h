@@ -60,7 +60,7 @@ texture_2d *texture_manager_update_texture(texture_manager *manager, const char 
 											int width, int height, int original_width, int original_height,
 											int num_channels, int scale, bool is_text, long used);
 
-void texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
+bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
 										int width, int height, int original_width, int original_height,
 										int num_channels, int scale, bool is_text, long size, int compression_type);
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);

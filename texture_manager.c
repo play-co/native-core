@@ -242,7 +242,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
     return tex;
 }
 
-void texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
+bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
                                        int width, int height, int original_width, int original_height,
                                        int num_channels, int scale, bool is_text, long size, int compression_type) {
     //add the amount of bytes being used by this texture to the amount of texture bytes being used
@@ -280,11 +280,14 @@ void texture_manager_on_texture_loaded(texture_manager *manager, const char *url
     tex->original_name = name;
     tex->is_text = is_text;
     tex->loaded = true;
+    tex->failed = core_check_gl_error();
     tex->width = width;
     tex->height = height;
     tex->scale = scale;
     tex->originalWidth = original_width;
     tex->originalHeight = original_height;
+
+    return tex->failed;
 }
 
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url) {
@@ -798,14 +801,9 @@ void texture_manager_tick(texture_manager *manager) {
                 GLTRACE(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cur_tex->pixel_data));
             }
 
-            glErrorFound = core_check_gl_error();
-            if (glErrorFound) {
-                cur_tex->failed = true;
-            }
-
-            texture_manager_on_texture_loaded(manager, cur_tex->url, texture,
-                                              cur_tex->width, cur_tex->height, cur_tex->originalWidth, cur_tex->originalHeight,
-                                              cur_tex->num_channels, cur_tex->scale, cur_tex->is_text, cur_tex->used_texture_bytes, cur_tex->compression_type);
+            glErrorFound = texture_manager_on_texture_loaded(manager, cur_tex->url, texture, cur_tex->width, cur_tex->height,
+                cur_tex->originalWidth, cur_tex->originalHeight, cur_tex->num_channels, cur_tex->scale, cur_tex->is_text,
+                cur_tex->used_texture_bytes, cur_tex->compression_type);
         } else {
             cur_tex->loaded = true;
         }

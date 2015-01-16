@@ -195,8 +195,7 @@ texture_2d *texture_2d_new_from_data(int width, int height, const void *data) {
     tex->loaded = true;
     tex->prev = tex->next = NULL;
     tex->num_channels = 4;
-    bool glErrorFound = core_check_gl_error();
-    tex->failed = glErrorFound;
+    tex->failed = core_check_gl_error();
     tex->assumed_texture_bytes = width * height * 4;
     tex->used_texture_bytes = 0;
     tex->compression_type = 0;
