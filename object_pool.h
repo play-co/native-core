@@ -25,7 +25,7 @@ extern "C" {
 typedef struct object_pool_t {
 	unsigned int avail_count;
 	unsigned int max_size;
-	unsigned int item_size;
+	size_t item_size;
 	void **items;
 } object_pool;
 
@@ -34,7 +34,7 @@ typedef struct object_pool_t {
 #define OBJECT_POOL_RELEASE(obj) object_pool_put(obj)
 #define OBJECT_POOL_DESTROY(pool) object_pool_destroy(pool)
 
-object_pool *object_pool_init(unsigned int initial_size, unsigned int item_size);
+object_pool *object_pool_init(unsigned int initial_size, size_t item_size);
 void object_pool_put(void *obj);
 void *object_pool_get(object_pool *pool);
 void object_pool_destroy(object_pool *pool);
