@@ -525,7 +525,7 @@ void texture_manager_background_texture_loader(void *dummy) {
                     && url[6] == 'a' && url[7] == 's'
                     && url[8] == '_' && url[9] == '_')
                 {
-                    // dispatch the event
+                    // reload the canvas from JavaScript
                     pthread_mutex_unlock(&mutex);
                     notify_canvas_death(url);
                     pthread_mutex_lock(&mutex);
