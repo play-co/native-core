@@ -232,7 +232,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObje
     if (v->has_jsrender) {
         should_restore_viewport = true;
         js_viewport = def_get_viewport(js_opts);
-        def_timestep_view_render(v->js_view, js_ctx, js_opts);
+      JS::RootedObject js_view(get_js_context(), v->js_view);
+        def_timestep_view_render(js_view, js_ctx, js_opts);
     } else {
         v->timestep_view_render(v, ctx);
     }
@@ -270,7 +271,8 @@ void timestep_view_render(timestep_view *v) {
 void timestep_view_wrap_tick(timestep_view *v, double dt) {
     LOGFN("timestep_view_wrap_tick");
     if (v->has_jstick) {
-        def_timestep_view_tick(v->js_view, dt);
+      JS::RootedObject js_view(get_js_context(), v->js_view);
+        def_timestep_view_tick(js_view, dt);
     } else {
         v->timestep_view_tick(v, dt);
     }
