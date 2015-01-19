@@ -240,7 +240,7 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
     return tex;
 }
 
-void texture_manager_on_texture_loaded(texture_manager *manager,
+bool texture_manager_on_texture_loaded(texture_manager *manager,
                                        const char *url,
                                        int name,
                                        int width,

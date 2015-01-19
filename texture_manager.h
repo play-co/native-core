@@ -60,9 +60,18 @@ texture_2d *texture_manager_update_texture(texture_manager *manager, const char 
 											int width, int height, int original_width, int original_height,
 											int num_channels, int scale, bool is_text, long used);
 
-bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
-										int width, int height, int original_width, int original_height,
-										int num_channels, int scale, bool is_text, long size, int compression_type);
+bool texture_manager_on_texture_loaded(texture_manager *manager,
+                                       const char *url,
+                                       int name,
+                                       int width,
+                                       int height,
+                                       int original_width,
+                                       int original_height,
+                                       int num_channels,
+                                       int scale,
+                                       bool is_text,
+                                       long size,
+                                       int compression_type);
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);
 void texture_manager_memory_warning();
 void texture_manager_set_max_memory(texture_manager *manager, long bytes); // Will only ratchet down
