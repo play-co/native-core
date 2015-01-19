@@ -21,7 +21,6 @@
 #include "core/list.h"
 #include "js/js_timestep_view.h"
 #include "js/js.h"
-#include "js/js_core.h"
 #include "core/log.h"
 #include "core/tealeaf_context.h"
 
