@@ -151,7 +151,7 @@ void timestep_view_start_render() {
     abs_scale = 1;
 }
 
-void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObject js_ctx, JS::HandleObject js_opts) {
+void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAPPER js_ctx, JS_OBJECT_WRAPPER js_opts) {
     LOGFN("timestep_view_wrap_render");
     if (!v->visible || !v->opacity) {
         return;
@@ -227,13 +227,12 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObje
         context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
     }
 
-    JS::RootedObject js_viewport(get_js_context());
-    bool should_restore_viewport = false;
+  JS_OBJECT_WRAPPER js_viewport;
+  bool should_restore_viewport = false;
     if (v->has_jsrender) {
         should_restore_viewport = true;
         js_viewport = def_get_viewport(js_opts);
-      JS::RootedObject js_view(get_js_context(), v->js_view);
-        def_timestep_view_render(js_view, js_ctx, js_opts);
+        def_timestep_view_render(v->js_view, js_ctx, js_opts);
     } else {
         v->timestep_view_render(v, ctx);
     }
@@ -263,7 +262,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS::HandleObje
 
 void timestep_view_render(timestep_view *v) {
     // do background color???
-
 }
 
 
@@ -271,8 +269,7 @@ void timestep_view_render(timestep_view *v) {
 void timestep_view_wrap_tick(timestep_view *v, double dt) {
     LOGFN("timestep_view_wrap_tick");
     if (v->has_jstick) {
-      JS::RootedObject js_view(get_js_context(), v->js_view);
-        def_timestep_view_tick(js_view, dt);
+        def_timestep_view_tick(v->js_view, dt);
     } else {
         v->timestep_view_tick(v, dt);
     }
