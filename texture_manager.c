@@ -69,8 +69,6 @@ static long m_epoch_used[EPOCH_USED_BINS] = {0};
 
 // TODO: Optimize the mutex lock holding times
 
-//#define TEXMAN_VERBOSE
-//#define TEXMAN_EXTRA_VERBOSE
 #if defined(TEXMAN_VERBOSE)
 #define TEXLOG(fmt, ...) LOG("{tex} " fmt, ##__VA_ARGS__)
 #else
@@ -242,9 +240,18 @@ texture_2d *texture_manager_load_texture(texture_manager *manager, const char *u
     return tex;
 }
 
-bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
-                                       int width, int height, int original_width, int original_height,
-                                       int num_channels, int scale, bool is_text, long size, int compression_type) {
+bool texture_manager_on_texture_loaded(texture_manager *manager,
+                                       const char *url,
+                                       int name,
+                                       int width,
+                                       int height,
+                                       int original_width,
+                                       int original_height,
+                                       int num_channels,
+                                       int scale,
+                                       bool is_text,
+                                       long size,
+                                       int compression_type) {
     //add the amount of bytes being used by this texture to the amount of texture bytes being used
     //scale = 1, texture stays at its regular size
     //scale = 2, texture is being halfsized as is needed for lower memory footprint
@@ -350,7 +357,7 @@ texture_2d *texture_manager_add_texture_loaded(texture_manager *manager, texture
     return tex;
 }
 
-static int last_accessed_compare(texture_2d *a, texture_2d *b) {
+static time_t last_accessed_compare(texture_2d *a, texture_2d *b) {
     return a->last_accessed - b->last_accessed;
 }
 
@@ -732,7 +739,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // decrease the max texture bytes limit
         long new_max_bytes = MEMORY_DROP_RATE * (double)highest;
-        TEXLOG("WARNING: Low memory! Texture limit was %ld, now %ld", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Low memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
@@ -740,7 +747,7 @@ void texture_manager_tick(texture_manager *manager) {
     } else if (highest > manager->max_texture_bytes) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
-        TEXLOG("WARNING: Allowing more memory! Texture limit was %ld, now %ld", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
@@ -881,7 +888,7 @@ void texture_manager_memory_warning() {
  * to avoid depending on low memory warnings.  This fixes issues where we cannot
  * handle the warning fast enough on larger games.
  */
-void texture_manager_set_max_memory(texture_manager *manager, int bytes) {
+void texture_manager_set_max_memory(texture_manager *manager, long bytes) {
     LOGFN("texture_manager_set_max_memory");
 
     if (manager->max_texture_bytes > bytes) {

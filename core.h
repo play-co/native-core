@@ -45,7 +45,7 @@ void core_on_screen_resize(int width, int height);
 void core_run();
 void core_destroy();
 void core_reset();
-void core_tick(int dt);
+void core_tick(long dt);
 
 #ifdef __cplusplus
 }

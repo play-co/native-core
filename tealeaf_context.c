@@ -159,7 +159,7 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
     }
 
     ctx->canvas = canvas;
-    int len = strlen(url);
+    size_t len = strlen(url);
     ctx->url = (char *)malloc(sizeof(char) * (len + 1));
     strlcpy(ctx->url, url, len + 1);
     ctx->clipStack[0].x = 0;
@@ -282,7 +282,7 @@ void context_2d_resize(context_2d *ctx, int width, int height) {
         tex = texture_manager_resize_texture(texture_manager_get(), tex, width, height);
 
         free(ctx->url);
-        int len = strlen(tex->url);
+        size_t len = strlen(tex->url);
         ctx->url = (char *)malloc(sizeof(char) * (len + 1));
         strlcpy(ctx->url, tex->url, len + 1);
 

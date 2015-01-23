@@ -30,7 +30,7 @@
  * @param	item_size - (unsigned int) the size of each item in the pool
  * @retval	object_pool* - the object pool created after being initilized
  */
-object_pool *object_pool_init(unsigned int initial_size, unsigned int item_size) {
+object_pool *object_pool_init(unsigned int initial_size, size_t item_size) {
     LOGFN("object_pool_init");
     object_pool *pool = (object_pool *) malloc(sizeof(object_pool));
     pool->max_size = initial_size;

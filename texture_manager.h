@@ -26,9 +26,9 @@
 typedef struct texture_manager_t {
 	texture_2d *url_to_tex;
 	int textures_to_load;
-	long texture_bytes_used;
-	long approx_bytes_to_load;
-	long max_texture_bytes;
+	size_t texture_bytes_used;
+	size_t approx_bytes_to_load;
+	size_t max_texture_bytes;
 	int tex_count;
 } texture_manager;
 
@@ -60,12 +60,21 @@ texture_2d *texture_manager_update_texture(texture_manager *manager, const char 
 											int width, int height, int original_width, int original_height,
 											int num_channels, int scale, bool is_text, long used);
 
-bool texture_manager_on_texture_loaded(texture_manager *manager, const char *url, int name,
-										int width, int height, int original_width, int original_height,
-										int num_channels, int scale, bool is_text, long size, int compression_type);
+bool texture_manager_on_texture_loaded(texture_manager *manager,
+                                       const char *url,
+                                       int name,
+                                       int width,
+                                       int height,
+                                       int original_width,
+                                       int original_height,
+                                       int num_channels,
+                                       int scale,
+                                       bool is_text,
+                                       long size,
+                                       int compression_type);
 void texture_manager_on_texture_failed_to_load(texture_manager *manager, const char *url);
 void texture_manager_memory_warning();
-void texture_manager_set_max_memory(texture_manager *manager, int bytes); // Will only ratchet down
+void texture_manager_set_max_memory(texture_manager *manager, long bytes); // Will only ratchet down
 void image_cache_load_callback(struct image_data *data);
 texture_manager *texture_manager_acquire();
 void texture_manager_release();

@@ -45,7 +45,7 @@ typedef struct timestep_view_t {
 
 	int added_at;
 
-	JS_OBJECT_WRAPPER js_view;
+  JS_OBJECT_WRAPPER js_view;
 	bool has_jsrender;
 	bool has_jstick;
 

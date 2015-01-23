@@ -20,14 +20,14 @@
 #include "util/detect.h"
 
 typedef struct core_timer_t {
-	int time_left;
-	int duration;
-	int id;
-	struct core_timer_t *next;
-	struct core_timer_t *prev;
-	bool repeat;
-	bool cleared;
-	void *js_data;
+    int time_left;
+    int duration;
+    int id;
+    struct core_timer_t *next;
+    struct core_timer_t *prev;
+    bool repeat;
+    bool cleared;
+    void *js_data;
 } core_timer;
 
 
@@ -35,7 +35,13 @@ typedef struct core_timer_t {
 extern "C" {
 #endif
 
-void core_timer_tick(int dt);
+// Get reference to timer linked lists. A timer is said to be queued if it was
+// added during the currenct tick. On a subsequent tick, it moves from queue to
+// active.
+core_timer* core_get_timers();
+core_timer* core_get_queued_timers();
+
+void core_timer_tick(long dt);
 void core_timer_clear_all();
 void core_timer_clear(int timerId);
 void core_timer_schedule(core_timer *timer);

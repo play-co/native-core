@@ -276,7 +276,7 @@ unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *
     // Update the png info struct.
     png_read_update_info(png_ptr, info_ptr);
     *channels = (int)png_get_channels(png_ptr, info_ptr);
-    int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+    size_t rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     // Allocate the image_data as a big block, to be given to opengl
     unsigned char  *image_data = (unsigned char *) malloc(rowbytes * (*height));
 

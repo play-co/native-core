@@ -35,7 +35,7 @@ static view_animation *global_head = NULL;
 
 static void init_frame(anim_frame *frame, struct timestep_view_t *v);
 static void apply_frame(anim_frame *frame, struct timestep_view_t *view, double tt);
-static void view_animation_tick(view_animation *anim, int dt);
+static void view_animation_tick(view_animation *anim, long dt);
 
 /*
  * if we are currently in the middle of a tick, this is true and therefore
@@ -211,7 +211,7 @@ void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int d
     LOGFN("end view_animation_then");
 }
 
-CEXPORT void view_animation_tick_animations(int dt) {
+CEXPORT void view_animation_tick_animations(long dt) {
     LOGFN("view_animation_tick_animations");
     // lock the animation queue - kind of hacky, but should handle
     // *most* situations where we modify the queue while ticking
@@ -581,7 +581,7 @@ static void apply_frame(anim_frame *frame, timestep_view *view, double tt) {
     LOGFN("end apply_frame");
 }
 
-static void view_animation_tick(view_animation *anim, int dt) {
+static void view_animation_tick(view_animation *anim, long dt) {
     LOGFN("view_animation_tick");
 
     if (!anim->is_scheduled) {

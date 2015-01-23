@@ -29,6 +29,14 @@ static int timer_id = 0;
 
 #define MAX_TIMERS_PER_TICK 400
 
+core_timer* core_get_timers() {
+  return timer_head;
+}
+
+core_timer* core_get_queued_timers() {
+  return m_insert_head;
+}
+
 static void queue_insert(core_timer *timer) {
     timer->prev = 0;
     timer->next = m_insert_head;
@@ -222,7 +230,7 @@ CEXPORT void core_timer_clear_all() {
  * @param	dt - (int) elapsed time since last tick
  * @retval	NONE
  */
-CEXPORT void core_timer_tick(int dt) {
+CEXPORT void core_timer_tick(long dt) {
     insert_queued_timers();
 
     if (dt < 0) {

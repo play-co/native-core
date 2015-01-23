@@ -209,10 +209,10 @@ void calculate_size(texture_2d *tex, bool rotate) {
  * @name	core_tick
  * @brief	moves the game forward by a single tick, defined by a time delta of
  *			last tick to this tick
- * @param	dt - (int) elapsed time from last tick to this tick in milliseconds
+ * @param	dt - (long) elapsed time from last tick to this tick in milliseconds
  * @retval	NONE
  */
-void core_tick(int dt) {
+void core_tick(long dt) {
     if (js_ready) {
         core_timer_tick(dt);
         js_tick(dt);
