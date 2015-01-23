@@ -27,18 +27,6 @@
 		},
 		{
 			"type": "double",
-			"name": "widthPercent",
-			"userSetter": true,
-			"userGetter": true
-		},
-		{
-			"type": "double",
-			"name": "heightPercent",
-			"userSetter": true,
-			"userGetter": true
-		},
-		{
-			"type": "double",
 			"name": "r"
 		},
 		{
@@ -99,10 +87,6 @@
 			"name": "hasJSTick"
 		},
 		{
-			"type": "bool",
-			"name": "__firstRender"
-		},
-		{
 			"type": "int",
 			"name": "zIndex",
 			"userSetter": true
@@ -114,11 +98,29 @@
 		{
 			"type": "int",
 			"name": "filterType"
+		},
+		{
+			"type": "double",
+			"name": "width"
+		},
+		{
+			"name": "_width",
+			"type": "double",
+			"userSetter": true,
+			"userGetter": true
+		},
+		{
+			"type": "double",
+			"name": "height"
+		},
+		{
+			"name": "_height",
+			"type": "double",
+			"userSetter": true,
+			"userGetter": true
 		}
 	],
 	"properties": [
-		"width",
-		"height",
 		"compositeOperation"
 	],
 	"methods": [

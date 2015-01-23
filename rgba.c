@@ -228,7 +228,7 @@ bool rgba_equals(rgba *a, rgba *b) {
 void rgba_parse(rgba *color, const char *src) {
     int r = 0, g = 0, b = 0;
     float a = 1;
-    unsigned int n = strlen(src);
+    size_t n = strlen(src);
 
     if (src[0] == '#') {
         char buf[3];
@@ -237,23 +237,23 @@ void rgba_parse(rgba *color, const char *src) {
         if (n == 4) {
             buf[0] = src[1];
             buf[1] = src[1];
-            r = strtol(buf, NULL, 16);
+            r = (int)strtol(buf, NULL, 16);
             buf[0] = src[2];
             buf[1] = src[2];
-            g = strtol(buf, NULL, 16);
+            g = (int)strtol(buf, NULL, 16);
             buf[0] = src[3];
             buf[1] = src[3];
-            b = strtol(buf, NULL, 16);
+            b = (int)strtol(buf, NULL, 16);
         } else if (n >= 7) {
             buf[0] = src[1];
             buf[1] = src[2];
-            r = strtol(buf, NULL, 16);
+            r = (int)strtol(buf, NULL, 16);
             buf[0] = src[3];
             buf[1] = src[4];
-            g = strtol(buf, NULL, 16);
+            g = (int)strtol(buf, NULL, 16);
             buf[0] = src[5];
             buf[1] = src[6];
-            b = strtol(buf, NULL, 16);
+            b = (int)strtol(buf, NULL, 16);
         }
 
         if (n == 9) {
@@ -296,7 +296,7 @@ void rgba_parse(rgba *color, const char *src) {
                 }
             }
 
-            a = atof(src + i);
+            a = strtod(src + i, NULL);
         }
     } else {
         html_color *c;
@@ -307,6 +307,8 @@ void rgba_parse(rgba *color, const char *src) {
             b = c->color.b;
             g = c->color.g;
             a = c->color.a;
+        } else {
+            a = 0;
         }
     }
 

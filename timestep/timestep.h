@@ -45,7 +45,7 @@ typedef struct timestep_view_t {
 
 	int added_at;
 
-	JS_OBJECT_WRAPPER js_view;
+  JS_OBJECT_WRAPPER js_view;
 	bool has_jsrender;
 	bool has_jstick;
 
@@ -53,8 +53,6 @@ typedef struct timestep_view_t {
 	double y;
 	double width;
 	double height;
-	double width_percent;
-	double height_percent;
 	double r;
 	double anchor_x;
 	double anchor_y;
@@ -74,7 +72,6 @@ typedef struct timestep_view_t {
 	int composite_operation;
 
 	struct rgba_t background_color;
-	bool __first_render;
 	int z_index;
 	bool dirty_z_index;
 
@@ -84,7 +81,6 @@ typedef struct timestep_view_t {
 
 	void (*timestep_view_render)(struct timestep_view_t*, context_2d*);
 	void (*timestep_view_tick)(struct timestep_view_t*, double);
-	bool first_render;
 
 	PERSISTENT_JS_OBJECT_WRAPPER map_ref;
 	void *view_data;

@@ -1,3 +1,4 @@
+
 /* @license
  * This file is part of the Game Closure SDK.
  *
@@ -38,7 +39,12 @@ static void image_view_render(timestep_view *v, context_2d *ctx) {
     if (map && map->url) {
         float scale_x = (float)v->width / (map->margin_left + map->width + map->margin_right);
         float scale_y = (float)v->height / (map->margin_top + map->height + map->margin_bottom);
-        rect_2d src_rect = {map->x, map->y, map->width, map->height};
+        rect_2d src_rect = {
+          static_cast<float>(map->x),
+          static_cast<float>(map->y),
+          static_cast<float>(map->width),
+          static_cast<float>(map->height)
+        };
         rect_2d dest_rect = {
             scale_x * map->margin_left,
             scale_y * map->margin_top,
@@ -80,8 +86,6 @@ timestep_view *timestep_view_init() {
     v->y = 0;
     v->width = UNDEFINED_DIMENSION;
     v->height = UNDEFINED_DIMENSION;
-    v->width_percent = 0;
-    v->height_percent = 0;
     v->r = 0;
     v->anchor_x = 0;
     v->anchor_y = 0;
@@ -100,8 +104,6 @@ timestep_view *timestep_view_init() {
     v->opacity = 1;
     v->timestep_view_render = default_view_render;
     v->timestep_view_tick = default_view_tick;
-    v->first_render = true;
-    v->__first_render = false;
 
     v->composite_operation = 0;
 
@@ -154,10 +156,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
         return;
     }
 
-    if (!v->__first_render) {
-        def_timestep_view_needs_reflow(v->js_view, true);
-    }
-
     if (v->dirty_z_index) {
         v->dirty_z_index = false;
         timestep_view_sort_subviews(v);
@@ -187,7 +185,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
     context_2d_translate(ctx, -v->anchor_x, -v->anchor_y);
 
     if (v->clip) {
-        rect_2d r = {0, 0, v->width, v->height};
+        rect_2d r = {0, 0, static_cast<float>(v->width), static_cast<float>(v->height)};
         context_2d_setClip(ctx, r);
     }
 
@@ -204,7 +202,7 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
     if (v->background_color.a > 0) {
         //LOG("render %i with background %f %f %f %f", v->uid, v->background_color.r, v->background_color.g, v->background_color.b, v->background_color.a);
 
-        rect_2d r = {0, 0, v->width, v->height};
+        rect_2d r = {0, 0, static_cast<float>(v->width), static_cast<float>(v->height)};
         context_2d_fillRect(ctx, &r, &v->background_color);
     }
 
@@ -228,8 +226,8 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
         context_2d_setGlobalCompositeOperation(ctx, v->composite_operation);
     }
 
-    JS_OBJECT_WRAPPER js_viewport;
-    bool should_restore_viewport = false;
+  JS_OBJECT_WRAPPER js_viewport;
+  bool should_restore_viewport = false;
     if (v->has_jsrender) {
         should_restore_viewport = true;
         js_viewport = def_get_viewport(js_opts);
@@ -263,7 +261,6 @@ void timestep_view_wrap_render(timestep_view *v, context_2d *ctx, JS_OBJECT_WRAP
 
 void timestep_view_render(timestep_view *v) {
     // do background color???
-
 }
 
 

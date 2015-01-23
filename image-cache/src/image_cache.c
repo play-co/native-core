@@ -152,7 +152,7 @@ static char *get_full_path(const char *filename) {
     return file_path;
 }
 
-static volatile struct work_item *alloc_work_item(const char *url, char *bytes, int size, bool request_failed, bool tried_server) {
+static volatile struct work_item *alloc_work_item(const char *url, char *bytes, size_t size, bool request_failed, bool tried_server) {
     struct work_item *item = (struct work_item *)malloc(sizeof(struct work_item));
 
     item->image.url = strdup(url);
@@ -172,7 +172,7 @@ static void free_work_item(volatile struct work_item *item) {
     }
 }
 
-static void queue_work_item(const char *url, char *bytes, int size, bool request_failed, bool tried_server) {
+static void queue_work_item(const char *url, char *bytes, size_t size, bool request_failed, bool tried_server) {
     volatile struct work_item *item = alloc_work_item(url, bytes, size, request_failed, tried_server);
 
     // add the work item to the work list
@@ -294,7 +294,7 @@ static void read_etags_from_cache() {
     if (fd == -1) {
         DLOG("{image-cache} WARNING: read_etags_from_cache open failed errno=%d for %s", errno, path);
     } else {
-        unsigned long len = lseek(fd, 0, SEEK_END);
+        off_t len = lseek(fd, 0, SEEK_END);
 
 #ifndef __ANDROID__
         // These are BSD/iOS-only
@@ -303,14 +303,14 @@ static void read_etags_from_cache() {
 #endif
 
         if (len > 0) {
-            void *raw = mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
+            void *raw = mmap(0, (size_t)len, PROT_READ, MAP_PRIVATE, fd, 0);
 
             if (raw == MAP_FAILED) {
                 LOG("{image-cache} WARNING: read_etags_from_cache mmap failed errno=%d for %s len=%d", errno, path, (int)len);
             } else {
-                parse_etag_file_data(raw, len);
+                parse_etag_file_data(raw, (int)len);
 
-                munmap(raw, len);
+                munmap(raw, (size_t)len);
             }
         } else {
             DLOG("{image-cache} WARNING: read_etags_from_cache file length 0 errno=%d for %s len=%d", errno, path, (int)len);
@@ -764,7 +764,7 @@ static void image_cache_run(void *args) {
 
                 struct request *request = request_pool[idx];
                 if (msg->data.result == CURLE_OK) {
-                    DLOG("{image-cache} Loader thread: Finished request: %s with result %d and image size %d", request->load_item->url, msg->data.result, (int)request->image.size);
+                    DLOG("{image-cache} Loader thread: Finished request: %s with result %d and image size %zu", request->load_item->url, msg->data.result, request->image.size);
                     struct etag_data *etag_data = 0;
 
                     // Check to see if this url already has etag data
@@ -866,7 +866,7 @@ static void callback_cached_image(char *url, bool report_error) {
     if (fd == -1) {
         DLOG("{image-cache} WARNING: callback_cached_image open failed errno=%d for %s", errno, path);
     } else {
-        unsigned long len = lseek(fd, 0, SEEK_END);
+        off_t len = lseek(fd, 0, SEEK_END);
 
 #ifndef __ANDROID__
         // These are BSD/iOS-only
@@ -875,7 +875,7 @@ static void callback_cached_image(char *url, bool report_error) {
 #endif
 
         if (len > 0) {
-            void *raw = mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
+            void *raw = mmap(0, (size_t)len, PROT_READ, MAP_PRIVATE, fd, 0);
 
             if (raw == MAP_FAILED) {
                 LOG("{image-cache} WARNING: callback_cached_image failed errno=%d for %s len=%d", errno, path, (int)len);
@@ -883,7 +883,7 @@ static void callback_cached_image(char *url, bool report_error) {
                 DLOG("{image-cache} Reading cached image data: %s bytes=%d", url, (int)len);
 
                 image.bytes = raw;
-                image.size = len;
+                image.size = (size_t)len;
                 success = true;
             }
         } else {

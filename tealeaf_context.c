@@ -56,24 +56,6 @@ void tealeaf_context_set_proj_matrix(context_2d *ctx) {
 }
 
 /**
- * @name	tealeaf_context_resize
- * @brief	resizes the given context to the given width / height
- * @param	ctx - (context_2d *) context to resize
- * @param	width - (int) width to resize to
- * @param	height - (int) height to resize to
- * @retval	NONE
- */
-void tealeaf_context_resize(context_2d *ctx, int width, int height) {
-    if (ctx->on_screen) {
-        ctx->backing_width = width;
-        ctx->backing_height = height;
-        ctx->width = width;
-        ctx->height = height;
-        tealeaf_context_set_proj_matrix(ctx);
-    }
-}
-
-/**
  * @name	tealeaf_context_update_viewport
  * @brief	updates the gl viewport using the context's properties
  * @param	ctx - (context_2d *) context to update the viewport by
@@ -87,9 +69,6 @@ void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
     tealeaf_context_update_shader(ctx, LINEAR_ADD_SHADER, force);
     GLTRACE(glViewport(0, 0, ctx->backing_width, ctx->backing_height));
 }
-
-
-
 
 /**
  * @name	print_model_view
@@ -180,7 +159,7 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
     }
 
     ctx->canvas = canvas;
-    int len = strlen(url);
+    size_t len = strlen(url);
     ctx->url = (char *)malloc(sizeof(char) * (len + 1));
     strlcpy(ctx->url, url, len + 1);
     ctx->clipStack[0].x = 0;
@@ -281,6 +260,37 @@ void context_2d_delete(context_2d *ctx) {
 
     free(ctx->url);
     free(ctx);
+}
+
+/**
+ * @name    context_2d_resize
+ * @brief   resizes the given context to the given width / height
+ * @param   ctx - (context_2d *) context to resize
+ * @param   width - (int) width to resize to
+ * @param   height - (int) height to resize to
+ * @retval  NONE
+ */
+void context_2d_resize(context_2d *ctx, int width, int height) {
+    if (ctx->on_screen) {
+        ctx->backing_width = width;
+        ctx->backing_height = height;
+        ctx->width = width;
+        ctx->height = height;
+        tealeaf_context_set_proj_matrix(ctx);
+    } else {
+        texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
+        tex = texture_manager_resize_texture(texture_manager_get(), tex, width, height);
+
+        free(ctx->url);
+        size_t len = strlen(tex->url);
+        ctx->url = (char *)malloc(sizeof(char) * (len + 1));
+        strlcpy(ctx->url, tex->url, len + 1);
+
+        ctx->backing_width = tex->width;
+        ctx->backing_height = tex->height;
+        ctx->width = tex->originalWidth;
+        ctx->height = tex->originalHeight;
+    }
 }
 
 /**

@@ -138,6 +138,7 @@ unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int
         memcpy(header, bits, 8);
         int is_png = !png_sig_cmp(header, 0, 8);
         int is_pkm = !is_png && !strncmp("PKM 10", (char*) header, 6);
+        int is_jpg = !is_png && !is_pkm && header[0] == 0xFF && header[1] == 0xD8;
 
         if (is_png) {
             data = load_png_from_memory(bits, bits_length, width, height, channels);
@@ -159,9 +160,11 @@ unsigned char *load_image_from_memory(unsigned char *bits, long bits_length, int
                 data = (unsigned char*) malloc(*size);
                 memcpy(data, bits + 16, *size);
             }
-        } else {
+        } else if (is_jpg) {
             data = load_jpg_from_memory(bits, bits_length, width, height, channels);
             *size = (*channels) * (*width) * (*height);
+        } else {
+            LOG("Unknown image type, skipping load");
         }
     }
     return data;
@@ -273,7 +276,7 @@ unsigned char *load_png_from_memory(unsigned char *bits, long bits_length, int *
     // Update the png info struct.
     png_read_update_info(png_ptr, info_ptr);
     *channels = (int)png_get_channels(png_ptr, info_ptr);
-    int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+    size_t rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     // Allocate the image_data as a big block, to be given to opengl
     unsigned char  *image_data = (unsigned char *) malloc(rowbytes * (*height));
 

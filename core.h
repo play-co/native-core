@@ -38,14 +38,14 @@ void core_init(const char *entry_point,
                const char *simulate_id);
 bool core_init_js(const char *uri, const char *version);
 void core_report_gl_error(int error_code);
-void core_check_gl_error();
+bool core_check_gl_error();
 void core_init_gl(int framebuffer_name);
 void core_hide_preloader();
 void core_on_screen_resize(int width, int height);
 void core_run();
 void core_destroy();
 void core_reset();
-void core_tick(int dt);
+void core_tick(long dt);
 
 #ifdef __cplusplus
 }

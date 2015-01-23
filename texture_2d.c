@@ -195,12 +195,29 @@ texture_2d *texture_2d_new_from_data(int width, int height, const void *data) {
     tex->loaded = true;
     tex->prev = tex->next = NULL;
     tex->num_channels = 4;
-    tex->failed = false;
+    tex->failed = core_check_gl_error();
     tex->assumed_texture_bytes = width * height * 4;
     tex->used_texture_bytes = 0;
     tex->compression_type = 0;
     tex->frame_epoch = 0;
     return tex;
+}
+
+bool texture_2d_can_resize(texture_2d *tex, int width, int height) {
+    return width <= tex->width && height <= tex->height;
+}
+
+/**
+ * @name    texture_2d_resize_unsafe
+ * @brief   sets the original width and height. not to be called if new dimensions are greater than texture's width and height, otherwise undefined behavior
+ * @param   tex - (texture_2d *) texture to save data from
+ * @param   width - new width
+ * @param   height - new height
+ * @retval  NONE
+ */
+void texture_2d_resize_unsafe(texture_2d *tex, int width, int height) {
+    tex->originalWidth = width;
+    tex->originalHeight = height;
 }
 
 /**
@@ -298,6 +315,9 @@ unsigned char *texture_2d_load_texture_raw(const char *url, const void *data, un
     *out_originalHeight = h_old;
 
     if (*out_compression_type) {
+        *out_width = w_old;
+        *out_height = h_old;
+        *out_scale = 1;
         return bits;
     } else {
         switch (ch) {
