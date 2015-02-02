@@ -776,24 +776,8 @@ void context_2d_scale(context_2d *ctx, float x, float y) {
  * @retval	NONE
  */
 void context_2d_clearRect(context_2d *ctx, const rect_2d *rect) {
-    draw_textures_flush();
-    context_2d_bind(ctx);
-    tealeaf_shaders_bind(PRIMARY_SHADER);
-
-    // Draw a rectangle using triangle strip:
-    //    (0,1)-(2,3)-(4,5) and (2,3)-(4,5)-(6,7)
-    //
-    // With coordinates:
-    //    4,5  -  6,7
-    //     |   \   |
-    //    0,1  -  2,3
-    GLfloat v[8];
-    matrix_3x3_multiply(GET_MODEL_VIEW_MATRIX(ctx), rect, (float *)&v[4], (float *)&v[5], (float *)&v[6], (float *)&v[7], (float *)&v[2], (float *)&v[3], (float *)&v[0], (float *)&v[1]);
-    GLTRACE(glBlendFunc(GL_ONE, GL_ZERO));
-    GLTRACE(glUniform4f(global_shaders[PRIMARY_SHADER].draw_color, 0, 0, 0, 0)); // set color to 0
-    GLTRACE(glVertexAttribPointer(global_shaders[PRIMARY_SHADER].vertex_coords, 2, GL_FLOAT, GL_FALSE, 0, v));
-    GLTRACE(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
-    GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    rgba color = { 0, 0, 0, 0 };
+    context_2d_fillRect(ctx, rect, &color);
 }
 
 /**
