@@ -215,7 +215,7 @@ unsigned char *context_2d_read_pixels(context_2d *ctx) {
     draw_textures_flush();
     unsigned char *buffer = NULL;
     buffer = (unsigned char *)malloc(sizeof(unsigned char) * 4 * ctx->width * ctx->height);
-    glReadPixels(0, 0, ctx->width, ctx->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    GLTRACE(glReadPixels(0, 0, ctx->width, ctx->height, GL_RGBA, GL_UNSIGNED_BYTE, buffer));
     return buffer;
 }
 
@@ -643,8 +643,8 @@ void context_2d_restore(context_2d *ctx) {
 void context_2d_clear(context_2d *ctx) {
     draw_textures_flush();
     context_2d_bind(ctx);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GLTRACE(glClearColor(0, 0, 0, 0));
+    GLTRACE(glClear(GL_COLOR_BUFFER_BIT));
 }
 
 /**
