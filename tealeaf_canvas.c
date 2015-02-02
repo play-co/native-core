@@ -130,6 +130,20 @@ bool tealeaf_canvas_context_2d_bind(context_2d *ctx) {
 }
 
 /**
+ * @name  teleaf_canvas_context_2d_rebind
+ * @brief if the given context is active, rebind it
+ * @param ctx - (context_2d *) context to rebind
+ * @retval  NONE
+ */
+void tealeaf_canvas_context_2d_rebind(context_2d *ctx)
+{
+    if (canvas.active_ctx == ctx) {
+        canvas.active_ctx = NULL;
+        tealeaf_canvas_context_2d_bind(ctx);
+    }
+}
+
+/**
  * @name	tealeaf_canvas_resize
  * @brief	resize's the onscreen canvas
  * @param	w - (int) width to resize to

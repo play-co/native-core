@@ -290,6 +290,8 @@ void context_2d_resize(context_2d *ctx, int width, int height) {
         ctx->backing_height = tex->height;
         ctx->width = tex->originalWidth;
         ctx->height = tex->originalHeight;
+
+        tealeaf_canvas_context_2d_rebind(ctx);
     }
 }
 

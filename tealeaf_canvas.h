@@ -41,6 +41,7 @@ void tealeaf_canvas_bind_render_buffer(context_2d_p ctx);
 void tealeaf_canvas_bind_texture_buffer(context_2d_p ctx);
 void tealeaf_canvas_resize(int w, int h);
 bool tealeaf_canvas_context_2d_bind(context_2d_p ctx);
+void tealeaf_canvas_context_2d_rebind(context_2d_p ctx);
 
 tealeaf_canvas *tealeaf_canvas_get();
 void tealeaf_canvas_init(int framebuffer_name);
