@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "quirc/quirc.h"
-#include "libqrencode/qrencode.h"
+#include "qr/quirc/quirc.h"
+#include "qr/libqrencode/qrencode.h"
 
 #include "core/image_loader.h"
 #include "core/image_writer.h"
