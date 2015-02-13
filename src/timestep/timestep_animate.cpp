@@ -23,6 +23,8 @@
 //#include "js/js_animate.h"
 #include "core/log.h"
 
+using std::isnan;
+
 /*
  * make some object pools for our different objects
  */
