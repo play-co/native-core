@@ -25,6 +25,7 @@ struct context_2d_t;
 
 typedef struct texture_2d_t {
 	int name;
+  int stencil;
 	int original_name;
 	int originalWidth;
 	int originalHeight;

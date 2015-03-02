@@ -76,10 +76,16 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
         return;
     }
 
-    GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
-    GLTRACE(glFinish());
+    if (tex->stencil == -1) {
+      glGenTextures(1, &(tex->stencil));
+    }
+
     GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.offscreen_framebuffer));
     GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->name, 0));
+    GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex->stencil, 0));
+    GLTRACE(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex->stencil, 0));
+    GLTRACE(glBindTexture(GL_TEXTURE_2D, tex->name));
+    GLTRACE(glFinish());
     canvas.framebuffer_width = tex->originalWidth;
     canvas.framebuffer_height = tex->originalHeight;
     canvas.framebuffer_offset_bottom = tex->height - tex->originalHeight;

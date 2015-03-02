@@ -52,6 +52,7 @@ texture_2d *texture_2d_new_from_image(char *url, int name, int width, int height
     tex->height = height;
     tex->scale = 1;
     tex->name = name;
+    tex->stencil = -1;
     tex->original_name = name;
     tex->is_text = false;
     tex->is_canvas = false;
@@ -95,6 +96,7 @@ texture_2d *texture_2d_new_from_url(char *url) {
     tex->originalWidth = 0;
     tex->originalHeight = 0;
     tex->name = 0;
+    tex->stencil = -1;
     tex->original_name = 0;
     tex->is_text = false;
     tex->is_canvas = false;
@@ -180,6 +182,7 @@ texture_2d *texture_2d_new_from_data(int width, int height, const void *data) {
     name = get_tex_from_data(w, h, data);
     texture_2d *tex = (texture_2d *) malloc(sizeof(texture_2d));
     tex->name = name;
+    tex->stencil = -1;
     tex->original_name = name;
     tex->originalWidth = width;
     tex->originalHeight = height;
