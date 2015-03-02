@@ -95,7 +95,8 @@ void disable_scissor(context_2d *ctx) {
     draw_textures_flush();
     last_scissor_rect.x = last_scissor_rect.y = 0;
     last_scissor_rect.width = last_scissor_rect.height = -1;
-    GLTRACE(glDisable(GL_SCISSOR_TEST));
+    // GLTRACE(glDisable(GL_SCISSOR_TEST));
+    glDisable(GL_STENCIL_TEST);
 }
 
 /**
@@ -116,8 +117,27 @@ void enable_scissor(context_2d *ctx) {
     last_scissor_rect.y = bounds->y;
     last_scissor_rect.width = bounds->width;
     last_scissor_rect.height = bounds->height;
-    GLTRACE(glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height));
-    GLTRACE(glEnable(GL_SCISSOR_TEST));
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    glStencilMask(0xFF);
+    glDepthMask(GL_FALSE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    glClear(GL_STENCIL_BUFFER_BIT);
+
+    rgba white = {1, 1, 1, 1};
+    context_2d_fillRect(ctx, bounds, &white);
+
+    // Replace normal drawing mode
+    glStencilFunc(GL_EQUAL, 1, 0xFF);
+    glStencilMask(0);
+    glDepthMask(GL_TRUE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    // GLTRACE(glScissor((int) bounds->x, (int) bounds->y, (int) bounds->width, (int) bounds->height));
+    // GLTRACE(glEnable(GL_SCISSOR_TEST));
 }
 
 /**
