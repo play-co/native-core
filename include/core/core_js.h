@@ -31,6 +31,7 @@ extern "C" {
 // JS Ready flag: Indicates that the JavaScript engine is running
 extern bool js_ready;
 
+bool js_init_engine();
 bool init_js(const char *uri, const char *version);
 bool destroy_js();
 void eval_str(const char *str);

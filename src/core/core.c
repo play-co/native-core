@@ -92,8 +92,6 @@ void core_init(const char *entry_point,
                int tcp_port,
                int code_port,
                const char *source_dir,
-               int width,
-               int height,
                bool remote_loading,
                const char *splash,
                const char *simulate_id) {
@@ -103,8 +101,6 @@ void core_init(const char *entry_point,
     config_set_code_host(code_host);
     config_set_tcp_port(tcp_port);
     config_set_code_port(code_port);
-    config_set_screen_width(width);
-    config_set_screen_height(height);
     config_set_splash(splash);
     config_set_simulate_id(simulate_id);
     // http_init();
@@ -112,12 +108,6 @@ void core_init(const char *entry_point,
     rgba_init();
     // make checks for halfsized images
     resource_loader_initialize(source_dir);
-
-    if (width <= MIN_SIZE_TO_HALFSIZE || height <= MIN_SIZE_TO_HALFSIZE) {
-        set_halfsized_textures(true);
-    } else {
-        set_halfsized_textures(false);
-    }
 
     texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
@@ -157,6 +147,15 @@ bool core_init_js(const char *uri, const char *version) {
 
     init_js(uri, version);
     return run_file("native.js");
+}
+
+bool core_js_engine_init(const char* uri, const char* version) {
+    js_init_engine();
+    return init_js(uri, version);
+}
+
+bool core_js_eval(const char *uri) {
+    return run_file(uri);
 }
 
 /**
@@ -313,6 +312,8 @@ void core_hide_preloader() {
  * @retval	NONE
  */
 void core_on_screen_resize(int width, int height) {
+    config_set_screen_width(width);
+    config_set_screen_height(height);
     tealeaf_canvas_resize(width, height);
 }
 
@@ -323,8 +324,17 @@ void core_on_screen_resize(int width, int height) {
  */
 void core_destroy() {
     destroy_js();
-    texture_manager_destroy(texture_manager_get());
     sound_manager_halt();
+}
+
+/**
+ * @name core_destroy_gl
+ * @brief stops services that require a valid GL context
+ * @retval NONE
+ */
+
+void core_destroy_gl() {
+    texture_manager_destroy(texture_manager_get());
 }
 
 /**
@@ -337,6 +347,10 @@ void core_reset() {
     do_sizing = true;
     show_preload = true;
     preload_hide_frame_count = 0;
+}
+
+void core_reinit() {
+    core_destroy();
 }
 
 /**
@@ -367,3 +381,10 @@ bool core_check_gl_error() {
         return false;
     }
 }
+
+#ifndef ANDROID
+// TODO iOS support
+bool js_init_engine() {
+    return true;
+}
+#endif

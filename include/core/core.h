@@ -31,8 +31,6 @@ void core_init(const char *entry_point,
                int tcp_port,
                int code_port,
                const char *source_dir,
-               int width,
-               int height,
                bool remote_loading,
 			   const char *splash,
                const char *simulate_id);
@@ -46,6 +44,12 @@ void core_run();
 void core_destroy();
 void core_reset();
 void core_tick(long dt);
+
+bool core_js_engine_init(const char* uri, const char* version);
+bool core_js_eval(const char* file);
+void core_destroy_gl();
+void core_reinit();
+
 
 #ifdef __cplusplus
 }
