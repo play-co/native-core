@@ -16,10 +16,6 @@
 #ifndef HTTP_H
 #define HTTP_H
 
-#include "util/detect.h"
+const char *http_get_url_bytes(const char *url);
 
-CEXPORT void http_init();
-CEXPORT void http_cleanup();
-CEXPORT char *http_get(const char *url);
-
-#endif
+#endif //HTTP_H
