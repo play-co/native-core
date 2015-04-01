@@ -31,6 +31,7 @@ typedef struct tealeaf_canvas_t {
 	bool on_screen;
 	context_2d_p onscreen_ctx;
 	context_2d_p active_ctx;
+	bool gl_available;
 } tealeaf_canvas;
 
 #ifdef __cplusplus
@@ -43,6 +44,8 @@ void tealeaf_canvas_resize(int w, int h);
 bool tealeaf_canvas_context_2d_bind(context_2d_p ctx);
 
 tealeaf_canvas *tealeaf_canvas_get();
+
+void tealeaf_canvas_set_defaults();
 void tealeaf_canvas_init(int framebuffer_name, int tex_name);
 
 #ifdef __cplusplus

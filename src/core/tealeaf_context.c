@@ -28,6 +28,7 @@
 #include "core/graphics_utils.h"
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define GET_MODEL_VIEW_MATRIX(ctx) (&ctx->modelView[ctx->mvp])
 #define GET_CLIPPING_BOUNDS(ctx) (&ctx->clipStack[ctx->mvp])
@@ -82,6 +83,7 @@ void tealeaf_context_resize(context_2d *ctx, int width, int height) {
  * @retval	NONE
  */
 void tealeaf_context_update_viewport(context_2d *ctx, bool force) {
+    LOGFN("tealeaf_context_update_viewport");
     tealeaf_context_update_shader(ctx, DRAWING_SHADER, force);
     tealeaf_context_update_shader(ctx, PRIMARY_SHADER, force);
     tealeaf_context_update_shader(ctx, FILL_RECT_SHADER, force);
@@ -149,6 +151,7 @@ void enable_scissor(context_2d *ctx) {
  * @retval	context_2d* - pointer to the created context
  */
 context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_tex, bool on_screen) {
+    LOGFN("context_2d_init");
     context_2d *ctx = (context_2d *) malloc(sizeof(context_2d));
     ctx->mvp = 0;
     ctx->globalAlpha[0] = 1;
@@ -189,7 +192,7 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
     ctx->clipStack[0].width = -1;
     ctx->clipStack[0].height = -1;
     matrix_3x3_identity(&ctx->modelView[0]);
-    context_2d_clear(ctx);
+
     return ctx;
 }
 
@@ -199,6 +202,7 @@ context_2d *context_2d_init(tealeaf_canvas *canvas, const char *url, int dest_te
  * @retval	context_2d* -
  */
 context_2d *context_2d_get_onscreen() {
+    LOGFN("context_2d_get_onscreen");
     tealeaf_canvas *canvas = tealeaf_canvas_get();
     return canvas->onscreen_ctx;
 }
@@ -736,7 +740,7 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
 
     // Allocate vertex array buffer
     if (vertex_buffer == NULL) {
-        vertex_buffer = malloc(vertex_max * 2 * sizeof(GLfloat));
+        vertex_buffer = (GLfloat*)malloc(vertex_max * 2 * sizeof(GLfloat));
     }
 
     // Add points to the buffer so there are drawing points every X pixels
@@ -752,7 +756,8 @@ void context_2d_draw_point_sprites(context_2d *ctx, const char *url, float point
     for (i = 0; i < count; ++i) {
         if (vertex_count == vertex_max) {
             vertex_max = 2 * vertex_max;
-            vertex_buffer = realloc(vertex_buffer, vertex_max * 2 * sizeof(GLfloat));
+            vertex_buffer = (GLfloat*)realloc(vertex_buffer,
+                                              vertex_max * 2 * sizeof(GLfloat));
         }
 
         vertex_buffer[2 * vertex_count + 0] = x1 + (x2 - x1) * ((GLfloat)i / (GLfloat)count);

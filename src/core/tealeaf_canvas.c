@@ -37,6 +37,22 @@ tealeaf_canvas *tealeaf_canvas_get() {
     return &canvas;
 }
 
+void tealeaf_canvas_set_defaults() {
+    LOG("{canvas} Initializing Canvas with Defaults");
+    int width = config_get_screen_width();
+    int height = config_get_screen_height();
+
+    canvas.offscreen_framebuffer = 0;
+    canvas.view_framebuffer = 0;
+
+    canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
+    canvas.onscreen_ctx->width = width;
+    canvas.onscreen_ctx->height = height;
+    canvas.onscreen_ctx->backing_width = width;
+    canvas.onscreen_ctx->backing_height = height;
+    canvas.active_ctx = 0;
+}
+
 /**
  * @name   tealeaf_canvas_init
  * @brief  initilizes the tealeaf canvas object
@@ -48,9 +64,19 @@ void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
 
     int width = config_get_screen_width();
     int height = config_get_screen_height();
+
+    GLuint offscreen_buffer_name;
+    GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
+
+    if (canvas.onscreen_ctx != NULL) {
+        // The onscreen_ctx is now created initially in
+        // tealeaf_canvas_set_defaults. We might be able to just reuse the
+        // struct. For now, keep it simple and repeat the initialization
+        // procedure.
+        free(canvas.onscreen_ctx);
+    }
+
     if (tex_name) {
-        GLuint offscreen_buffer_name;
-        GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
         canvas.offscreen_framebuffer = offscreen_buffer_name;
         canvas.view_framebuffer = offscreen_buffer_name;
         canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", tex_name, true);
@@ -60,8 +86,6 @@ void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
         canvas.onscreen_ctx->backing_height = height;
         canvas.active_ctx = 0;
     } else {
-        GLuint offscreen_buffer_name;
-        GLTRACE(glGenFramebuffers(1, &offscreen_buffer_name));
         canvas.offscreen_framebuffer = offscreen_buffer_name;
         canvas.view_framebuffer = framebuffer_name;
         canvas.onscreen_ctx = context_2d_init(&canvas, "onscreen", -1, true);
@@ -80,6 +104,7 @@ void tealeaf_canvas_init(int framebuffer_name, int tex_name) {
  * @retval NONE
  */
 void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
+    LOGFN("tealeaf_canvas_bind_texture_buffer");
    /* texture_2d *tex = texture_manager_get_texture(texture_manager_get(), ctx->url);
 
     if (!tex) {
@@ -93,7 +118,7 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
     canvas.framebuffer_width = ctx->width;//tex->originalWidth;
     canvas.framebuffer_height = ctx->height;//tex->originalHeight;
     canvas.framebuffer_offset_bottom = 0;//tex->height - tex->originalHeight;
- 
+
 }
 
 /**
@@ -103,6 +128,7 @@ void tealeaf_canvas_bind_texture_buffer(context_2d *ctx) {
  * @retval NONE
  */
 void tealeaf_canvas_bind_render_buffer(context_2d *ctx) {
+    LOGFN("tealeaf_canvas_bind_render_buffer");
     GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, canvas.view_framebuffer));
     canvas.framebuffer_width = ctx->width;
     canvas.framebuffer_height = ctx->height;

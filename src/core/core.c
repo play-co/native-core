@@ -36,11 +36,13 @@
 #include "platform/http.h"
 #include "platform/device.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define MIN_SIZE_TO_HALFSIZE 320
 
 gl_error *gl_errors_hash = NULL;
 static int m_framebuffer_name = -1;
+static bool gl_available = false;
 
 extern int current_shader;
 /**
@@ -111,6 +113,8 @@ void core_init(const char *entry_point,
 
     texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
+    tealeaf_canvas_set_defaults();
+
     LOG("{core} Initialization complete");
 }
 
@@ -123,6 +127,7 @@ void core_init(const char *entry_point,
 void core_init_gl(int framebuffer_name, int tex_name) {
     LOG("{core} Initializing OpenGL");
     tealeaf_shaders_init();
+
     m_framebuffer_name = framebuffer_name;
 
     // If frame buffer id was invalid,
@@ -130,9 +135,10 @@ void core_init_gl(int framebuffer_name, int tex_name) {
         LOG("{core} WARNING: Framebuffer used to init GL was invalid");
     }
 
-    
     // Canvas must be initialized after shaders
     tealeaf_canvas_init(m_framebuffer_name, tex_name);
+
+    gl_available = true;
 }
 
 /**
@@ -249,8 +255,8 @@ void core_tick(long dt) {
             }
 
             if (tex && tex->loaded) {
+                // Calculate rotation
                 if (do_sizing) {
-                    // Calculate rotation
                     tealeaf_canvas *canvas = tealeaf_canvas_get();
                     int canvas_width = canvas->framebuffer_width;
                     int canvas_height = canvas->framebuffer_height;
@@ -261,7 +267,8 @@ void core_tick(long dt) {
                     do_sizing = false;
                 }
 
-                context_2d *ctx = context_2d_get_onscreen(tealeaf_canvas_get());
+
+                context_2d *ctx = context_2d_get_onscreen();
                 context_2d_loadIdentity(ctx);
                 context_2d_clear(ctx);
                 if (rotate) {
@@ -334,6 +341,7 @@ void core_destroy() {
  */
 
 void core_destroy_gl() {
+    gl_available = false;
     texture_manager_destroy(texture_manager_get());
 }
 
