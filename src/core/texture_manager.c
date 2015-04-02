@@ -511,7 +511,7 @@ void texture_manager_free_texture(texture_manager *manager, texture_2d *tex) {
         }
 
         TEXLOG("Texture freed: %s!  COUNT=%d, USED=%d", tex->url, (int)manager->tex_count, (int)manager->texture_bytes_used);
-        texture_2d_destroy(tex);
+        texture_2d_destroy(tex, true);
     }
 }
 
@@ -643,7 +643,7 @@ texture_manager *texture_manager_get() {
 
 // DANGER: This function is not thread-safe.  Make sure nothing else is running
 // texture_manager_get() et al while destroying an instance.
-void texture_manager_destroy(texture_manager *manager) {
+void texture_manager_destroy(texture_manager *manager, bool clear_context) {
     LOGFN("texture_manager_destroy");
     pthread_mutex_lock(&mutex);
     m_running = false;              // Flag texture loading thread to stop
@@ -657,7 +657,7 @@ void texture_manager_destroy(texture_manager *manager) {
     texture_2d *tex = NULL;
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
-        texture_2d_destroy(tex);
+        texture_2d_destroy(tex, clear_context);
         HASH_DELETE(url_hash, manager->url_to_tex, tex);
     }
     //HASH_CLEAR(url_hash, manager->url_to_tex);

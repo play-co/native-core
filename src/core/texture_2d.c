@@ -252,8 +252,10 @@ void texture_2d_reload(texture_2d *tex) {
  * @param	tex - (texture_2d *) texture to destroy
  * @retval	NONE
  */
-void texture_2d_destroy(texture_2d *tex) {
-    GLTRACE(glDeleteTextures(1, (const GLuint *)&tex->name));
+void texture_2d_destroy(texture_2d *tex, bool clear_context) {
+    if (clear_context) {
+        GLTRACE(glDeleteTextures(1, (const GLuint *)&tex->name));
+    }
     free(tex->url);
     free(tex->pixel_data);
     free(tex->saved_data);

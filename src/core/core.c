@@ -30,6 +30,7 @@
 #include "core/events.h"
 #include "core/core_js.h"
 #include "core/timer.h"
+#include "image-cache/image_cache.h"
 #include "platform/resource_loader.h"
 #include "platform/sound_manager.h"
 #include "platform/native.h"
@@ -111,8 +112,6 @@ void core_init(const char *entry_point,
     // make checks for halfsized images
     resource_loader_initialize(source_dir);
 
-    texture_manager_load_texture(texture_manager_get(), config_get_splash());
-
     tealeaf_canvas_set_defaults();
 
     LOG("{core} Initialization complete");
@@ -126,8 +125,8 @@ void core_init(const char *entry_point,
  */
 void core_init_gl(int framebuffer_name, int tex_name) {
     LOG("{core} Initializing OpenGL");
-    tealeaf_shaders_init();
 
+    tealeaf_shaders_init();
     m_framebuffer_name = framebuffer_name;
 
     // If frame buffer id was invalid,
@@ -137,6 +136,8 @@ void core_init_gl(int framebuffer_name, int tex_name) {
 
     // Canvas must be initialized after shaders
     tealeaf_canvas_init(m_framebuffer_name, tex_name);
+
+    texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
     gl_available = true;
 }
@@ -229,8 +230,13 @@ void core_tick(long dt) {
         js_tick(dt);
     }
 
+    if (!gl_available) {
+        return;
+    }
+
     // Tick the texture manager (load pending textures)
     texture_manager_tick(texture_manager_get());
+
     /*
      * we need to wait 2 frames before removing the preloader after we get the
      * core_hide_preloader call from JS.  Only on the second frame after the
@@ -294,6 +300,7 @@ void core_tick(long dt) {
     if (js_ready) {
         core_check_gl_error();
     }
+
     //draw_textures_flush();
     current_shader = -1;
     tealeaf_canvas_get()->active_ctx = NULL;
@@ -342,7 +349,8 @@ void core_destroy() {
 
 void core_destroy_gl() {
     gl_available = false;
-    texture_manager_destroy(texture_manager_get());
+    image_cache_destroy();
+    texture_manager_destroy(texture_manager_get(), false);
 }
 
 /**

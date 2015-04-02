@@ -61,7 +61,7 @@ texture_2d *texture_2d_new_from_url(char *url);
 texture_2d *texture_2d_new_from_dimensions(int width, int height);
 texture_2d *texture_2d_new_from_data(int width, int height, const void *data);
 texture_2d *texture_2d_new_from_image(char *url, int name, int width, int height, int original_width, int original_height);
-void texture_2d_destroy(texture_2d *tex);
+void texture_2d_destroy(texture_2d *tex, bool clear_context);
 bool texture_2d_can_resize(texture_2d *tex, int width, int height);
 void texture_2d_resize_unsafe(texture_2d *tex, int width, int height);
 

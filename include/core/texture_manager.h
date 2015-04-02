@@ -51,7 +51,7 @@ void texture_manager_reload(texture_manager *manager);
 texture_2d *texture_manager_resize_texture(texture_manager *manager, texture_2d *tex, int width, int height);
 void texture_manager_save(texture_manager *manager);
 texture_manager *texture_manager_get();
-void texture_manager_destroy(texture_manager *manager);
+void texture_manager_destroy(texture_manager *manager, bool clear_context);
 void texture_manager_clear_textures(texture_manager *manager, bool clear_all);
 void texture_manager_free_texture(texture_manager *manager, texture_2d *tex);
 void texture_manager_touch_texture(texture_manager *manager, const char *url);
