@@ -110,6 +110,7 @@ void core_init(const char *entry_point,
     // register default HTML color names
     rgba_init();
     // make checks for halfsized images
+
     resource_loader_initialize(source_dir);
 
     tealeaf_canvas_set_defaults();
@@ -137,9 +138,14 @@ void core_init_gl(int framebuffer_name, int tex_name) {
     // Canvas must be initialized after shaders
     tealeaf_canvas_init(m_framebuffer_name, tex_name);
 
-    texture_manager_load_texture(texture_manager_get(), config_get_splash());
+    // texture_manager_load_texture(texture_manager_get(), config_get_splash());
 
     gl_available = true;
+}
+
+void core_set_bundle_id(const char* bundle_id) {
+    resource_loader_set_bundle_id(bundle_id);
+    js_set_bundle_id(bundle_id);
 }
 
 /**
@@ -254,7 +260,7 @@ void core_tick(long dt) {
 
         // If splash is defined,
         const char *splash = config_get_splash();
-        if (splash) {
+        if (false) {
             texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
             if (!tex) {
                 tex = texture_manager_load_texture(texture_manager_get(), splash);
@@ -349,7 +355,7 @@ void core_destroy() {
 
 void core_destroy_gl() {
     gl_available = false;
-    image_cache_destroy();
+    image_cache_reinit();
     texture_manager_destroy(texture_manager_get(), false);
 }
 
@@ -402,5 +408,9 @@ bool core_check_gl_error() {
 // TODO iOS support
 bool js_init_engine() {
     return true;
+}
+
+void js_set_bundle_id(const char*) {
+
 }
 #endif

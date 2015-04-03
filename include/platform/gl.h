@@ -52,7 +52,7 @@
 #define GL_ORTHO glOrtho
 #endif
 
-//#define ENABLE_GLTRACE 1
+// #define ENABLE_GLTRACE 1
 // Define ENABLE_GLTRACE to report errors in GL commands at the console (slow)
 #ifndef ENABLE_GLTRACE
 #define GLTRACE(cmd) cmd

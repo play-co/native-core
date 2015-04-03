@@ -181,7 +181,6 @@ void tealeaf_canvas_resize(int w, int h) {
     if (canvas.active_ctx == canvas.onscreen_ctx) {
         tealeaf_canvas_bind_texture_buffer(ctx);
         tealeaf_context_update_viewport(ctx, true);
-        context_2d_clear(ctx);
     }
 
     GLTRACE(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));

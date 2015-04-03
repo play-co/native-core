@@ -39,6 +39,7 @@ void js_tick(long dt);
 void js_dispatch_event(const char *evt);
 void js_on_pause();
 void js_on_resume();
+void js_set_bundle_id(const char* bundle_id);
 
 #ifdef __cplusplus
 }

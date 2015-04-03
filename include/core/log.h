@@ -23,6 +23,7 @@
 #define LOG_TAG "JS"
 #define DEBUG_TAG "JSDEBUG"
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+// #define LOGFN(...) __android_log_print(ANDROID_LOG_INFO, "JSVERBOSE", __VA_ARGS__)
 #define LOGFN(...)
 #else
 #include <stdio.h>
