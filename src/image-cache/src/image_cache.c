@@ -36,9 +36,12 @@
 
 #include "../include/murmur.h"
 #include "image-cache/image_cache.h"
+#define GLTRACE_STRINGIZE(x) GLTRACE_STRINGIZE1(x)
+#define GLTRACE_STRINGIZE1(x) #x
+#define GLTRACE_FILELINE __FILE__ " at line " GLTRACE_STRINGIZE(__LINE__)
 
 
-//#define IMGCACHE_VERBOSE
+// #define IMGCACHE_VERBOSE
 
 // Define IMGCACHE_VERBOSE to enable extra debug logs
 #ifdef IMGCACHE_VERBOSE
@@ -46,6 +49,9 @@
 #else
 #define DLOG(...)
 #endif
+
+// #define MLOG(s) LOG("{image-cache} %s " GLTRACE_FILELINE, s)
+#define MLOG(s)
 
 // For stand-alone version, use printf instead of the core logger
 #ifdef IMGCACHE_STANDALONE
@@ -140,7 +146,7 @@ static void worker_run(void *args);
 static pthread_mutex_t m_etag_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct etag_data *m_etag_cache = 0;
 static const char *ETAG_FILE = ".etags";
-static char *m_file_cache_path;
+static char *m_file_cache_path = NULL;
 
 // Expand file name into file path
 static char *get_full_path(const char *filename) {
@@ -152,8 +158,14 @@ static char *get_full_path(const char *filename) {
     return file_path;
 }
 
-static volatile struct work_item *alloc_work_item(const char *url, char *bytes, size_t size, bool request_failed, bool tried_server) {
-    struct work_item *item = (struct work_item *)malloc(sizeof(struct work_item));
+static volatile struct work_item *alloc_work_item(const char *url,
+                                                  char *bytes,
+                                                  size_t size,
+                                                  bool request_failed,
+                                                  bool tried_server) {
+
+    struct work_item *item =
+        (struct work_item *)malloc(sizeof(struct work_item));
 
     item->image.url = strdup(url);
     item->image.bytes = bytes;
@@ -172,8 +184,15 @@ static void free_work_item(volatile struct work_item *item) {
     }
 }
 
-static void queue_work_item(const char *url, char *bytes, size_t size, bool request_failed, bool tried_server) {
-    volatile struct work_item *item = alloc_work_item(url, bytes, size, request_failed, tried_server);
+static void queue_work_item(const char *url,
+                            char *bytes,
+                            size_t size,
+                            bool request_failed,
+                            bool tried_server) {
+
+    MLOG("queue_work_item");
+    volatile struct work_item *item =
+        alloc_work_item(url, bytes, size, request_failed, tried_server);
 
     // add the work item to the work list
     pthread_mutex_lock(&m_worker_mutex);
@@ -232,6 +251,7 @@ static void parse_etag_file_data(const char *f, int len) {
 
     LOG("{image-cache} Parsing etags database of len=%d", len);
 
+    MLOG("lock etag");
     pthread_mutex_lock(&m_etag_mutex);
 
     // While there is data to read,
@@ -276,6 +296,7 @@ static void parse_etag_file_data(const char *f, int len) {
         f = etag + etag_len + 1;
     }
 
+    MLOG("unlock etag");
     pthread_mutex_unlock(&m_etag_mutex);
 
     DLOG("{image-cache} Parsed %d etags from database", etag_count);
@@ -336,6 +357,7 @@ static void write_etags_to_cache() {
         struct etag_data *data = 0;
         struct etag_data *tmp = 0;
 
+        MLOG("lock etag");
         pthread_mutex_lock(&m_etag_mutex);
         HASH_ITER(hh, m_etag_cache, data, tmp) {
             if (data->etag && data->url) {
@@ -355,6 +377,7 @@ static void write_etags_to_cache() {
                 DLOG("{image-cache} Skipped writing etag='%s' for url='%s'", data->etag ? data->etag : "(null)", data->url ? data->url : "(null)");
             }
         }
+        MLOG("unlock etag");
         pthread_mutex_unlock(&m_etag_mutex);
 
         fclose(f);
@@ -373,14 +396,20 @@ static void clear_cache() {
     struct etag_data *data = 0;
     struct etag_data *tmp = 0;
 
+    MLOG("lock etag");
     pthread_mutex_lock(&m_etag_mutex);
     HASH_ITER(hh, m_etag_cache, data, tmp) {
         free_etag_data(data);
     }
+    m_etag_cache = 0;
+    MLOG("unlock etag");
+
     pthread_mutex_unlock(&m_etag_mutex);
+    MLOG("OK");
 }
 
 static void clear_work_items() {
+    MLOG("clearing work items");
     volatile struct work_item *item = m_work_items;
     volatile struct work_item *prev;
 
@@ -388,8 +417,28 @@ static void clear_work_items() {
         prev = item;
         item = item->next;
 
+        MLOG("free_work_item");
         free_work_item(item);
     }
+
+    MLOG("OK (work items)");
+}
+
+static void clear_load_items() {
+    MLOG("clearing load items");
+
+    volatile struct load_item *cur = m_load_items;
+    volatile struct load_item *next_item = cur;
+
+    while (cur) {
+        next_item = cur->next;
+        free((struct load_item*)cur);
+        cur = next_item;
+    }
+
+    m_load_items = 0;
+
+    MLOG("done clearing load items");
 }
 
 static const char *HEX_CONV = "0123456789ABCDEF";
@@ -462,6 +511,7 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
     struct etag_data *data = 0;
     struct etag_data *tmp = 0;
 
+        MLOG("lock etag");
     pthread_mutex_lock(&m_etag_mutex);
     HASH_ITER(hh, m_etag_cache, data, tmp) {
         if (data && data->url) {
@@ -476,6 +526,7 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
             }
         }
     }
+        MLOG("unlock etag");
     pthread_mutex_unlock(&m_etag_mutex);
 }
 
@@ -483,6 +534,7 @@ void kill_etag_for_url_hash(const char *url_hash_str) {
 void kill_etag_for_url(const char *url) {
     struct etag_data *data = 0;
 
+        MLOG("lock etag");
     pthread_mutex_lock(&m_etag_mutex);
     HASH_FIND_STR(m_etag_cache, url, data);
 
@@ -495,6 +547,7 @@ void kill_etag_for_url(const char *url) {
         DLOG("{image-cache} Did not find image etag in cache to kill: %s", url);
     }
 
+        MLOG("unlock etag");
     pthread_mutex_unlock(&m_etag_mutex);
 }
 
@@ -503,6 +556,7 @@ char *get_etag_for_url(const char *url) {
     char *etag = 0;
     struct etag_data *data = 0;
 
+        MLOG("lock etag");
     pthread_mutex_lock(&m_etag_mutex);
     HASH_FIND_STR(m_etag_cache, url, data);
 
@@ -513,6 +567,7 @@ char *get_etag_for_url(const char *url) {
         DLOG("{image-cache} Did not find image etag in cache: %s", url);
     }
     etag = etag ? strdup(etag) : 0;
+        MLOG("unlock etag");
     pthread_mutex_unlock(&m_etag_mutex);
 
     return etag;
@@ -702,11 +757,14 @@ static void image_cache_run(void *args) {
 
         // if no requests are currently being processed sleep until signaled
         if (0 >= request_count) {
+            MLOG("wait m_request_cond");
             pthread_cond_wait(&m_request_cond, &m_request_mutex);
+            MLOG("done waiting for m_request_cond");
             continue;
         }
 
         // unlock to process any ongoing curl requests
+        MLOG("{image-cache} unlock m_request_mutex");
         pthread_mutex_unlock(&m_request_mutex);
 
         if (curl_multi_perform(multi_handle, &still_running) != CURLM_OK) {
@@ -728,7 +786,9 @@ static void image_cache_run(void *args) {
             /* get file descriptors from the transfers */
             curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
 
+            MLOG("select");
             int rc = select(maxfd+1, &fdread, &fdwrite, &fdexcep, &timeout);
+            MLOG("got rc");
 
             switch(rc) {
             case -1:
@@ -769,6 +829,7 @@ static void image_cache_run(void *args) {
 
                     // Check to see if this url already has etag data
                     // if it doesnt create it now
+        MLOG("lock etag");
                     pthread_mutex_lock(&m_etag_mutex);
                     HASH_FIND_STR(m_etag_cache, request->load_item->url, etag_data);
                     if (!etag_data) {
@@ -776,6 +837,7 @@ static void image_cache_run(void *args) {
                     } else {
                         DLOG("{image-cache} Loader thread: Loaded existing etag data for %s", request->load_item->url);
                     }
+        MLOG("unlock etag");
                     pthread_mutex_unlock(&m_etag_mutex);
 
                     // if we got an image back from the server send the image data to the worker thread for processing
@@ -1058,7 +1120,8 @@ static void worker_run(void *args) {
             } else {
                 m_image_load_callback(image);
 
-                save_image(image);
+                if(!save_image(image)) {
+                }
 
                 LOG("{image-cache} Updated: %s (bytes = %d)", image->url, (int)image->size);
             }
@@ -1074,13 +1137,25 @@ static void worker_run(void *args) {
 
 
 //// API
+//
+//
+void image_cache_reinit() {
+    image_cache_destroy();
+    char *tmp = strdup(m_file_cache_path);
+    image_cache_init(tmp, m_image_load_callback);
+    free(tmp);
+}
 
 void image_cache_init(const char *path, image_cache_cb load_callback) {
     LOG("{image-cache} Initializing");
 
     curl_global_init(CURL_GLOBAL_ALL);
 
-    m_file_cache_path = strdup(path); // intentional leak
+    if (m_file_cache_path != NULL) {
+        free(m_file_cache_path);
+    }
+
+    m_file_cache_path = strdup(path);
 
     m_image_load_callback = load_callback;
     m_request_thread_running = true;
@@ -1103,12 +1178,14 @@ void image_cache_destroy() {
     pthread_mutex_unlock(&m_worker_mutex);
 
     // Join worker thread first, since it starts the request thread
+    LOG("{image-cache} Join threads...");
     threads_join_thread(&m_worker_thread);
     threads_join_thread(&m_request_thread);
 
+    LOG("{image-cache} clearing cache...");
     clear_cache();
+    clear_load_items();
     clear_work_items();
-    free(m_file_cache_path);
 
     LOG("{image-cache} ...Good night.");
 }
@@ -1152,8 +1229,13 @@ void image_cache_load(const char *url) {
 
     DLOG("{image-cache} Async loading: %s", url);
 
+    MLOG("{image-cache} lock m_request_mutex ");
     pthread_mutex_lock(&m_request_mutex);
     LIST_PUSH(m_load_items, load_item);
+
+    MLOG("{image-cache} signal m_request_cond ");
     pthread_cond_signal(&m_request_cond);
+    MLOG("{image-cache} unlock m_request_mutex ");
     pthread_mutex_unlock(&m_request_mutex);
+    MLOG("queue_work_item");
 }

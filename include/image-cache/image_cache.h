@@ -41,6 +41,7 @@ extern "C" {
 
 void image_cache_init(const char *path, image_cache_cb);
 void image_cache_destroy();
+void image_cache_reinit();
 void image_cache_remove(const char *url);
 void image_cache_load(const char *url);
 
