@@ -45,6 +45,7 @@ char *resource_loader_string_from_url(const char *url);
 bool resource_loader_load_image_with_c(texture_2d *texture);
 void resource_loader_destroy_resource(resource_p res);
 void resource_loader_set_bundle_id(const char *bundle_id);
+void resource_loader_write_file(const char* name, const void* data, size_t bytes);
 
 #ifdef __cplusplus
 }
