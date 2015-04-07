@@ -401,14 +401,3 @@ bool core_check_gl_error() {
         return false;
     }
 }
-
-#ifndef ANDROID
-// TODO iOS support
-bool js_init_engine() {
-    return true;
-}
-
-void js_set_bundle_id(const char*) {
-
-}
-#endif
