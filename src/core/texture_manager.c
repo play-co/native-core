@@ -524,6 +524,7 @@ void texture_manager_background_texture_loader(void *dummy) {
         while (cur_tex) {
             texture_2d *old_cur = NULL;
             const char *url = cur_tex->url;
+            pthread_mutex_unlock(&mutex);
 
             if (url != NULL) {
                 if (url[0] == '_' && url[1] == '_'
@@ -533,9 +534,7 @@ void texture_manager_background_texture_loader(void *dummy) {
                     && url[8] == '_' && url[9] == '_')
                 {
                     // reload the canvas from JavaScript
-                    pthread_mutex_unlock(&mutex);
                     notify_canvas_death(url);
-                    pthread_mutex_lock(&mutex);
                     old_cur = cur_tex;
                 } else if (cur_tex->pixel_data == NULL && !cur_tex->failed) {
                     LOG("Passing to load_image_with_c: %s", url);
@@ -545,6 +544,7 @@ void texture_manager_background_texture_loader(void *dummy) {
                 }
             }
 
+            pthread_mutex_lock(&mutex);
             LIST_ITERATE(&tex_load_list, cur_tex);
 
             // if not loading from C remove from list
