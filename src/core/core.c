@@ -82,8 +82,6 @@ void core_update_texture(int gl_name) {
  * @param	tcp_port - (int) representing the tcp port
  * @param	code_port - (int) representing the code port
  * @param	source_dir - (const char*) representing where the source directory is located
- * @param	width - (int) representing the width of the screen
- * @param	height - (int) representing the height of the screen
  * @param	remote_loading - (bool) representing whether remote loading is on / orr
  * @param	splash - (const char*) splash screen path
  * @param	simulate_id - (const char*) representing the id of the game to be simulated
