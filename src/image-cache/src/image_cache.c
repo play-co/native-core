@@ -223,7 +223,7 @@ static int safe_strtoklen(const char *f, char token, const char *end) {
 
 // Safely duplicates a string without a terminating nul character at end
 static char *safe_strdup(const char *f, int len) {
-    char *s = malloc(len + 1);
+    char *s = (char*)malloc(len + 1);
 
     memcpy(s, f, len);
     s[len] = '\0';
@@ -329,7 +329,7 @@ static void read_etags_from_cache() {
             if (raw == MAP_FAILED) {
                 LOG("{image-cache} WARNING: read_etags_from_cache mmap failed errno=%d for %s len=%d", errno, path, (int)len);
             } else {
-                parse_etag_file_data(raw, (int)len);
+                parse_etag_file_data((const char*)raw, (int)len);
 
                 munmap(raw, (size_t)len);
             }
@@ -448,7 +448,8 @@ static char *get_filename_from_url(const char *url) {
 
     MurmurHash3_x86_128(url, (int)strlen(url), 0, result);
 
-    char *filename = malloc(FILENAME_PREFIX_BYTES + FILENAME_HASH_BYTES*2+1);
+    char *filename = (char*)malloc(FILENAME_PREFIX_BYTES +
+                                   FILENAME_HASH_BYTES*2+1);
 
     memcpy(filename, FILENAME_PREFIX, FILENAME_PREFIX_BYTES);
 
@@ -690,7 +691,7 @@ static void image_cache_run(void *args) {
             if (strncmp(load_item->url, "//", 2) == 0) {
                 // if request begins with "//", change to "http://..."
                 // 6 accounts for "http:" and '\0'
-                char *request_url = malloc(strlen(load_item->url) + 6);
+                char *request_url = (char*)malloc(strlen(load_item->url) + 6);
                 sprintf(request_url, "http:%s", load_item->url);
                 curl_easy_setopt(request->handle, CURLOPT_URL, request_url);
                 free(request_url);
@@ -711,7 +712,7 @@ static void image_cache_run(void *args) {
 
                 static const char *FORMAT = "If-None-Match: \"%s\"";
                 size_t header_str_len = strlen(FORMAT) + strlen(request->etag) + 1;
-                char *etag_header_str = malloc(header_str_len);
+                char *etag_header_str = (char*)malloc(header_str_len);
                 snprintf(etag_header_str, header_str_len, FORMAT, request->etag);
 
                 struct curl_slist *headers = curl_slist_append(0, etag_header_str);
@@ -944,7 +945,7 @@ static void callback_cached_image(char *url, bool report_error) {
             } else {
                 DLOG("{image-cache} Reading cached image data: %s bytes=%d", url, (int)len);
 
-                image.bytes = raw;
+                image.bytes = (char*)raw;
                 image.size = (size_t)len;
                 success = true;
             }
@@ -1215,6 +1216,7 @@ void image_cache_remove(const char *url) {
 }
 
 void image_cache_load(const char *url) {
+
     // If image is already in cache,
     if (image_exists_in_cache(url)) {
         DLOG("{image-cache} Image exists in cache so attempt to return that: %s", url);
