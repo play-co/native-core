@@ -537,7 +537,7 @@ void texture_manager_background_texture_loader(void *dummy) {
                     notify_canvas_death(url);
                     old_cur = cur_tex;
                 } else if (cur_tex->pixel_data == NULL && !cur_tex->failed) {
-                    LOG("Passing to load_image_with_c: %s", url);
+                    LOG("{tex} Passing to load_image_with_c: %s", url);
                     if (!resource_loader_load_image_with_c(cur_tex)) {
                         old_cur = cur_tex;
                     }
@@ -554,10 +554,13 @@ void texture_manager_background_texture_loader(void *dummy) {
             }
         }
 
-        pthread_cond_wait(&cond_var, &mutex);
+        if (m_running) {
+            pthread_cond_wait(&cond_var, &mutex);
+        }
     }
 
     pthread_mutex_unlock(&mutex);
+
 }
 
 CEXPORT void image_cache_load_callback(struct image_data *data) {
@@ -650,7 +653,6 @@ void texture_manager_destroy(texture_manager *manager, bool clear_context) {
     pthread_cond_signal(&cond_var); // Signal thread to wake up and terminate
     pthread_mutex_unlock(&mutex);
 
-    LOG("{tex} Goodnight");
 
     threads_join_thread(&m_load_thread);
 
@@ -675,6 +677,8 @@ void texture_manager_destroy(texture_manager *manager, bool clear_context) {
     m_memory_warning = false;
     m_frame_epoch = 1;
     m_frame_used_bytes = 0;
+
+    LOG("{tex} Goodnight");
 }
 
 void texture_manager_touch_texture(texture_manager *manager, const char *url) {
