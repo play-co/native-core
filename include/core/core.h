@@ -43,7 +43,7 @@ void core_on_screen_resize(int width, int height);
 void core_run();
 void core_destroy();
 void core_reset();
-void core_set_bundle_id(const char*);
+void core_run_bundle(const char*);
 void core_tick(long dt);
 
 bool core_js_engine_init(const char* uri, const char* version);

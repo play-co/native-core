@@ -27,6 +27,10 @@
 #define LOGFN(...)
 #else
 #include <stdio.h>
+#ifndef LOG
 #define LOG(...) printf(__VA_ARGS__);printf("\n");
+#endif
+#ifndef LOGFN
 #define LOGFN(...)
+#endif
 #endif

@@ -30,6 +30,7 @@
 #include "core/events.h"
 #include "core/core_js.h"
 #include "core/timer.h"
+#include "core/application_bundle.h"
 #include "image-cache/image_cache.h"
 #include "platform/resource_loader.h"
 #include "platform/sound_manager.h"
@@ -46,6 +47,7 @@ static int m_framebuffer_name = -1;
 static bool gl_available = false;
 
 extern int current_shader;
+
 /**
  * @name	run_file
  * @brief	reads and runs javascript found in the given file
@@ -82,6 +84,8 @@ void core_update_texture(int gl_name) {
  * @param	tcp_port - (int) representing the tcp port
  * @param	code_port - (int) representing the code port
  * @param	source_dir - (const char*) representing where the source directory is located
+ * @param	width - (int) representing the width of the screen
+ * @param	height - (int) representing the height of the screen
  * @param	remote_loading - (bool) representing whether remote loading is on / orr
  * @param	splash - (const char*) splash screen path
  * @param	simulate_id - (const char*) representing the id of the game to be simulated
@@ -109,9 +113,11 @@ void core_init(const char *entry_point,
     rgba_init();
     // make checks for halfsized images
 
-    resource_loader_initialize(source_dir);
 
+    resource_loader_initialize(source_dir);
     tealeaf_canvas_set_defaults();
+
+    core_js_engine_init(tcp_host, "1");
 
     LOG("{core} Initialization complete");
 }
@@ -141,9 +147,11 @@ void core_init_gl(int framebuffer_name, int tex_name) {
     gl_available = true;
 }
 
-void core_set_bundle_id(const char* bundle_id) {
+void core_run_bundle(const char* bundle_id) {
     resource_loader_set_bundle_id(bundle_id);
-    js_set_bundle_id(bundle_id);
+
+    application_bundle_t *app = get_application_bundle(bundle_id);
+    enter_application_bundle(app);
 }
 
 /**
@@ -161,8 +169,7 @@ bool core_init_js(const char *uri, const char *version) {
 }
 
 bool core_js_engine_init(const char* uri, const char* version) {
-    js_init_engine();
-    return init_js(uri, version);
+    return js_init_engine(uri, version);
 }
 
 bool core_js_eval(const char *uri) {
@@ -229,7 +236,9 @@ void finish_loading_images();
  * @retval	NONE
  */
 void core_tick(long dt) {
-    if (js_ready) {
+    application_bundle_t *app = get_active_application();
+
+    if (js_ready && ready_for_tick(app)) {
         core_timer_tick(dt);
         js_tick(dt);
     }
@@ -292,7 +301,8 @@ void core_tick(long dt) {
                 if (rotate) {
                     context_2d_restore(ctx);
                 }
-                // we're the first, last, and only thing to draw, so flush the buffer
+                // we're the first, last, and only thing to draw, so flush the
+                // buffer
                 context_2d_flush(ctx);
 
                 device_hide_splash();
@@ -301,9 +311,7 @@ void core_tick(long dt) {
     }
 
     // check the gl error and send it to java to be logged
-    if (js_ready) {
-        core_check_gl_error();
-    }
+    core_check_gl_error();
 
     //draw_textures_flush();
     current_shader = -1;
@@ -318,6 +326,7 @@ void core_tick(long dt) {
  * @brief	hides the preloader from the screen
  * @retval	NONE
  */
+
 void core_hide_preloader() {
     show_preload = false;
 }
@@ -332,7 +341,10 @@ void core_hide_preloader() {
 void core_on_screen_resize(int width, int height) {
     config_set_screen_width(width);
     config_set_screen_height(height);
-    tealeaf_canvas_resize(width, height);
+
+    if (gl_available) {
+        tealeaf_canvas_resize(width, height);
+    }
 }
 
 /**

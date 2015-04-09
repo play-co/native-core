@@ -31,7 +31,7 @@ extern "C" {
 // JS Ready flag: Indicates that the JavaScript engine is running
 extern bool js_ready;
 
-bool js_init_engine();
+bool js_init_engine(const char *uri, const char *version);
 bool init_js(const char *uri, const char *version);
 bool destroy_js();
 void eval_str(const char *str);
@@ -40,6 +40,15 @@ void js_dispatch_event(const char *evt);
 void js_on_pause();
 void js_on_resume();
 void js_set_bundle_id(const char* bundle_id);
+
+typedef struct js_bundle js_bundle_t;
+typedef struct application_bundle application_bundle_t;
+
+// Bundles
+bool js_ready_for_tick(application_bundle_t *app);
+void js_init_bundle(application_bundle_t *app);
+void js_enter_bundle(application_bundle_t *app);
+void js_exit_bundle(application_bundle_t *app);
 
 #ifdef __cplusplus
 }
