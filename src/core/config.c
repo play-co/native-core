@@ -28,8 +28,8 @@
 #define DEF_TCP_PORT 4747
 #define DEF_CODE_PORT 9200
 #define DEF_ENTRY_POINT "devkit.native.launchClient"
-#define DEF_WIDTH 1080
-#define DEF_HEIGHT 1920
+#define DEF_WIDTH 360
+#define DEF_HEIGHT 640
 #define DEF_REMOTE_LOADING false
 #define DEF_SPLASH "loading.png"
 
