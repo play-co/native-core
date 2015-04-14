@@ -18,6 +18,7 @@
 
 #include "util/detect.h"
 #include "core/texture_2d.h"
+#include "core/application_bundle.h"
 #include <pthread.h>
 
 typedef struct resource_t {
@@ -44,8 +45,15 @@ void launch_remote_texture_load(const char *url);
 char *resource_loader_string_from_url(const char *url);
 bool resource_loader_load_image_with_c(texture_2d *texture);
 void resource_loader_destroy_resource(resource_p res);
-void resource_loader_set_bundle_id(const char *bundle_id);
 void resource_loader_write_file(const char* name, const void* data, size_t bytes);
+
+// typedef void (*resource_loader_progress_cb)(const char *url, int progress);
+// typedef void (*resource_loader_success_cb)(const char *url);
+// typedef void (*resource_loader_failure_cb)(const char *url);
+
+void resource_loader_init_bundle(application_bundle_t *app);
+void resource_loader_set_bundle(const application_bundle_t *app);
+void resource_loader_fetch_bundle(const application_bundle_t *app);
 
 #ifdef __cplusplus
 }

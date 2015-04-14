@@ -113,8 +113,8 @@ void core_init(const char *entry_point,
     rgba_init();
     // make checks for halfsized images
 
-
     resource_loader_initialize(source_dir);
+
     tealeaf_canvas_set_defaults();
 
     core_js_engine_init(tcp_host, "1");
@@ -147,11 +147,19 @@ void core_init_gl(int framebuffer_name, int tex_name) {
     gl_available = true;
 }
 
-void core_run_bundle(const char* bundle_id) {
-    resource_loader_set_bundle_id(bundle_id);
+void core_load_bundle(const char *name, const char *remote_url) {
+    const application_bundle_t *app = init_application_bundle(name, remote_url);
 
-    application_bundle_t *app = get_application_bundle(bundle_id);
-    enter_application_bundle(app);
+    if (app->remote) {
+        // this blocks until the bundle is downloaded
+        resource_loader_fetch_bundle(app);
+    } else {
+        // Bundle is local - no additional action required
+    }
+}
+
+void core_run_bundle(const char* bundle_id) {
+    enter_application_bundle(get_application_bundle(bundle_id));
 }
 
 /**

@@ -6,10 +6,15 @@
 
 struct application_bundle {
     const char *name;
+    const char *path;
+    const char *remote_url;
+    bool local;
+    bool remote;
     js_bundle_t *js;
     UT_hash_handle hh;
 };
 
+// TODO is this used?
 typedef enum {
     NEW,
     EVALUATED,
@@ -23,7 +28,11 @@ typedef enum {
 #define CEXPORT
 #endif
 
-CEXPORT application_bundle_t* get_application_bundle(const char *bundle_name);
+CEXPORT application_bundle_t* get_application_bundle(const char *name);
+
+CEXPORT application_bundle_t* init_application_bundle(const char *name,
+                                                      const char *url);
+
 CEXPORT application_bundle_t* get_active_application();
 
 CEXPORT void enter_application_bundle(application_bundle_t *bundle);
