@@ -22,12 +22,13 @@ application_bundle_t* init_application_bundle(const char *name,
     b->name = strdup(name);
     b->path = NULL;
     b->remote_url = NULL;
+    b->bundle_path = NULL;
 
     if (url == NULL || strlen(url) == 0) {
         b->local = true;
     } else {
         b->local = false;
-        b->remote_url = url;
+        b->remote_url = strdup(url);
     }
 
     b->remote = !b->local;

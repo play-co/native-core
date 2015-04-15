@@ -5,9 +5,10 @@
 #include "uthash/uthash.h"
 
 struct application_bundle {
-    const char *name;
-    const char *path;
-    const char *remote_url;
+    char *name;
+    char *path;
+    char *bundle_path;
+    char *remote_url;
     bool local;
     bool remote;
     js_bundle_t *js;
