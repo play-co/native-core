@@ -148,7 +148,13 @@ void core_init_gl(int framebuffer_name, int tex_name) {
 }
 
 void core_load_bundle(const char *name, const char *remote_url) {
-    const application_bundle_t *app = init_application_bundle(name, remote_url);
+    const application_bundle_t *app = NULL;
+    if (get_application_bundle(name)) {
+        // Nothing if the bundle is already loaded
+        return;
+    }
+
+    app = init_application_bundle(name, remote_url);
 
     if (app->remote) {
         // this blocks until the bundle is downloaded
