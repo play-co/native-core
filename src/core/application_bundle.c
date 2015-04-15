@@ -28,7 +28,6 @@ application_bundle_t* init_application_bundle(const char *name,
     } else {
         b->local = false;
         b->remote_url = url;
-        b->name = name;
     }
 
     b->remote = !b->local;
