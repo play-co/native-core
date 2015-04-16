@@ -759,6 +759,9 @@ static void image_cache_run(void *args) {
         // if no requests are currently being processed sleep until signaled
         if (0 >= request_count) {
             MLOG("wait m_request_cond");
+            if (!m_request_thread_running) {
+                break;
+            }
             pthread_cond_wait(&m_request_cond, &m_request_mutex);
             MLOG("done waiting for m_request_cond");
             continue;
@@ -1090,6 +1093,9 @@ static void worker_run(void *args) {
 
         // If no items to work on,
         if (!local_items) {
+            if (!m_worker_thread_running) {
+                break;
+            }
             pthread_cond_wait(&m_worker_cond, &m_worker_mutex);
             continue;
         }
