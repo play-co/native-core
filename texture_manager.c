@@ -276,9 +276,11 @@ bool texture_manager_on_texture_loaded(texture_manager *manager,
 
     texture_2d *tex = texture_manager_get_texture(manager, (char *)url);
 
+    bool add_texture = false;
     if (!tex) {
         char *permanent_url = strdup(url);
         tex = texture_2d_new_from_url(permanent_url);
+        add_texture = true;
     }
 
     tex->used_texture_bytes = used;
@@ -293,6 +295,10 @@ bool texture_manager_on_texture_loaded(texture_manager *manager,
     tex->scale = scale;
     tex->originalWidth = original_width;
     tex->originalHeight = original_height;
+
+    if (add_texture) {
+        texture_manager_add_texture(manager, tex, false);
+    }
 
     return tex->failed;
 }
