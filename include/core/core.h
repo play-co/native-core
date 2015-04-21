@@ -52,6 +52,7 @@ void core_reinit();
 
 void core_run_bundle(const char *name);
 void core_load_bundle(const char *name, const char *remote_url);
+void core_exit_bundle(const char *name);
 
 
 #ifdef __cplusplus

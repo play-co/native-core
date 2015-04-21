@@ -168,6 +168,10 @@ void core_run_bundle(const char* bundle_id) {
     enter_application_bundle(get_application_bundle(bundle_id));
 }
 
+void core_exit_bundle(const char* bundle_id) {
+    exit_application_bundle(get_application_bundle(bundle_id));
+}
+
 /**
  * @name	core_init_js
  * @brief	initilizes js options and runs the packed javascript game code
@@ -251,6 +255,10 @@ void finish_loading_images();
  */
 void core_tick(long dt) {
     application_bundle_t *app = get_active_application();
+
+    if (app == NULL) {
+        return;
+    }
 
     if (js_ready && ready_for_tick(app)) {
         core_timer_tick(dt);
