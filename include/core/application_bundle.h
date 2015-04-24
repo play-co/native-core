@@ -11,6 +11,7 @@ struct application_bundle {
     char *remote_url;
     bool local;
     bool remote;
+    bool show_preload;
     js_bundle_t *js;
     UT_hash_handle hh;
 };

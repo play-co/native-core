@@ -23,6 +23,7 @@ application_bundle_t* init_application_bundle(const char *name,
     b->path = NULL;
     b->remote_url = NULL;
     b->bundle_path = NULL;
+    b->show_preload = true;
 
     if (url == NULL || strlen(url) == 0) {
         b->local = true;

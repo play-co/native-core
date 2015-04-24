@@ -207,7 +207,6 @@ void core_run() {
 }
 
 /*GLOBAL*/
-bool show_preload = true;
 static int preload_hide_frame_count = 0;
 
 static bool do_sizing = true, rotate = false;
@@ -263,7 +262,7 @@ void core_tick(long dt) {
     }
 
     if (js_ready && ready_for_tick(app)) {
-        if (show_preload) {
+        if (app->show_preload) {
             core_hide_preloader();
         }
 
@@ -284,9 +283,9 @@ void core_tick(long dt) {
      * callback are the images that were preloaded actually drawn.
      */
 
-    if (show_preload || preload_hide_frame_count < 2) {
+    if (app->show_preload || preload_hide_frame_count < 2) {
         //if we've gotten the core_hide_preloader cb, start counting frames
-        if (!show_preload) {
+        if (!app->show_preload) {
             preload_hide_frame_count++;
 
             // May have never loaded the splash image, so hide splash here too
@@ -358,7 +357,8 @@ void core_splash_tick(void) {
  */
 
 void core_hide_preloader() {
-    show_preload = false;
+    application_bundle_t *app = get_active_application();
+    app->show_preload = false;
 }
 
 /**
@@ -405,9 +405,11 @@ void core_destroy_gl() {
  * @retval	NONE
  */
 void core_reset() {
+    application_bundle_t *app = get_active_application();
+
     core_destroy();
     do_sizing = true;
-    show_preload = true;
+    app->show_preload = true;
     preload_hide_frame_count = 0;
 }
 
