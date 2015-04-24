@@ -30,7 +30,16 @@
  * @retval	NONE
  */
 void core_queue_event(const char *event) {
-	js_queue_event(event);
+    js_queue_event(event);
+}
+
+/**
+ * @name	core_dispatch_queued_events
+ * @brief	dispatches all events in the queue
+ * @retval	NONE
+ */
+void core_dispatch_queued_events(void) {
+    js_dispatch_queued_events();
 }
 
 /**
