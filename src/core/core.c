@@ -261,6 +261,10 @@ void core_tick(long dt) {
     }
 
     if (js_ready && ready_for_tick(app)) {
+        if (show_preload) {
+            core_hide_preloader();
+        }
+
         core_timer_tick(dt);
         js_tick(dt);
     }
@@ -287,49 +291,7 @@ void core_tick(long dt) {
             device_hide_splash();
         }
 
-        // If splash is defined,
-        const char *splash = config_get_splash();
-        if (false) {
-            texture_2d *tex = texture_manager_get_texture(texture_manager_get(), splash);
-            if (!tex) {
-                tex = texture_manager_load_texture(texture_manager_get(), splash);
-            }
-
-            if (tex && tex->loaded) {
-                // Calculate rotation
-                if (do_sizing) {
-                    tealeaf_canvas *canvas = tealeaf_canvas_get();
-                    int canvas_width = canvas->framebuffer_width;
-                    int canvas_height = canvas->framebuffer_height;
-                    rotate = canvas_width > canvas_height;
-                    rotate ^= tex->originalWidth > tex->originalHeight;
-
-                    calculate_size(tex, rotate);
-                    do_sizing = false;
-                }
-
-
-                context_2d *ctx = context_2d_get_onscreen();
-                context_2d_loadIdentity(ctx);
-                context_2d_clear(ctx);
-                if (rotate) {
-                    context_2d_save(ctx);
-                    context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
-                    context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
-                    context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
-                }
-                context_2d_setGlobalCompositeOperation(ctx, source_over);
-                context_2d_drawImage(ctx, 0, splash, &tex_size, &size);
-                if (rotate) {
-                    context_2d_restore(ctx);
-                }
-                // we're the first, last, and only thing to draw, so flush the
-                // buffer
-                context_2d_flush(ctx);
-
-                device_hide_splash();
-            }
-        }
+        core_splash_tick();
     }
 
     // check the gl error and send it to java to be logged
@@ -341,6 +303,50 @@ void core_tick(long dt) {
     finish_loading_images();
 
     GLTRACE(glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer_name));
+}
+
+void core_splash_tick(void) {
+    // If splash is defined,
+    const char *splash = config_get_splash();
+    if (splash && splash[0]) {
+        texture_2d *tex = texture_manager_load_texture(texture_manager_get(), splash);
+
+        if (tex && tex->loaded) {
+
+            // Calculate rotation
+            if (do_sizing) {
+                tealeaf_canvas *canvas = tealeaf_canvas_get();
+                int canvas_width = canvas->framebuffer_width;
+                int canvas_height = canvas->framebuffer_height;
+                rotate = canvas_width > canvas_height;
+                rotate ^= tex->originalWidth > tex->originalHeight;
+
+                calculate_size(tex, rotate);
+                do_sizing = false;
+            }
+
+
+            context_2d *ctx = context_2d_get_onscreen();
+            context_2d_loadIdentity(ctx);
+            context_2d_clear(ctx);
+            if (rotate) {
+                context_2d_save(ctx);
+                context_2d_translate(ctx, size.y + (size.height)/2.f/tex->scale, size.x + (size.width)/2.f/tex->scale);
+                context_2d_rotate(ctx, (tex->originalWidth > tex->originalHeight)? -3.14f/2.f : 3.14f/2.f);
+                context_2d_translate(ctx, -size.x -(size.width)/2.f/tex->scale, -size.y - (size.height)/2.f/tex->scale);
+            }
+            context_2d_setGlobalCompositeOperation(ctx, source_over);
+            context_2d_drawImage(ctx, 0, splash, &tex_size, &size);
+            if (rotate) {
+                context_2d_restore(ctx);
+            }
+            // we're the first, last, and only thing to draw, so flush the
+            // buffer
+            context_2d_flush(ctx);
+
+            device_hide_splash();
+        }
+    }
 }
 
 /**
