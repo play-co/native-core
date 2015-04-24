@@ -255,6 +255,7 @@ void finish_loading_images();
  * @retval	NONE
  */
 void core_tick(long dt) {
+    void core_splash_tick(void);
     application_bundle_t *app = get_active_application();
 
     if (app == NULL) {
