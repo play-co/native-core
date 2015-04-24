@@ -30,7 +30,16 @@
  * @retval	NONE
  */
 void core_queue_event(const char *event) {
-	js_queue_event(event);
+    js_queue_event(event);
+}
+
+/**
+ * @name	core_clear_event_queue
+ * @brief	removes all events from the event queue
+ * @retval	NONE
+ */
+void core_clear_event_queue(void) {
+    js_clear_event_queue();
 }
 
 /**
