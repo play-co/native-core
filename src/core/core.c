@@ -170,6 +170,7 @@ void core_run_bundle(const char* bundle_id) {
 
 void core_exit_bundle(const char* bundle_id) {
     exit_application_bundle(get_application_bundle(bundle_id));
+    core_clear_event_queue();
 }
 
 /**
