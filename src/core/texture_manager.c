@@ -845,7 +845,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // dispatch the event
         pthread_mutex_unlock(&mutex);
-        core_dispatch_event(event_str);
+        core_queue_event(event_str);
 
         if (dynamic_str) {
             free(dynamic_str);
