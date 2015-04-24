@@ -31,7 +31,7 @@
 #define DEF_WIDTH 360
 #define DEF_HEIGHT 640
 #define DEF_REMOTE_LOADING false
-#define DEF_SPLASH "loading.png"
+#define DEF_SPLASH "splash-2048.png"
 
 typedef struct config_t {
     const char *code_path;      // Code path
