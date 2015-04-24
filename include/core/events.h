@@ -20,6 +20,7 @@
 extern "C" {
 #endif
 
+void core_queue_event(const char *event);
 void core_dispatch_event(const char *event);
 void core_dispatch_input_event(int id, int type, int x, int y);
 

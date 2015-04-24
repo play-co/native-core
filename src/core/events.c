@@ -24,6 +24,16 @@
 #include "core/core_js.h"
 
 /**
+ * @name	core_queue_event
+ * @brief	queues the given event for javascript
+ * @param	event - (const char *) holds the json event string to be sent to javascript
+ * @retval	NONE
+ */
+void core_queue_event(const char *event) {
+	js_queue_event(event);
+}
+
+/**
  * @name	core_dispatch_event
  * @brief	dispatches the given event to javascript
  * @param	event - (const char *) holds the json event string to be sent to javascript

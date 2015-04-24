@@ -36,6 +36,7 @@ bool init_js(const char *uri, const char *version);
 bool destroy_js();
 void eval_str(const char *str);
 void js_tick(long dt);
+void js_queue_event(const char *evt);
 void js_dispatch_event(const char *evt);
 void js_on_pause();
 void js_on_resume();
