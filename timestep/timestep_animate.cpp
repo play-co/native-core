@@ -89,8 +89,6 @@ view_animation *view_animation_init(timestep_view *view) {
 
     timestep_view_add_animation(view, anim);
 
-    js_object_wrapper_init(&anim->js_group);
-
     LOGFN("end view_animation_init");
     return anim;
 }
@@ -103,8 +101,6 @@ void view_animation_release(view_animation *anim) {
         anim->is_scheduled = false;
         LIST_REMOVE(&global_head, anim);
     }
-
-    js_object_wrapper_delete(&anim->js_group);
 
     OBJECT_POOL_RELEASE(anim);
 
