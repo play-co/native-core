@@ -149,6 +149,7 @@ void view_animation_clear(view_animation *anim) {
 
     view_animation_unschedule(anim);
     anim->elapsed = 0;
+    def_animate_remove_from_group(anim->js_anim);
     LOGFN("end view_animation_clear");
 }
 
@@ -203,6 +204,7 @@ void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int d
 
     frame->transition = transition;
     //anim->is_running = true; TODO what should this do?
+    def_animate_add_to_group(anim->js_anim);
 
     LOGFN("end view_animation_then");
 }
@@ -588,7 +590,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
     if (!view) {
         LOG("WARNING: Animation tick terminated early because view died");
         view_animation_unschedule(anim);
-        def_animate_finish(anim->js_anim);
+        def_animate_remove_from_group(anim->js_anim);
         return;
     }
 
@@ -659,7 +661,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
     }
 
     view_animation_unschedule(anim);
-    def_animate_finish(anim->js_anim);
+    def_animate_remove_from_group(anim->js_anim);
     LOGFN("end view_animation_tick");
 }
 
