@@ -155,8 +155,10 @@ void view_animation_clear(view_animation *anim) {
 
 void view_animation_commit(view_animation *anim) {
     LOGFN("view_animation_commit");
-    unsigned int elapsed = 0;
+    view_animation_resume(anim);
 
+    unsigned int elapsed = 0;
+    anim->elapsed = 0;
     anim_frame **head = &anim->frame_head;
     anim_frame *curr = *head;
     while (curr) {
@@ -192,6 +194,11 @@ void view_animation_now(view_animation *anim, anim_frame *frame, unsigned int du
 
 void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int duration, unsigned int transition) {
     LOGFN("view_animation_then");
+
+    anim_frame *frame_head = anim->frame_head;
+    if (!frame_head) {
+        anim->elapsed = 0;
+    }
 
     view_animation_schedule(anim);
 
@@ -611,7 +618,6 @@ static void view_animation_tick(view_animation *anim, long dt) {
 
         switch (frame->type) {
         case WAIT_FRAME:
-
             break;
         case STYLE_FRAME:
             //LOG("it's a style frame %f", t);
@@ -636,9 +642,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
         default:
             break;
         }
-        if (isnan(view->x) || isnan(view->y) || isnan(view->width) || isnan(view->height)) {
-            //LOG("animated to NaN?");
-        }
+
         // if the frame is finished, remove it. However, if the frame head is not equal to the
         // what was the current frame's id, then this frame is different than the one used in the
         // frame type switch statement, and should be left alone.
