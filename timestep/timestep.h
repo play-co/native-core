@@ -211,7 +211,6 @@ typedef struct view_animation_t {
 	struct view_animation_t *next;
 	struct view_animation_t *prev;
 
-	PERSISTENT_JS_OBJECT_WRAPPER js_group;
 	JS_OBJECT_WRAPPER js_anim;
 } view_animation;
 

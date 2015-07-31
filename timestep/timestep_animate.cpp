@@ -89,8 +89,6 @@ view_animation *view_animation_init(timestep_view *view) {
 
     timestep_view_add_animation(view, anim);
 
-    js_object_wrapper_init(&anim->js_group);
-
     LOGFN("end view_animation_init");
     return anim;
 }
@@ -103,8 +101,6 @@ void view_animation_release(view_animation *anim) {
         anim->is_scheduled = false;
         LIST_REMOVE(&global_head, anim);
     }
-
-    js_object_wrapper_delete(&anim->js_group);
 
     OBJECT_POOL_RELEASE(anim);
 
@@ -153,13 +149,16 @@ void view_animation_clear(view_animation *anim) {
 
     view_animation_unschedule(anim);
     anim->elapsed = 0;
+    def_animate_remove_from_group(anim->js_anim);
     LOGFN("end view_animation_clear");
 }
 
 void view_animation_commit(view_animation *anim) {
     LOGFN("view_animation_commit");
-    unsigned int elapsed = 0;
+    view_animation_resume(anim);
 
+    unsigned int elapsed = 0;
+    anim->elapsed = 0;
     anim_frame **head = &anim->frame_head;
     anim_frame *curr = *head;
     while (curr) {
@@ -196,6 +195,11 @@ void view_animation_now(view_animation *anim, anim_frame *frame, unsigned int du
 void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int duration, unsigned int transition) {
     LOGFN("view_animation_then");
 
+    anim_frame *frame_head = anim->frame_head;
+    if (!frame_head) {
+        anim->elapsed = 0;
+    }
+
     view_animation_schedule(anim);
 
     LIST_ADD(&anim->frame_head, frame);
@@ -207,6 +211,7 @@ void view_animation_then(view_animation *anim, anim_frame *frame, unsigned int d
 
     frame->transition = transition;
     //anim->is_running = true; TODO what should this do?
+    def_animate_add_to_group(anim->js_anim);
 
     LOGFN("end view_animation_then");
 }
@@ -592,7 +597,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
     if (!view) {
         LOG("WARNING: Animation tick terminated early because view died");
         view_animation_unschedule(anim);
-        def_animate_finish(anim->js_anim);
+        def_animate_remove_from_group(anim->js_anim);
         return;
     }
 
@@ -613,7 +618,6 @@ static void view_animation_tick(view_animation *anim, long dt) {
 
         switch (frame->type) {
         case WAIT_FRAME:
-
             break;
         case STYLE_FRAME:
             //LOG("it's a style frame %f", t);
@@ -638,9 +642,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
         default:
             break;
         }
-        if (isnan(view->x) || isnan(view->y) || isnan(view->width) || isnan(view->height)) {
-            //LOG("animated to NaN?");
-        }
+
         // if the frame is finished, remove it. However, if the frame head is not equal to the
         // what was the current frame's id, then this frame is different than the one used in the
         // frame type switch statement, and should be left alone.
@@ -663,7 +665,7 @@ static void view_animation_tick(view_animation *anim, long dt) {
     }
 
     view_animation_unschedule(anim);
-    def_animate_finish(anim->js_anim);
+    def_animate_remove_from_group(anim->js_anim);
     LOGFN("end view_animation_tick");
 }
 
