@@ -35,6 +35,7 @@
 
 // Large number to start texture memory limit
 #define MAX_BYTES_FOR_TEXTURES 500000000    /* 500 MB */
+#define MIN_BYTES_FOR_TEXTURES 50000000    /* 50 MB */
 
 // Rate used to reduce memory limit on glError or memory warning
 #define MEMORY_DROP_RATE 0.9                /* 90% of current memory */
@@ -389,11 +390,12 @@ void texture_manager_clear_textures(texture_manager *manager, bool clear_all) {
      * 3. throw out failed textures, forcing them to reload if needed
      * 4. throw out least-recently-used textures if we exceed our estimated memory limit
      */
-    long adjusted_max_texture_bytes = manager->max_texture_bytes - manager->approx_bytes_to_load;
+    long adjusted_max_texture_bytes = 0;
     HASH_SRT(url_hash, manager->url_to_tex, last_accessed_compare);
     texture_2d *tex = NULL;
     texture_2d *tmp = NULL;
     HASH_ITER(url_hash, manager->url_to_tex, tex, tmp) {
+        adjusted_max_texture_bytes = manager->max_texture_bytes - manager->approx_bytes_to_load;
         bool overLimit = manager->texture_bytes_used > adjusted_max_texture_bytes;
 
         // if we reach a recently used image and still need memory, halfsize everything
@@ -736,6 +738,10 @@ void texture_manager_tick(texture_manager *manager) {
 
     // move our estimated max memory limit up or down if necessary
     long highest = get_epoch_used_max();
+    if(highest == 0) {
+      highest = MIN_BYTES_FOR_TEXTURES;
+    }
+    bool overLimit = manager->texture_bytes_used > manager->max_texture_bytes - manager->approx_bytes_to_load;
     if (m_memory_warning) {
         m_memory_warning = false;
 
@@ -750,7 +756,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-    } else if (highest > manager->max_texture_bytes) {
+    } else if (highest > manager->max_texture_bytes || overLimit) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
         TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
@@ -897,7 +903,7 @@ void texture_manager_memory_warning() {
 void texture_manager_set_max_memory(texture_manager *manager, long bytes) {
     LOGFN("texture_manager_set_max_memory");
 
-    if (manager->max_texture_bytes > bytes) {
+    if (manager->max_texture_bytes > bytes && bytes > 0) {
         manager->max_texture_bytes = bytes;
     }
 }
