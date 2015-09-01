@@ -35,6 +35,7 @@
 
 // Large number to start texture memory limit
 #define MAX_BYTES_FOR_TEXTURES 500000000    /* 500 MB */
+#define MIN_BYTES_FOR_TEXTURES 1000000    /* 1 MB */
 
 // Rate used to reduce memory limit on glError or memory warning
 #define MEMORY_DROP_RATE 0.9                /* 90% of current memory */
@@ -713,10 +714,10 @@ void texture_manager_touch_texture(texture_manager *manager, const char *url) {
 }
 
 static long get_epoch_used_max() {
-    long highest = m_epoch_used[0];
+    long highest = MIN_BYTES_FOR_TEXTURES;
     int i;
 
-    for (i = 1; i < EPOCH_USED_BINS; ++i) {
+    for (i = 0; i < EPOCH_USED_BINS; i++) {
         if (highest < m_epoch_used[i]) {
             highest = m_epoch_used[i];
         }
@@ -897,7 +898,7 @@ void texture_manager_memory_warning() {
 void texture_manager_set_max_memory(texture_manager *manager, long bytes) {
     LOGFN("texture_manager_set_max_memory");
 
-    if (manager->max_texture_bytes > bytes) {
+    if (manager->max_texture_bytes > bytes && bytes > 0) {
         manager->max_texture_bytes = bytes;
     }
 }
