@@ -35,7 +35,7 @@
 
 // Large number to start texture memory limit
 #define MAX_BYTES_FOR_TEXTURES 500000000    /* 500 MB */
-#define MIN_BYTES_FOR_TEXTURES 1000000    /* 1 MB */
+#define MIN_BYTES_FOR_TEXTURES 50000000     /* 50 MB */
 
 // Rate used to reduce memory limit on glError or memory warning
 #define MEMORY_DROP_RATE 0.9                /* 90% of current memory */
@@ -633,7 +633,7 @@ texture_manager *texture_manager_get() {
             m_instance->texture_bytes_used = 0;
             m_instance->textures_to_load = 0;
             m_instance->approx_bytes_to_load = 0;
-            //default to fullsized textures
+            // default to fullsized textures
             m_instance->max_texture_bytes = MAX_BYTES_FOR_TEXTURES;
             // Start the background texture loader thread
             m_running = true;
@@ -737,6 +737,7 @@ void texture_manager_tick(texture_manager *manager) {
 
     // move our estimated max memory limit up or down if necessary
     long highest = get_epoch_used_max();
+    bool overLimit = manager->texture_bytes_used > manager->max_texture_bytes - manager->approx_bytes_to_load;
     if (m_memory_warning) {
         m_memory_warning = false;
 
@@ -751,7 +752,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-    } else if (highest > manager->max_texture_bytes) {
+    } else if (highest > manager->max_texture_bytes || overLimit) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
         TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
