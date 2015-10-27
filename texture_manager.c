@@ -54,6 +54,7 @@ static bool m_running = false; // Flag indicating that the background texture lo
 static texture_manager *m_instance = NULL;
 static bool m_instance_ready = false; // Flag indicating that the instance is ready
 static bool m_memory_warning = false; // Flag indicating that a memory warning occurred
+static bool m_memory_critical = false; // We should not increase max memory after this flag is set
 
 static ThreadsThread m_load_thread = THREADS_INVALID_THREAD;
 static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
@@ -752,7 +753,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-    } else if (highest > manager->max_texture_bytes || overLimit) {
+    } else if ((highest > manager->max_texture_bytes || overLimit) && !m_memory_critical) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
         TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
@@ -889,6 +890,13 @@ void texture_manager_memory_warning() {
     LOGFN("texture_manager_memory_warning");
 
     m_memory_warning = true;
+}
+
+void texture_manager_memory_critical() {
+    LOGFN("texture_manager_memory_critical");
+
+    m_memory_warning = true;
+    m_memory_critical = true;
 }
 
 /*
