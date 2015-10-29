@@ -35,6 +35,7 @@
 
 // Large number to start texture memory limit
 #define MAX_BYTES_FOR_TEXTURES 500000000    /* 500 MB */
+#define MIN_BYTES_FOR_TEXTURES 50000000     /* 50 MB */
 
 // Rate used to reduce memory limit on glError or memory warning
 #define MEMORY_DROP_RATE 0.9                /* 90% of current memory */
@@ -53,6 +54,7 @@ static bool m_running = false; // Flag indicating that the background texture lo
 static texture_manager *m_instance = NULL;
 static bool m_instance_ready = false; // Flag indicating that the instance is ready
 static bool m_memory_warning = false; // Flag indicating that a memory warning occurred
+static bool m_memory_critical = false; // We should not increase max memory after this flag is set
 
 static ThreadsThread m_load_thread = THREADS_INVALID_THREAD;
 static pthread_mutex_t mutex     = PTHREAD_MUTEX_INITIALIZER;
@@ -632,7 +634,7 @@ texture_manager *texture_manager_get() {
             m_instance->texture_bytes_used = 0;
             m_instance->textures_to_load = 0;
             m_instance->approx_bytes_to_load = 0;
-            //default to fullsized textures
+            // default to fullsized textures
             m_instance->max_texture_bytes = MAX_BYTES_FOR_TEXTURES;
             // Start the background texture loader thread
             m_running = true;
@@ -713,10 +715,10 @@ void texture_manager_touch_texture(texture_manager *manager, const char *url) {
 }
 
 static long get_epoch_used_max() {
-    long highest = m_epoch_used[0];
+    long highest = MIN_BYTES_FOR_TEXTURES;
     int i;
 
-    for (i = 1; i < EPOCH_USED_BINS; ++i) {
+    for (i = 0; i < EPOCH_USED_BINS; i++) {
         if (highest < m_epoch_used[i]) {
             highest = m_epoch_used[i];
         }
@@ -736,6 +738,7 @@ void texture_manager_tick(texture_manager *manager) {
 
     // move our estimated max memory limit up or down if necessary
     long highest = get_epoch_used_max();
+    bool overLimit = manager->texture_bytes_used > manager->max_texture_bytes - manager->approx_bytes_to_load;
     if (m_memory_warning) {
         m_memory_warning = false;
 
@@ -745,15 +748,15 @@ void texture_manager_tick(texture_manager *manager) {
 
         // decrease the max texture bytes limit
         long new_max_bytes = MEMORY_DROP_RATE * (double)highest;
-        TEXLOG("WARNING: Low memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Low memory! Texture limit was %zu, now %li", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
         memset(m_epoch_used, 0, sizeof(m_epoch_used));
-    } else if (highest > manager->max_texture_bytes) {
+    } else if ((highest > manager->max_texture_bytes || overLimit) && !m_memory_critical) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
-        TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %li", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
@@ -885,8 +888,15 @@ void texture_manager_tick(texture_manager *manager) {
  */
 void texture_manager_memory_warning() {
     LOGFN("texture_manager_memory_warning");
-
+    TEXLOG("MEMORY WARNING, used: %zu", m_instance->max_texture_bytes);
     m_memory_warning = true;
+}
+
+void texture_manager_memory_critical() {
+    LOGFN("texture_manager_memory_critical");
+    TEXLOG("MEMORY CRITICAL, used: %zu", m_instance->max_texture_bytes);
+    m_memory_warning = true;
+    m_memory_critical = true;
 }
 
 /*
@@ -897,7 +907,7 @@ void texture_manager_memory_warning() {
 void texture_manager_set_max_memory(texture_manager *manager, long bytes) {
     LOGFN("texture_manager_set_max_memory");
 
-    if (manager->max_texture_bytes > bytes) {
+    if (manager->max_texture_bytes > bytes && bytes > 0) {
         manager->max_texture_bytes = bytes;
     }
 }
