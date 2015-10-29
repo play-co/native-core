@@ -37,7 +37,7 @@
 #include "platform/device.h"
 #include <stdio.h>
 
-#define MIN_SIZE_TO_HALFSIZE 320
+#define MIN_SIZE_TO_HALFSIZE 480
 
 gl_error *gl_errors_hash = NULL;
 static int m_framebuffer_name = -1;
