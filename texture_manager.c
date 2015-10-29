@@ -748,7 +748,7 @@ void texture_manager_tick(texture_manager *manager) {
 
         // decrease the max texture bytes limit
         long new_max_bytes = MEMORY_DROP_RATE * (double)highest;
-        TEXLOG("WARNING: Low memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Low memory! Texture limit was %zu, now %li", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
@@ -756,7 +756,7 @@ void texture_manager_tick(texture_manager *manager) {
     } else if ((highest > manager->max_texture_bytes || overLimit) && !m_memory_critical) {
         // increase the max texture bytes limit
         long new_max_bytes = MEMORY_GAIN_RATE * (double)manager->max_texture_bytes;
-        TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %zu", manager->max_texture_bytes, new_max_bytes);
+        TEXLOG("WARNING: Allowing more memory! Texture limit was %zu, now %li", manager->max_texture_bytes, new_max_bytes);
         manager->max_texture_bytes = new_max_bytes;
 
         // zero the epoch used bins
@@ -888,13 +888,13 @@ void texture_manager_tick(texture_manager *manager) {
  */
 void texture_manager_memory_warning() {
     LOGFN("texture_manager_memory_warning");
-
+    TEXLOG("MEMORY WARNING, used: %zu", m_instance->max_texture_bytes);
     m_memory_warning = true;
 }
 
 void texture_manager_memory_critical() {
     LOGFN("texture_manager_memory_critical");
-
+    TEXLOG("MEMORY CRITICAL, used: %zu", m_instance->max_texture_bytes);
     m_memory_warning = true;
     m_memory_critical = true;
 }
