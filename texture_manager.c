@@ -899,6 +899,11 @@ void texture_manager_memory_critical() {
     m_memory_critical = true;
 }
 
+void texture_manager_memory_reset() {
+    LOGFN("texture_manager_memory_reset");
+    m_memory_critical = false;
+}
+
 /*
  * For devices with known low memory limits, we can start with a lower memory limit
  * to avoid depending on low memory warnings.  This fixes issues where we cannot
