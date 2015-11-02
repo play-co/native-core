@@ -899,8 +899,9 @@ void texture_manager_memory_critical() {
     m_memory_critical = true;
 }
 
-void texture_manager_memory_reset() {
-    LOGFN("texture_manager_memory_reset");
+void texture_manager_reset_memory_critical() {
+    LOGFN("texture_manager_reset_memory_critical");
+
     m_memory_critical = false;
 }
 
