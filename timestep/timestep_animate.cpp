@@ -149,6 +149,7 @@ void view_animation_clear(view_animation *anim) {
 
     view_animation_unschedule(anim);
     anim->elapsed = 0;
+    anim->is_paused = false;
     def_animate_remove_from_group(anim->js_anim);
     LOGFN("end view_animation_clear");
 }
